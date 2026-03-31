@@ -50,7 +50,7 @@ PRODUCTS = {
         "full_name": "MLBB Weekly Pass",
         "price_text": "6400 Ks",
         "stock": 10,
-        "photo": "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=1200&q=80",
+        "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "description": "⚡ Fast and trusted MLBB Weekly Pass top up service.",
     },
     "genshin_blessing": {
