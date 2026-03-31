@@ -183,7 +183,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             continue
 
         if product["stock"] > 0:
-            text = f"🟢 {product['name']} • {product['price_text']}"
+            text = f"✨ {product['name']} • {product['price_text']}"
             rows.append([InlineKeyboardButton(text, callback_data=f"product:{key}")])
         else:
             text = f"🔴 {product['name']} • Out of Stock"
@@ -233,14 +233,19 @@ def welcome_text() -> str:
 
 def product_caption(product: dict) -> str:
     status = "🟢 In Stock" if product["stock"] > 0 else "🔴 Out of Stock"
-    return f"""🎮 <b>{escape(product['full_name'])}</b>
+
+    return f"""✨ <b>{escape(product['full_name'])}</b>
+━━━━━━━━━━━━━━━
 
 💰 <b>Price:</b> {escape(product['price_text'])}
 📦 <b>Stock:</b> {product['stock']}
 📌 <b>Status:</b> {status}
 
-📝 {escape(product['description'])}"""
+📝 <b>Description</b>
+{escape(product['description'])}
 
+━━━━━━━━━━━━━━━
+⚡ Fast • 🔒 Safe • 💖 Trusted"""
 
 def payment_text(payment_name: str, account: str) -> str:
     return f"""💸 <b>PAYMENT INFO</b>
