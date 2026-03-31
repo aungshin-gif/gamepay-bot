@@ -101,7 +101,33 @@ PRODUCTS = {
             "• 1 Month  ➡️ 12000 Ks\n\n"
             "‼️ After 1 Month Renewal ➡️ 29000 Ks"
         ),
-    }
+    },
+    "netflix_premium": {
+        "category": "digital",
+        "name": "Netflix Premium",
+        "full_name": "Netflix Premium Subscription",
+        "price_text": "From 8000 Ks",
+        "stock": 50,
+        "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
+        "description": (
+            "📹 Netflix Premium 📹\n"
+            "😉💥 4K Ultra HD + HDR ✅\n\n"
+            "❤️‍🔥 Share Plan\n"
+            "• 1 Month  😀 8000 Ks\n"
+            "• 3 Months 😀 15000 Ks\n"
+            "• 6 Months 😀 45000 Ks\n"
+            "• 1 Year   😀 90000 Ks\n\n"
+            "❤️‍🔥 Private Plan / Person Plan\n"
+            "• 1 Month  😀 13000 Ks\n"
+            "• 3 Months 😀 28000 Ks\n"
+            "• 6 Months 😀 50000 Ks\n"
+            "• 1 Year   😀 100000 Ks\n"
+            "✏️ Only 1🔥 Profile per account 🥤\n\n"
+            "💙 Own Mail\n"
+            "• 1 Month  😀 50000 Ks\n"
+            "🔍 Head account, Profile 5 ခုပါမယ်။"
+        ),
+    },
 }
 
 # =========================
