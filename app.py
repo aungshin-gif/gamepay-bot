@@ -157,9 +157,10 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("💚 KPay", callback_data="pay:kpay")],
-            [InlineKeyboardButton("💙 Wave Pay", callback_data="pay:wave")],
-            [InlineKeyboardButton("🩶 UAB Pay", callback_data="pay:uab")],
+            [InlineKeyboardButton("💙 KPay", callback_data="pay:kpay")],
+            [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
+            [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
+            [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
             [InlineKeyboardButton("⬅️ Back", callback_data="pay_back_products")],
         ]
     )
