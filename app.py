@@ -59,7 +59,7 @@ PRODUCTS = {
         "full_name": "Genshin Impact Blessing",
         "price_text": "14800 Ks",
         "stock": 10,
-        "photo": "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1200&q=80",
+        "photo": "Buy-Welkin-Moon-In-Game.png",
         "description": "✨ Safe and quick Genshin Blessing top up service.",
     },
     "hsr_express": {
