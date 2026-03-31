@@ -33,29 +33,19 @@ PAYMENT_ACCOUNTS = {
     "uab": "💚 UAB Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
     "aya": "❤️ AYA Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
 }
-
 CATEGORIES = {
-    "mlbb": {
-        "name": "🔥 MLBB",
-        "description": "MLBB top up packages",
+    "game": {
+        "name": "🎮 Game Top Up",
     },
-    "genshin": {
-        "name": "✨ Genshin Impact",
-        "description": "Genshin packages",
-    },
-    "hsr": {
-        "name": "🚄 Honkai: Star Rail",
-        "description": "HSR packages",
-    },
-    "wuthering": {
-        "name": "🌊 Wuthering Waves",
-        "description": "Wuthering Waves packages",
+    "digital": {
+        "name": "💻 Digital Products",
     },
 }
 
+
 PRODUCTS = {
     "mlbb_weekly": {
-        "category": "mlbb",
+        "category": "game",
         "name": "Weekly Pass",
         "full_name": "MLBB Weekly Pass",
         "price_text": "6400 Ks",
@@ -64,7 +54,7 @@ PRODUCTS = {
         "description": "⚡ Fast and trusted MLBB Weekly Pass top up service.",
     },
     "genshin_blessing": {
-        "category": "genshin",
+        "category": "game",
         "name": "Blessing",
         "full_name": "Genshin Impact Blessing",
         "price_text": "14800 Ks",
@@ -73,7 +63,7 @@ PRODUCTS = {
         "description": "✨ Safe and quick Genshin Blessing top up service.",
     },
     "hsr_express": {
-        "category": "hsr",
+        "category": "game",
         "name": "Express Supply",
         "full_name": "Honkai: Star Rail Express Supply",
         "price_text": "14800 Ks",
@@ -82,7 +72,7 @@ PRODUCTS = {
         "description": "🚄 Fast Honkai: Star Rail Express Supply service.",
     },
     "wuthering_lunite": {
-        "category": "wuthering",
+        "category": "game",
         "name": "Lunite Subscription",
         "full_name": "Wuthering Waves Lunite Subscription",
         "price_text": "18800 Ks",
@@ -90,7 +80,28 @@ PRODUCTS = {
         "photo": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
         "description": "🌊 Trusted Wuthering Waves Lunite Subscription service.",
     },
-}
+"capcut_pro": {
+        "category": "digital",
+        "name": "CapCut Pro",
+        "full_name": "CapCut Pro Subscription",
+        "price_text": "From 5500 Ks",
+        "stock": 50,
+        "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+        "description": (
+            "📱 CapCut Pro Price\n\n"
+            "❤️‍🔥 Share Plan\n"
+            "• 1 Month  ➡️  5500 Ks\n"
+            "• 3 Months ➡️ 15000 Ks\n\n"
+            "❤️‍🔥 Private Plan\n"
+            "• 1 Month  ➡️  8000 Ks\n"
+            "• 3 Months ➡️ 25000 Ks\n"
+            "• 6 Months ➡️ 45000 Ks\n"
+            "• 12 Months ➡️ 90000 Ks\n\n"
+            "💙 Own Mail Plan\n"
+            "• 1 Month  ➡️ 12000 Ks\n\n"
+            "‼️ After 1 Month Renewal ➡️ 29000 Ks"
+        ),
+    }
 
 # =========================
 # STATES
