@@ -179,9 +179,7 @@ def admin_action_keyboard(user_id: int) -> InlineKeyboardMarkup:
 
 def welcome_text() -> str:
     return (
-        "╔══════════════════════╗\n"
-        "   🌈⚡ <b>GAMEPAY HUB</b> ⚡🌈\n"
-        "╚══════════════════════╝\n\n"
+        "🌈⚡ <b>GAMEPAY HUB</b> ⚡🌈\n\n"
         "🎮 <b>Welcome from Gamepay Hub</b>\n"
         "မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎\n\n"
         "✨ <b>What would you like to do?</b>\n"
