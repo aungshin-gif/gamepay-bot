@@ -17,7 +17,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     if not BOT_TOKEN:
-        
+        raise ValueError("BOT_TOKEN not found.")
 
     app = Application.builder().token(BOT_TOKEN).build()
 
