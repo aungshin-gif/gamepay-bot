@@ -279,7 +279,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return MENU_STATE
 
-
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -313,7 +312,6 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return MENU_STATE
 
-
 async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -345,6 +343,11 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return CATEGORY_STATE
 
+        context.user_data["category_key"] = category_key
+
+        
+
+async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -428,7 +431,6 @@ async def id_server_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return PAYMENT_STATE
 
-
 async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -436,6 +438,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "pay_back_products":
         category_key = context.user_data.get("category_key")
+
         if not category_key:
             await query.message.reply_text(
                 "🗂️ <b>Please choose a category</b>",
@@ -445,7 +448,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return CATEGORY_STATE
 
         await query.message.reply_text(
-            f"{CATEGORIES[category_key]['name']} <b>packages</b> 👇",
+            f"{CATEGORIES[category_key]['name']} <b>list</b> 👇",
             reply_markup=products_keyboard(category_key),
             parse_mode=ParseMode.HTML,
         )
@@ -464,6 +467,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "kpay": "KPay",
         "wave": "Wave Pay",
         "uab": "UAB Pay",
+        "aya": "AYA Pay",
     }
 
     payment_name = payment_name_map.get(payment_key, payment_key.upper())
@@ -476,6 +480,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML,
     )
     return SCREENSHOT_STATE
+
 
 
 async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
