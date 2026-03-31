@@ -77,7 +77,7 @@ PRODUCTS = {
         "full_name": "Wuthering Waves Lunite Subscription",
         "price_text": "18800 Ks",
         "stock": 10,
-        "photo": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
+        "photo": "oss-ae1390b4bf15e35ed0047fc49232c977 (1).webp",
         "description": "🌊 Trusted Wuthering Waves Lunite Subscription service.",
     },
 "capcut_pro": {
