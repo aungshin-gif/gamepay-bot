@@ -342,12 +342,6 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return PRODUCT_STATE
 
     return CATEGORY_STATE
-
-        context.user_data["category_key"] = category_key
-
-        
-
-
 async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -411,7 +405,6 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ID_SERVER_STATE
 
     return PRODUCT_STATE
-
 
 async def id_server_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.strip()
