@@ -314,7 +314,6 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return CATEGORY_STATE
 
-
 async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -357,58 +356,20 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.HTML,
         )
 
-        await query.message.reply_photo(
-    photo=product["photo"],
-    caption=product_caption(product),
-    parse_mode=ParseMode.HTML,
-)
-
-# 👉 DIGITAL PRODUCT
-if product["category"] == "digital":
-    await query.message.reply_text(
-        "📦 <b>Please choose your plan</b>\n"
-        "လိုချင်တဲ့ plan ကို message နဲ့ပို့ပေးပါ။\n\n"
-        "ဥပမာ:\n"
-        "• Share Plan - 1 Month\n"
-        "• Private Plan - 3 Months\n"
-        "• Own Mail Plan - 1 Month",
-        parse_mode=ParseMode.HTML,
-    )
-    return ID_SERVER_STATE
-
-# 👉 GAME PRODUCT
-await query.message.reply_text(
-    "🆔 <b>Game ID နှင့် Region / Server ID ရေးပေးပါ</b>\n\n"
-    "ဥပမာ:\n"
-    "<code>123456789 / 1234</code>",
-    parse_mode=ParseMode.HTML,
-)
-return ID_SERVER_STATE
-    if data.startswith("product:"):
-        product_key = data.split(":", 1)[1]
-
-        if product_key not in PRODUCTS:
-            await query.message.reply_text("❌ Invalid product.")
-            return PRODUCT_STATE
-
-        product = PRODUCTS[product_key]
-
-        if product["stock"] <= 0:
-            await query.message.reply_text("🔴 ဒီ package က stock ကုန်နေပါတယ်။")
-            return PRODUCT_STATE
-
-        context.user_data["product_key"] = product_key
-        context.user_data["product_name"] = product["full_name"]
-        context.user_data["price_text"] = product["price_text"]
-
-        await query.message.reply_photo(
-            photo=product["photo"],
-            caption=product_caption(product),
-            parse_mode=ParseMode.HTML,
-        )
+        if product["category"] == "digital":
+            await query.message.reply_text(
+                "📦 <b>Please choose your plan</b>\n"
+                "လိုချင်တဲ့ plan ကို message နဲ့ပို့ပေးပါ။\n\n"
+                "ဥပမာ:\n"
+                "• Share Plan - 1 Month\n"
+                "• Private Plan - 3 Months\n"
+                "• Own Mail Plan - 1 Month",
+                parse_mode=ParseMode.HTML,
+            )
+            return ID_SERVER_STATE
 
         await query.message.reply_text(
-            "🆔 <b>Please send your Game ID / Server</b>\n\n"
+            "🆔 <b>Game ID နှင့် Region / Server ID ရေးပေးပါ</b>\n\n"
             "ဥပမာ:\n"
             "<code>123456789 / 1234</code>",
             parse_mode=ParseMode.HTML,
