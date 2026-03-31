@@ -194,28 +194,23 @@ def welcome_text() -> str:
 
 def product_caption(product: dict) -> str:
     status = "🟢 In Stock" if product["stock"] > 0 else "🔴 Out of Stock"
-    return (
-        "╔══════════════════════╗\n"
-        f"   🎮 <b>{escape(product['full_name'])}</b>\n"
-        "╚══════════════════════╝\n\n"
-        f"💰 <b>Price:</b> {escape(product['price_text'])}\n"
-        f"📦 <b>Stock:</b> {product['stock']}\n"
-        f"📌 <b>Status:</b> {status}\n\n"
-        f"📝 {escape(product['description'])}"
-    )
+    return f"""🎮 <b>{escape(product['full_name'])}</b>
+
+💰 <b>Price:</b> {escape(product['price_text'])}
+📦 <b>Stock:</b> {product['stock']}
+📌 <b>Status:</b> {status}
+
+📝 {escape(product['description'])}"""
 
 
 def payment_text(payment_name: str, account: str) -> str:
-    return (
-        "╔══════════════════════╗\n"
-        "   💸 <b>PAYMENT INFO</b>\n"
-        "╚══════════════════════╝\n\n"
-        f"🏦 <b>Method:</b> {escape(payment_name)}\n"
-        f"📲 <b>Account:</b> {escape(account)}\n\n"
-        "✅ ငွေလွှဲပြီးရင် <b>payment screenshot</b> ပို့ပေးပါ\n"
-        "📨 ပြီးတာနဲ့ admin ဆီ order တက်သွားပါမယ်"
-    )
+    return f"""💸 <b>PAYMENT INFO</b>
 
+🏦 <b>Method:</b> {escape(payment_name)}
+📲 <b>Account:</b> {escape(account)}
+
+✅ ငွေလွှဲပြီး <b>payment screenshot</b> ပို့ပေးပါ
+📨 ပြီးတာနဲ့ admin ဆီ order တက်သွားပါမယ်"""
 
 # =========================
 # HANDLERS
