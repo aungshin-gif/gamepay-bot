@@ -25,12 +25,13 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 
 SHOP_NAME = "GAMEPAY HUB"
-CONTACT_USERNAME = "@yourusername"
+CONTACT_USERNAME = "@angsthtun"
 
 PAYMENT_ACCOUNTS = {
-    "kpay": "KPay - 09xxxxxxxxx",
-    "wave": "Wave Pay - 09xxxxxxxxx",
-    "uab": "UAB Pay - 09xxxxxxxxx",
+    "kpay": "KPay - 09795687480",
+    "wave": "Wave Pay - 09795687480",
+    "aya" : "AYA Pay - 09795687480",
+    "uab": "UAB Pay - 09795687480",
 }
 
 CATEGORIES = {
