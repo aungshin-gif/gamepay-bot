@@ -357,16 +357,33 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.HTML,
         )
 
-        await query.message.reply_text(
-            "🆔 <b>Please send your Game ID / Server</b>\n\n"
-            "ဥပမာ:\n"
-            "<code>123456789 / 1234</code>",
-            parse_mode=ParseMode.HTML,
-        )
-        return ID_SERVER_STATE
+        await query.message.reply_photo(
+    photo=product["photo"],
+    caption=product_caption(product),
+    parse_mode=ParseMode.HTML,
+)
 
-    return PRODUCT_STATE
+# 👉 DIGITAL PRODUCT
+if product["category"] == "digital":
+    await query.message.reply_text(
+        "📦 <b>Please choose your plan</b>\n"
+        "လိုချင်တဲ့ plan ကို message နဲ့ပို့ပေးပါ။\n\n"
+        "ဥပမာ:\n"
+        "• Share Plan - 1 Month\n"
+        "• Private Plan - 3 Months\n"
+        "• Own Mail Plan - 1 Month",
+        parse_mode=ParseMode.HTML,
+    )
+    return ID_SERVER_STATE
 
+# 👉 GAME PRODUCT
+await query.message.reply_text(
+    "🆔 <b>Game ID နှင့် Region / Server ID ရေးပေးပါ</b>\n\n"
+    "ဥပမာ:\n"
+    "<code>123456789 / 1234</code>",
+    parse_mode=ParseMode.HTML,
+)
+return ID_SERVER_STATE
     if data.startswith("product:"):
         product_key = data.split(":", 1)[1]
 
