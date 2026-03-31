@@ -189,7 +189,7 @@ def welcome_text() -> str:
 ⚡ Fast Service
 🔒 Safe Payment
 💖 Trusted Top Up"""
-    )
+    
 
 
 def product_caption(product: dict) -> str:
