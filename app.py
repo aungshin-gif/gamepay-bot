@@ -102,6 +102,7 @@ PRODUCTS = {
             "‼️ After 1 Month Renewal ➡️ 29000 Ks"
         ),
     }
+}
 
 # =========================
 # STATES
