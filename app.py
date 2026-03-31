@@ -68,7 +68,7 @@ PRODUCTS = {
         "full_name": "Honkai: Star Rail Express Supply",
         "price_text": "14800 Ks",
         "stock": 10,
-        "photo": "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?auto=format&fit=crop&w=1200&q=80",
+        "photo": "show.png",
         "description": "🚄 Fast Honkai: Star Rail Express Supply service.",
     },
     "wuthering_lunite": {
