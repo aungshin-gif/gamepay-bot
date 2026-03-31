@@ -178,15 +178,17 @@ def admin_action_keyboard(user_id: int) -> InlineKeyboardMarkup:
 
 
 def welcome_text() -> str:
-    return (
-        "🌈⚡ <b>GAMEPAY HUB</b> ⚡🌈\n\n"
-        "🎮 <b>Welcome from Gamepay Hub</b>\n"
-        "မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎\n\n"
-        "✨ <b>What would you like to do?</b>\n"
-        "အောက်က menu ကနေရွေးပေးပါ 👇\n\n"
-        "⚡ Fast Service\n"
-        "🔒 Safe Payment\n"
-        "💖 Trusted Top Up"
+    return """🌈⚡ <b>GAMEPAY HUB</b> ⚡🌈
+
+🎮 <b>Welcome from Gamepay Hub</b>
+မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎
+
+✨ <b>What would you like to do?</b>
+အောက်က menu ကနေရွေးပေးပါ 👇
+
+⚡ Fast Service
+🔒 Safe Payment
+💖 Trusted Top Up"""
     )
 
 
