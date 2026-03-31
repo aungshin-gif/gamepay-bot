@@ -305,7 +305,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["category_key"] = category_key
 
         await query.message.reply_text(
-            f"{CATEGORIES[category_key]['name']} <b>packages</b> 👇",
+            f"{CATEGORIES[category_key]['name']} <b>list</b> 👇",
             reply_markup=products_keyboard(category_key),
             parse_mode=ParseMode.HTML,
         )
@@ -329,9 +329,42 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "out_of_stock":
         await query.message.reply_text(
-            "🔴 ဒီ package က stock ကုန်နေပါတယ်။\nကျေးဇူးပြုပြီး နောက်တစ်ခုရွေးပေးပါ။"
+            "🔴 This item is out of stock.\nကျေးဇူးပြုပြီး နောက်တစ်ခုရွေးပေးပါ။"
         )
         return PRODUCT_STATE
+
+    if data.startswith("product:"):
+        product_key = data.split(":", 1)[1]
+
+        if product_key not in PRODUCTS:
+            await query.message.reply_text("❌ Invalid product.")
+            return PRODUCT_STATE
+
+        product = PRODUCTS[product_key]
+
+        if product["stock"] <= 0:
+            await query.message.reply_text("🔴 This item is out of stock.")
+            return PRODUCT_STATE
+
+        context.user_data["product_key"] = product_key
+        context.user_data["product_name"] = product["full_name"]
+        context.user_data["price_text"] = product["price_text"]
+
+        await query.message.reply_photo(
+            photo=product["photo"],
+            caption=product_caption(product),
+            parse_mode=ParseMode.HTML,
+        )
+
+        await query.message.reply_text(
+            "🆔 <b>Please send your Game ID / Server</b>\n\n"
+            "ဥပမာ:\n"
+            "<code>123456789 / 1234</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return ID_SERVER_STATE
+
+    return PRODUCT_STATE
 
     if data.startswith("product:"):
         product_key = data.split(":", 1)[1]
