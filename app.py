@@ -568,7 +568,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 text=(
                     "✅ <b>Order Approved!</b>\n\n"
                     "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
-                    "💖 Gamepay Hub ကိုအသုံးပြုပေးတာ ကျေးဇူးတင်ပါတယ်"
+                    "👾 Gamepay Hub ကိုအသုံးပြုပေးတာ ကျေးဇူးတင်ပါတယ်"
                 ),
                 parse_mode=ParseMode.HTML,
             )
