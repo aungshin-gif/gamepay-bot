@@ -28,10 +28,10 @@ SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
 
 PAYMENT_ACCOUNTS = {
-    "kpay": "KPay - 09795687480",
-    "wave": "Wave Pay - 09795687480",
-    "aya" : "AYA Pay - 09795687480",
-    "uab": "UAB Pay - 09795687480",
+    "kpay": "💙 KPay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+    "wave": "💛 Wave Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+    "uab": "💚 UAB Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+    "aya": "❤️ AYA Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
 }
 
 CATEGORIES = {
