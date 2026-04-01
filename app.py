@@ -546,7 +546,16 @@ def payment_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def admin_action_keyboard(order_id: str) -> InlineKeyboardMarkup:
+def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
+    if category == "digital":
+        return InlineKeyboardMarkup(
+            [[
+                InlineKeyboardButton("⚡ Auto", callback_data=f"auto:{order_id}"),
+                InlineKeyboardButton("✍️ Manual", callback_data=f"manual:{order_id}"),
+                InlineKeyboardButton("❌ Reject", callback_data=f"reject:{order_id}"),
+            ]]
+        )
+
     return InlineKeyboardMarkup(
         [[
             InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
@@ -896,7 +905,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             photo=photo_file_id,
             caption=admin_caption,
             parse_mode=ParseMode.HTML,
-            reply_markup=admin_action_keyboard(order_id),
+            reply_markup=admin_action_keyboard(order_id, data["category"]),
         )
     except Exception as e:
         logger.exception("Failed to send order to admin: %s", e)
@@ -1045,29 +1054,168 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
             delivery_text += "\n💖 Thanks for using Gamepay Hub"
+async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-            try:
-                await context.bot.send_message(
-                    chat_id=order["user_id"],
-                    text=delivery_text,
-                    parse_mode=ParseMode.HTML,
-                )
-                await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
-            except Exception as e:
-                logger.exception("Failed to auto deliver digital: %s", e)
+    if query.from_user.id != ADMIN_ID:
+        await query.answer("ဒီ button ကို admin ပဲသုံးလို့ရပါတယ်။", show_alert=True)
+        return
+
+    action, order_id = query.data.split(":", 1)
+    order = order_get(order_id)
+
+    if not order:
+        await query.answer("Order not found", show_alert=True)
+        return
+
+    if action == "reject":
+        order_update_status(order_id, "rejected", "Rejected by admin")
+        log_action(order_id, query.from_user.id, "rejected")
+
+        try:
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=(
+                    "❌ <b>Order Rejected!</b>\n\n"
+                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
+                    "📷 Payment screenshot / info ကိုပြန်စစ်ပြီး ပြန်ပို့ပေးပါ။"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+        except Exception as e:
+            logger.exception("Failed to notify reject: %s", e)
+
+        try:
+            await query.edit_message_caption(
+                caption=query.message.caption + "\n\n❌ <b>Status: Rejected</b>",
+                parse_mode=ParseMode.HTML,
+                reply_markup=None,
+            )
+        except Exception as e:
+            logger.exception("Failed to edit reject caption: %s", e)
+        return
+
+    # game product approve
+    if action == "approve":
+        if order["category"] != "game":
+            await query.answer("ဒီ button က game order အတွက်ပဲပါ။", show_alert=True)
+            return
+
+        product = PRODUCTS.get(order["product_key"])
+        if not product or int(product.get("stock", 0)) <= 0:
+            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
+            return
+
+        product["stock"] -= 1
+        order_update_status(order_id, "approved", "Game order approved")
+        log_action(order_id, query.from_user.id, "approved_game")
+
+        try:
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=(
+                    "✅ <b>Order Approved!</b>\n\n"
+                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
+                    "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
+                    "💖 Thanks for using Gamepay Hub"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
+        except Exception as e:
+            logger.exception("Failed to notify game approve: %s", e)
+
+        try:
+            await query.edit_message_caption(
+                caption=query.message.caption + "\n\n✅ <b>Status: Approved</b>",
+                parse_mode=ParseMode.HTML,
+                reply_markup=None,
+            )
+        except Exception as e:
+            logger.exception("Failed to edit approve caption: %s", e)
+        return
+
+    # digital auto delivery
+    if action == "auto":
+        if order["category"] != "digital":
+            await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
+            return
+
+        inventory_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+        account = reserve_account(order["product_key"], order["plan_key"], order_id)
+
+        if not account:
+            order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
+            log_action(order_id, query.from_user.id, "auto_failed_waiting_manual")
 
             try:
                 await query.edit_message_caption(
-                    caption=query.message.caption + "\n\n✅ <b>Status: Auto Delivered</b>",
+                    caption=query.message.caption + "\n\n🟡 <b>Status: No Auto Stock / Waiting Manual Delivery</b>",
                     parse_mode=ParseMode.HTML,
                     reply_markup=None,
                 )
             except Exception as e:
-                logger.exception("Failed to edit auto delivery caption: %s", e)
+                logger.exception("Failed to edit auto-failed caption: %s", e)
+
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"❌ <b>Auto stock not found</b>\n\n"
+                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
+                    f"🎮 Product: {escape(order['product_name'])}\n"
+                    f"📋 Plan: {escape(order['plan_label'])}\n\n"
+                    "Manual delivery လုပ်ချင်ရင် ဒီ command သုံးပါ:\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
             return
 
-        order_update_status(order_id, "waiting_manual_delivery", "Reserved account but manual delivery mode")
-        log_action(order_id, query.from_user.id, "manual_delivery_requested")
+        order_update_status(order_id, "delivered", "Auto delivered")
+        log_action(order_id, query.from_user.id, "auto_delivered")
+
+        delivery_text = (
+            f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
+            f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
+            f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
+        )
+
+        if account["extra"]:
+            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
+
+        delivery_text += "\n💖 Thanks for using Gamepay Hub"
+
+        try:
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=delivery_text,
+                parse_mode=ParseMode.HTML,
+            )
+            await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
+        except Exception as e:
+            logger.exception("Failed to auto deliver digital: %s", e)
+
+        try:
+            await query.edit_message_caption(
+                caption=query.message.caption + "\n\n✅ <b>Status: Auto Delivered</b>",
+                parse_mode=ParseMode.HTML,
+                reply_markup=None,
+            )
+        except Exception as e:
+            logger.exception("Failed to edit auto delivery caption: %s", e)
+        return
+
+    # digital manual delivery
+    if action == "manual":
+        if order["category"] != "digital":
+            await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
+            return
+
+        order_update_status(order_id, "waiting_manual_delivery", "Waiting admin manual delivery")
+        log_action(order_id, query.from_user.id, "manual_delivery_selected")
 
         try:
             await query.edit_message_caption(
@@ -1076,40 +1224,48 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=None,
             )
         except Exception as e:
-            logger.exception("Failed to edit caption: %s", e)
+            logger.exception("Failed to edit manual caption: %s", e)
 
         await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
-                f"📦 <b>Reserved account found</b>\n\n"
+                f"✍️ <b>Manual delivery selected</b>\n\n"
                 f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                f"Email: <code>{escape(account['email'])}</code>\n"
-                f"Password: <code>{escape(account['password'])}</code>\n\n"
-                "customer ဆီပို့ချင်ရင် ဒီ command သုံးပါ:\n"
-                f"<code>/deliver {escape(order_id)} Email: {escape(account['email'])} Password: {escape(account['password'])}</code>"
+                f"🎮 Product: {escape(order['product_name'])}\n"
+                f"📋 Plan: {escape(order['plan_label'])}\n\n"
+                "Customer ဆီပို့ချင်တဲ့ Email / Password ကို ဒီ command နဲ့ပို့ပါ:\n\n"
+                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>\n\n"
+                "ဒါမှမဟုတ် multiline နဲ့လည်းပို့လို့ရတယ်:\n"
+                f"<code>/deliver {escape(order_id)}\nEmail: yourmail@gmail.com\nPassword: 123456</code>"
             ),
             parse_mode=ParseMode.HTML,
         )
+
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    if len(context.args) < 2:
+    if not update.message or not update.message.text:
+        return
+
+    full_text = update.message.text.strip()
+    parts = full_text.split(maxsplit=2)
+
+    if len(parts) < 3:
         await update.message.reply_text(
-            "Usage:\n<code>/deliver ORDER_ID Email: xxx Password: yyy</code>",
+            "Usage:\n"
+            "<code>/deliver ORDER_ID Email: xxx Password: yyy</code>\n\n"
+            "or\n"
+            "<code>/deliver ORDER_ID\nEmail: xxx\nPassword: yyy</code>",
             parse_mode=ParseMode.HTML,
         )
         return
 
-    order_id = context.args[0]
+    _, order_id, delivery_text = parts[0], parts[1], parts[2]
+
     order = order_get(order_id)
     if not order:
         await update.message.reply_text("❌ Order not found.")
-        return
-
-    message_text = " ".join(context.args[1:]).strip()
-    if not message_text:
-        await update.message.reply_text("❌ Delivery text လိုပါတယ်။")
         return
 
     try:
@@ -1118,7 +1274,7 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=(
                 f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
                 f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"{escape(message_text)}\n\n"
+                f"<pre>{escape(delivery_text)}</pre>\n\n"
                 "💖 Thanks for using Gamepay Hub"
             ),
             parse_mode=ParseMode.HTML,
@@ -1130,9 +1286,8 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     order_update_status(order_id, "delivered", "Manually delivered")
-    log_action(order_id, update.effective_user.id, "manually_delivered", message_text)
+    log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text("✅ Delivered successfully.")
-
 
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -1279,8 +1434,9 @@ def main():
     application.add_handler(conv_handler)
 
     # admin buttons
-    application.add_handler(CallbackQueryHandler(admin_action, pattern=r"^(approve:|reject:)"))
-
+    application.add_handler(
+    CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|reject:)")
+    )
     # admin commands
     application.add_handler(CommandHandler("deliver", deliver_command))
     application.add_handler(CommandHandler("orders", orders_command))
