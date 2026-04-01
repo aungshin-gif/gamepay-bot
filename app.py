@@ -1,6 +1,7 @@
 import os
 import logging
 from html import escape
+
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -33,6 +34,7 @@ PAYMENT_ACCOUNTS = {
     "uab": "💚 UAB Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
     "aya": "❤️ AYA Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
 }
+
 CATEGORIES = {
     "game": {
         "name": "🎮 Game Top Up",
@@ -41,7 +43,6 @@ CATEGORIES = {
         "name": "💻 Digital Products",
     },
 }
-
 
 PRODUCTS = {
     "mlbb_weekly": {
@@ -80,7 +81,7 @@ PRODUCTS = {
         "photo": "oss-ae1390b4bf15e35ed0047fc49232c977 (1).webp",
         "description": "🌊 Trusted Wuthering Waves Lunite Subscription service.",
     },
-"capcut_pro": {
+    "capcut_pro": {
         "category": "digital",
         "name": "CapCut Pro",
         "full_name": "CapCut Pro Subscription",
@@ -138,7 +139,7 @@ PRODUCTS = {
     MENU_STATE,
     CATEGORY_STATE,
     PRODUCT_STATE,
-    ID_SERVER_STATE,
+    DETAIL_STATE,
     PAYMENT_STATE,
     SCREENSHOT_STATE,
 ) = range(6)
@@ -157,7 +158,6 @@ logger = logging.getLogger(__name__)
 # UI HELPERS
 # =========================
 
-
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
@@ -167,14 +167,12 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def category_keyboard() -> InlineKeyboardMarkup:
     rows = []
     for key, cat in CATEGORIES.items():
         rows.append([InlineKeyboardButton(cat["name"], callback_data=f"cat:{key}")])
     rows.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(rows)
-
 
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
@@ -192,7 +190,6 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
 
-
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
@@ -204,7 +201,6 @@ def payment_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def admin_action_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
@@ -214,7 +210,6 @@ def admin_action_keyboard(user_id: int) -> InlineKeyboardMarkup:
             ]
         ]
     )
-
 
 def welcome_text() -> str:
     return """🌈⚡ <b>GAMEPAY HUB</b> ⚡🌈
@@ -228,12 +223,9 @@ def welcome_text() -> str:
 ⚡ Fast Service
 🔒 Safe Payment
 💖 Trusted Top Up"""
-    
-
 
 def product_caption(product: dict) -> str:
     status = "🟢 In Stock" if product["stock"] > 0 else "🔴 Out of Stock"
-
     return f"""✨ <b>{escape(product['full_name'])}</b>
 ━━━━━━━━━━━━━━━
 
@@ -259,7 +251,6 @@ def payment_text(payment_name: str, account: str) -> str:
 # =========================
 # HANDLERS
 # =========================
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
@@ -342,6 +333,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return PRODUCT_STATE
 
     return CATEGORY_STATE
+
 async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -394,7 +386,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "• Own Mail Plan - 1 Month",
                 parse_mode=ParseMode.HTML,
             )
-            return ID_SERVER_STATE
+            return DETAIL_STATE
 
         await query.message.reply_text(
             "🆔 <b>Game ID နှင့် Region / Server ID ရေးပေးပါ</b>\n\n"
@@ -402,20 +394,24 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "<code>123456789 / 1234</code>",
             parse_mode=ParseMode.HTML,
         )
-        return ID_SERVER_STATE
+        return DETAIL_STATE
 
     return PRODUCT_STATE
 
-async def id_server_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        await update.message.reply_text("❌ Please send text only.")
+        return DETAIL_STATE
+
     text = update.message.text.strip()
 
     if len(text) < 3:
         await update.message.reply_text(
-            "❌ ID / Server မှန်မှန်ပို့ပေးပါ။\nဥပမာ: 123456789 / 1234"
+            "❌ လိုအပ်တဲ့အချက်အလက်ကို မှန်မှန်ပို့ပေးပါ။"
         )
-        return ID_SERVER_STATE
+        return DETAIL_STATE
 
-    context.user_data["id_server"] = text
+    context.user_data["order_detail"] = text
 
     await update.message.reply_text(
         "💳 <b>Please choose a payment method</b>",
@@ -474,10 +470,8 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     return SCREENSHOT_STATE
 
-
-
 async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message.photo:
+    if not update.message or not update.message.photo:
         await update.message.reply_text(
             "📷 Payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
             parse_mode=ParseMode.HTML,
@@ -490,7 +484,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     product_key = context.user_data.get("product_key")
     product_name = context.user_data.get("product_name", "-")
     price_text = context.user_data.get("price_text", "-")
-    id_server = context.user_data.get("id_server", "-")
+    order_detail = context.user_data.get("order_detail", "-")
     payment_name = context.user_data.get("payment_name", "-")
 
     username_text = f"@{user.username}" if user.username else "-"
@@ -501,7 +495,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "╚══════════════════════╝\n\n"
         f"🎮 <b>Product:</b> {escape(product_name)}\n"
         f"💰 <b>Price:</b> {escape(price_text)}\n"
-        f"🆔 <b>ID / Server:</b> {escape(id_server)}\n"
+        f"📝 <b>Detail:</b> {escape(order_detail)}\n"
         f"💳 <b>Payment:</b> {escape(payment_name)}\n\n"
         f"👤 <b>Customer:</b> {escape(user.full_name)}\n"
         f"📎 <b>Username:</b> {escape(username_text)}\n"
@@ -527,21 +521,20 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "product_key": product_key,
         "product_name": product_name,
         "price_text": price_text,
-        "id_server": id_server,
+        "order_detail": order_detail,
         "payment_name": payment_name,
     }
 
     await update.message.reply_text(
         "✅ <b>Order received successfully!</b>\n\n"
         "📨 Screenshot + Order info ကို admin ဆီပို့ပြီးပါပြီ\n"
-        "⏳ စစ်ဆေးပြီး Manual Top Up လုပ်ပေးပါမယ်\n"
+        "⏳ စစ်ဆေးပြီး order ကိုဆက်လုပ်ပေးပါမယ်\n"
         "💖 Thanks for using Gamepay Hub",
         parse_mode=ParseMode.HTML,
     )
 
     context.user_data.clear()
     return ConversationHandler.END
-
 
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -557,8 +550,46 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     order_data = context.bot_data.get(str(user_id), {})
     product_key = order_data.get("product_key")
+    product_name = order_data.get("product_name", "Product")
 
     if action == "approve":
+        is_digital = (
+            product_key in PRODUCTS
+            and PRODUCTS[product_key]["category"] == "digital"
+        )
+
+        if is_digital:
+            context.bot_data["pending_delivery"] = {
+                "user_id": user_id,
+                "product_key": product_key,
+                "product_name": product_name,
+            }
+
+            try:
+                await query.edit_message_caption(
+                    caption=query.message.caption + "\n\n🟡 <b>Status: Waiting for Digital Delivery</b>",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=None,
+                )
+            except Exception as e:
+                logger.exception("Failed to edit admin message for digital approve: %s", e)
+
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"📦 <b>Digital Order Approved</b>\n\n"
+                    f"Product: {escape(product_name)}\n"
+                    f"User ID: <code>{user_id}</code>\n\n"
+                    "အခု customer ဆီပို့မယ့် <b>Email / Password / Login info</b> ကို "
+                    "ဒီ chat ထဲမှာ next message အနေနဲ့ပို့ပါ။\n\n"
+                    "ဥပမာ:\n"
+                    "<code>Email: example@gmail.com\n"
+                    "Password: 12345678</code>"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
         if product_key in PRODUCTS and PRODUCTS[product_key]["stock"] > 0:
             PRODUCTS[product_key]["stock"] -= 1
 
@@ -589,7 +620,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if action == "reject":
         try:
-            await context.bot.send_message(
+           await context.bot.send_message(
                 chat_id=user_id,
                 text=(
                     "❌ <b>Order Rejected!</b>\n\n"
@@ -612,114 +643,100 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         context.bot_data.pop(str(user_id), None)
         return
+
 async def delivery_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
-        return DELIVERY_STATE
+        return
 
     pending = context.bot_data.get("pending_delivery")
     if not pending:
-        await update.message.reply_text("❌ Pending digital delivery မရှိပါ။")
-        return ConversationHandler.END
+        return
+
+    if not update.message or not update.message.text:
+        await update.message.reply_text("❌ Email / Password ကို text နဲ့ပို့ပေးပါ။")
+        return
 
     delivery_text = update.message.text.strip()
     user_id = pending["user_id"]
-    order_data = context.bot_data.get(str(user_id), {})
-    product_name = order_data.get("product_name", "Digital Product")
+    product_key = pending.get("product_key")
+    product_name = pending.get("product_name", "Digital Product")
 
-    await context.bot.send_message(
-        chat_id=user_id,
-        text=(
-            f"✅ <b>Your {escape(product_name)} order is ready!</b>\n\n"
-            f"{escape(delivery_text)}\n\n"
-            "💖 Thanks for using Gamepay Hub"
-        ),
-        parse_mode=ParseMode.HTML,
-    )
+    try:
+        await context.bot.send_message(
+            chat_id=user_id,
+            text=(
+                f"✅ <b>Your {escape(product_name)} order is ready!</b>\n\n"
+                f"{escape(delivery_text)}\n\n"
+                "🔐 Login info ကို secure ဖြစ်အောင်သိမ်းထားပေးပါ။\n"
+                "💖 Thanks for using Gamepay Hub"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        logger.exception("Failed to send digital delivery to user: %s", e)
+        await update.message.reply_text("❌ Customer ဆီ delivery info မပို့နိုင်ပါ။")
+        return
 
-    await update.message.reply_text("✅ Account information ကို customer ဆီပို့ပြီးပါပြီ။")
+    if product_key in PRODUCTS and PRODUCTS[product_key]["stock"] > 0:
+        PRODUCTS[product_key]["stock"] -= 1
 
     context.bot_data.pop("pending_delivery", None)
     context.bot_data.pop(str(user_id), None)
 
-    return ConversationHandler.END
+    await update.message.reply_text("✅ Digital product info ကို customer ဆီပို့ပြီးပါပြီ။")
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     await update.message.reply_text(
-        "🛑 လုပ်ငန်းစဉ်ကို ဖျက်လိုက်ပါပြီ。\n/start နဲ့ ပြန်စနိုင်ပါတယ်။"
+        "❌ Order cancelled.",
+        reply_markup=main_menu_keyboard(),
+        parse_mode=ParseMode.HTML,
     )
     return ConversationHandler.END
-
 
 # =========================
 # MAIN
 # =========================
 
-
 def main():
     if not BOT_TOKEN:
-        raise ValueError("BOT_TOKEN not found.")
+        raise ValueError("BOT_TOKEN environment variable is missing.")
     if not ADMIN_ID:
-        raise ValueError("ADMIN_ID not found.")
+        raise ValueError("ADMIN_ID environment variable is missing or invalid.")
 
-    app = (
-        Application.builder()
-        .token(BOT_TOKEN)
-        .concurrent_updates(False)
-        .build()
-    )
+    application = Application.builder().token(BOT_TOKEN).build()
 
-    conv = ConversationHandler(
+    conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
             MENU_STATE: [
-                CallbackQueryHandler(
-                    menu_handler,
-                    pattern=r"^(menu_shop|menu_contact|menu_restart)$"
-                )
+                CallbackQueryHandler(menu_handler, pattern=r"^menu_"),
             ],
             CATEGORY_STATE: [
-                CallbackQueryHandler(
-                    category_handler,
-                    pattern=r"^(cat:.*|back_main)$"
-                )
+                CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)"),
             ],
             PRODUCT_STATE: [
-                CallbackQueryHandler(
-                    product_handler,
-                    pattern=r"^(product:.*|out_of_stock|back_categories)$"
-                )
+                CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)"),
             ],
-            ID_SERVER_STATE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, id_server_handler)
+            DETAIL_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
             ],
             PAYMENT_STATE: [
-                CallbackQueryHandler(
-                    payment_handler,
-                    pattern=r"^(pay:.*|pay_back_products)$"
-                )
+                CallbackQueryHandler(payment_handler, pattern=r"^(pay:|pay_back_products$)"),
             ],
             SCREENSHOT_STATE: [
-                MessageHandler(filters.PHOTO, screenshot_handler),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, screenshot_handler),
+                MessageHandler(filters.PHOTO | (filters.TEXT & ~filters.COMMAND), screenshot_handler),
             ],
         },
-        fallbacks=[
-            CommandHandler("cancel", cancel),
-            CommandHandler("start", start),
-        ],
+        fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True,
-        per_message=False,
     )
 
-    app.add_handler(conv)
-    app.add_handler(
-        CallbackQueryHandler(admin_action, pattern=r"^(approve|reject):\d+$")
-    )
+    application.add_handler(conv_handler)
+    application.add_handler(CallbackQueryHandler(admin_action, pattern=r"^(approve:|reject:)"))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, delivery_handler))
 
-    logger.info("Bot is running...")
-    app.run_polling(drop_pending_updates=True)
-
+    application.run_polling()
 
 if __name__ == "__main__":
-    main()
+    main() 
