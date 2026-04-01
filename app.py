@@ -612,7 +612,36 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         context.bot_data.pop(str(user_id), None)
         return
+async def delivery_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return DELIVERY_STATE
 
+    pending = context.bot_data.get("pending_delivery")
+    if not pending:
+        await update.message.reply_text("❌ Pending digital delivery မရှိပါ။")
+        return ConversationHandler.END
+
+    delivery_text = update.message.text.strip()
+    user_id = pending["user_id"]
+    order_data = context.bot_data.get(str(user_id), {})
+    product_name = order_data.get("product_name", "Digital Product")
+
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=(
+            f"✅ <b>Your {escape(product_name)} order is ready!</b>\n\n"
+            f"{escape(delivery_text)}\n\n"
+            "💖 Thanks for using Gamepay Hub"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
+
+    await update.message.reply_text("✅ Account information ကို customer ဆီပို့ပြီးပါပြီ။")
+
+    context.bot_data.pop("pending_delivery", None)
+    context.bot_data.pop(str(user_id), None)
+
+    return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
