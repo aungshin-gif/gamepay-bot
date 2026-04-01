@@ -639,7 +639,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
-return MENU_STATE
+        return MENU_STATE
 
 
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -760,8 +760,8 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.HTML,
         )
         return PRODUCT_STATE
-        
-  if data == "out_of_stock":
+
+    if data == "out_of_stock":
         await query.message.reply_text("🔴 This plan is out of stock.")
         return PLAN_STATE
 
@@ -837,8 +837,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML,
     )
     return SCREENSHOT_STATE
-
-
+    
 async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.photo:
         await update.message.reply_text(
@@ -890,6 +889,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>\n"
         f"📌 <b>Status:</b> Pending Review"
     )
+
     try:
         await context.bot.send_photo(
             chat_id=ADMIN_ID,
@@ -1029,7 +1029,8 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=ParseMode.HTML,
             )
             return
-            if auto_delivery:
+
+        if auto_delivery:
             order_update_status(order_id, "delivered", "Auto delivered")
             log_action(order_id, query.from_user.id, "auto_delivered")
 
@@ -1089,8 +1090,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
             parse_mode=ParseMode.HTML,
         )
-
-
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -1153,7 +1152,7 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"👤 {escape(o['full_name'])}\n"
             f"📌 {escape(o['status'])}\n"
         )
-            await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1234,8 +1233,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML,
     )
     return ConversationHandler.END
-
-# =========================================================
+             # =========================================================
 # MAIN
 # =========================================================
 
@@ -1294,4 +1292,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main()           
