@@ -162,6 +162,13 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "used": False,
             },
             {
+                "plan_key": "share_3m",
+                "email": "capcutshare2@example.com",
+                "password": "pass2234",
+                "extra": "⚠️ Password မပြောင်းပါနဲ့။",
+                "used": False,
+            },
+            {
                 "plan_key": "private_1m",
                 "email": "capcutprivate1@example.com",
                 "password": "pass5678",
