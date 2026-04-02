@@ -3,7 +3,7 @@ import sqlite3
 import logging
 from html import escape
 from datetime import datetime
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
@@ -226,9 +226,8 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
-
 # =========================================================
-# DB HELPERS
+# DATABASE
 # =========================================================
 
 def db_connect():
@@ -403,18 +402,6 @@ def order_update_status(order_id: str, status: str, admin_note: str = ""):
     conn.close()
 
 
-def order_set_admin_note(order_id: str, note: str):
-    conn = db_connect()
-    cur = conn.cursor()
-    cur.execute("""
-        UPDATE orders
-        SET admin_note = ?, updated_at = ?
-        WHERE order_id = ?
-    """, (note, now_str(), order_id))
-    conn.commit()
-    conn.close()
-
-
 def get_user_orders(user_id: int, limit: int = 10) -> List[dict]:
     conn = db_connect()
     cur = conn.cursor()
@@ -482,7 +469,6 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
 
         if not row:
             conn.rollback()
-            conn.close()
             return None
 
         cur.execute("""
@@ -493,7 +479,6 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
 
         if cur.rowcount != 1:
             conn.rollback()
-            conn.close()
             return None
 
         conn.commit()
@@ -528,13 +513,25 @@ def get_stats_summary() -> dict:
     cur.execute("SELECT COUNT(*) AS total_orders FROM orders")
     total_orders = cur.fetchone()["total_orders"]
 
-    cur.execute("SELECT COUNT(*) AS delivered_orders FROM orders WHERE status IN ('approved', 'delivered', 'code_sent')")
+    cur.execute("""
+        SELECT COUNT(*) AS delivered_orders
+        FROM orders
+        WHERE status IN ('approved', 'delivered', 'code_sent')
+    """)
     delivered_orders = cur.fetchone()["delivered_orders"]
 
-    cur.execute("SELECT COUNT(*) AS pending_orders FROM orders WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')")
+    cur.execute("""
+        SELECT COUNT(*) AS pending_orders
+        FROM orders
+        WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')
+    """)
     pending_orders = cur.fetchone()["pending_orders"]
 
-    cur.execute("SELECT COUNT(*) AS rejected_orders FROM orders WHERE status = 'rejected'")
+    cur.execute("""
+        SELECT COUNT(*) AS rejected_orders
+        FROM orders
+        WHERE status = 'rejected'
+    """)
     rejected_orders = cur.fetchone()["rejected_orders"]
 
     cur.execute("""
@@ -545,6 +542,7 @@ def get_stats_summary() -> dict:
     total_sales = cur.fetchone()["total_sales"]
 
     conn.close()
+
     return {
         "total_orders": int(total_orders),
         "delivered_orders": int(delivered_orders),
@@ -552,10 +550,8 @@ def get_stats_summary() -> dict:
         "rejected_orders": int(rejected_orders),
         "total_sales": int(total_sales),
     }
-
-
-# =========================================================
-# DISPLAY / FORMAT HELPERS
+    # =========================================================
+# UI / TEXT HELPERS
 # =========================================================
 
 def human_status(status: str) -> str:
@@ -631,7 +627,9 @@ def welcome_text() -> str:
         f"🔒 Safe Payment\n"
         f"💖 Trusted Top Up"
     )
-    def main_menu_keyboard() -> InlineKeyboardMarkup:
+
+
+def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
         [InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders")],
@@ -776,10 +774,6 @@ def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     ])
 
 
-# =========================================================
-# STICKER / ALERT HELPERS
-# =========================================================
-
 async def send_optional_sticker(message_obj, sticker_id: str):
     if not sticker_id:
         return
@@ -804,18 +798,13 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
         if not product:
             return
 
-
-# =========================================================
-# KEYBOARDS
-# =========================================================
         if product["category"] == "digital":
             current_stock = get_digital_stock(product_key, plan_key)
             if current_stock <= LOW_STOCK_THRESHOLD:
                 product_name = product["full_name"]
+                plan_label = "All Plans"
                 if plan_key and plan_key in product["plans"]:
                     plan_label = product["plans"][plan_key]["label"]
-                else:
-                    plan_label = "All Plans"
 
                 await bot.send_message(
                     chat_id=ADMIN_ID,
@@ -841,14 +830,13 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                 )
     except Exception as e:
         logger.warning("Low stock alert failed: %s", e)
-
-
-# =========================================================
+        # =========================================================
 # CUSTOMER FLOW
 # =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
+
     if update.message:
         await send_optional_sticker(update.message, WELCOME_STICKER_ID)
         await update.message.reply_text(
@@ -856,6 +844,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
+
     return MENU_STATE
 
 
@@ -1040,6 +1029,7 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return DETAIL_STATE
 
+
     return PLAN_STATE
     async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
@@ -1106,8 +1096,14 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return SCREENSHOT_STATE
 
     required_keys = [
-        "product_key", "product_name", "plan_key", "plan_label",
-        "category", "price", "payment_key", "payment_name"
+        "product_key",
+        "product_name",
+        "plan_key",
+        "plan_label",
+        "category",
+        "price",
+        "payment_key",
+        "payment_name",
     ]
     for key in required_keys:
         if key not in context.user_data:
@@ -1178,7 +1174,9 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     context.user_data.clear()
     return ConversationHandler.END
-    # =========================================================
+
+
+# =========================================================
 # ADMIN FLOW
 # =========================================================
 
@@ -1248,15 +1246,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text("✅ Rejected.")
         return
-
-    action, order_id = raw.split(":", 1)
-    order = order_get(order_id)
-
-    if not order:
-        await query.answer("Order not found", show_alert=True)
-        return
-
-    if action == "approve":
+        if action == "approve":
         if order["category"] != "game":
             await query.answer("ဒီ button က game order အတွက်ပဲပါ။", show_alert=True)
             return
@@ -1408,7 +1398,8 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
         return
-        if action == "manual":
+
+    if action == "manual":
         if order["category"] != "digital":
             await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
             return
@@ -1444,7 +1435,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # =========================================================
-# ADMIN COMMANDS
+# COMMANDS
 # =========================================================
 
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1556,10 +1547,7 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📌 {human_status(o['status'])}\n"
         )
 
-    await update.message.reply_text(
-        "\n".join(lines),
-        parse_mode=ParseMode.HTML,
-    )
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1618,7 +1606,9 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
 
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-    async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+
+async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
@@ -1743,10 +1733,6 @@ async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# =========================================================
-# CUSTOMER EXTRA COMMANDS
-# =========================================================
-
 async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     rows = get_user_orders(user.id, limit=10)
@@ -1794,7 +1780,6 @@ async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += f"\n📝 <b>Admin Note:</b> {escape(order['admin_note'])}"
 
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
-
 
 async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
@@ -1852,10 +1837,6 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     )
 
 
-# =========================================================
-# CANCEL
-# =========================================================
-
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
@@ -1866,10 +1847,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     return ConversationHandler.END
 
-
-# =========================================================
-# MAIN
-# =========================================================
 
 def main():
     if not BOT_TOKEN:
@@ -1939,3 +1916,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
