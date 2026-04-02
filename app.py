@@ -1172,110 +1172,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     raw = query.data
 
-    if raw.startswith("rejectmenu:"):
-        order_id = raw.split(":", 1)[1]
-        await query.message.reply_text(
-            f"❌ <b>Reject Reason ရွေးပါ</b>\n🆔 <code>{escape(order_id)}</code>",
-            parse_mode=ParseMode.HTML,
-            reply_markup=reject_reason_keyboard(order_id),
-        )
-        return
-
-    if raw.startswith("reject:"):
-        _, order_id, reason_key = raw.split(":", 2)
-        order = order_get(order_id)
-        if not order:
-            return
-
-        reason_text = REJECT_REASONS.get(reason_key, "Order rejected")
-        order_update_status(order_id, "rejected", reason_text)
-        log_action(order_id, query.from_user.id, "rejected", reason_text)
-
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=(
-                "❌ <b>Order Rejected</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"📌 <b>Reason:</b> {escape(reason_text)}"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
-    action, order_id = raw.split(":", 1)
-    order = order_get(order_id)
-    if not order:
-        return
-
-if action == "approve":
-    product = PRODUCTS.get(order["product_key"])
-    if not product or order["category"] != "game":
-        return
-
-    if int(product.get("stock", 0)) <= 0:
-        await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-        return
-
-    product["stock"] -= 1
-    order_update_status(order_id, "approved", "Game order approved")
-    log_action(order_id, query.from_user.id, "approved_game")
-
-    # customer notify
-    await context.bot.send_message(
-        chat_id=order["user_id"],
-        text="✅ <b>Order Approved!</b>",
-        parse_mode=ParseMode.HTML,
-    )
-
-    # admin feedback
-    await query.message.reply_text(
-        f"✅ <b>Approved</b>\n\n"
-        f"🆔 <code>{escape(order_id)}</code>\n"
-        f"🎮 {escape(order['product_name'])}\n"
-        f"📦 Remaining Stock: {product['stock']}",
-        parse_mode=ParseMode.HTML,
-    )
-
-    await maybe_send_low_stock_alert(context.bot, order["product_key"])
-    return
-
-    if action == "auto":
-        if order["category"] != "digital":
-            return
-
-        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
-        if not bool(product_cfg.get("auto_delivery", False)):
-            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        account = reserve_account(order["product_key"], order["plan_key"], order_id)
-        if not account:
-            order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        order_update_status(order_id, "delivered", "Auto delivered")
-        log_action(order_id, query.from_user.id, "auto_delivered")
-
-async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if query.from_user.id != ADMIN_ID:
-        await query.answer("ဒီ button ကို admin ပဲသုံးလို့ရပါတယ်။", show_alert=True)
-        return
-
-    raw = query.data
-
     # reject menu
     if raw.startswith("rejectmenu:"):
         order_id = raw.split(":", 1)[1]
@@ -1321,6 +1217,125 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = order_get(order_id)
     if not order:
         return
+
+    # GAME APPROVE
+    if action == "approve":
+        product = PRODUCTS.get(order["product_key"])
+        if not product or order["category"] != "game":
+            return
+
+        if int(product.get("stock", 0)) <= 0:
+            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
+            return
+
+        product["stock"] -= 1
+        order_update_status(order_id, "approved", "Game order approved")
+        log_action(order_id, query.from_user.id, "approved_game")
+
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=(
+                "✅ <b>Order Approved!</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"🎮 <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+                "💖 Thanks for using Gamepay Hub"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+
+        await query.message.reply_text(
+            f"✅ <b>Approved</b>\n\n"
+            f"🆔 <code>{escape(order_id)}</code>\n"
+            f"🎮 {escape(order.get('product_name', '-'))}\n"
+            f"📦 Remaining Stock: {product['stock']}",
+            parse_mode=ParseMode.HTML,
+        )
+
+        await maybe_send_low_stock_alert(context.bot, order["product_key"])
+        return
+
+    # DIGITAL AUTO
+    if action == "auto":
+        if order["category"] != "digital":
+            return
+
+        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+
+        if not bool(product_cfg.get("auto_delivery", False)):
+            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"✍️ <b>Manual delivery required</b>\n\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
+        account = reserve_account(order["product_key"], order["plan_key"], order_id)
+        if not account:
+            order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"❌ <b>Auto stock not found</b>\n\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
+        order_update_status(order_id, "delivered", "Auto delivered")
+        log_action(order_id, query.from_user.id, "auto_delivered")
+
+        delivery_text = (
+            f"✅ <b>Your {escape(order.get('product_name', '-'))} order is ready!</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
+            f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
+        )
+
+        if account["extra"]:
+            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
+
+        delivery_text += "\n<code>Code</code> လို့ရိုက်ပို့ပြီး login code တောင်းနိုင်ပါတယ်။"
+
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=delivery_text,
+            parse_mode=ParseMode.HTML,
+        )
+
+        await query.message.reply_text(
+            f"✅ <b>Auto Delivered</b>\n\n"
+            f"🆔 <code>{escape(order_id)}</code>\n"
+            f"🎮 {escape(order.get('product_name', '-'))}",
+            parse_mode=ParseMode.HTML,
+        )
+
+        await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
+        return
+
+    # DIGITAL MANUAL
+    if action == "manual":
+        if order["category"] != "digital":
+            return
+
+        order_update_status(order_id, "waiting_manual_delivery", "Waiting admin manual delivery")
+
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=(
+                f"✍️ <b>Manual delivery selected</b>\n\n"
+                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+        return
+                
+    
+
 
     # =====================================================
     # GAME APPROVE
