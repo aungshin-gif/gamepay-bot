@@ -1207,25 +1207,37 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not order:
         return
 
-    if action == "approve":
-        product = PRODUCTS.get(order["product_key"])
-        if not product or order["category"] != "game":
-            return
-
-        if int(product.get("stock", 0)) <= 0:
-            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-            return
-
-        product["stock"] -= 1
-        order_update_status(order_id, "approved", "Game order approved")
-        log_action(order_id, query.from_user.id, "approved_game")
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text="✅ <b>Order Approved!</b>",
-            parse_mode=ParseMode.HTML,
-        )
-        await maybe_send_low_stock_alert(context.bot, order["product_key"])
+if action == "approve":
+    product = PRODUCTS.get(order["product_key"])
+    if not product or order["category"] != "game":
         return
+
+    if int(product.get("stock", 0)) <= 0:
+        await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
+        return
+
+    product["stock"] -= 1
+    order_update_status(order_id, "approved", "Game order approved")
+    log_action(order_id, query.from_user.id, "approved_game")
+
+    # customer notify
+    await context.bot.send_message(
+        chat_id=order["user_id"],
+        text="✅ <b>Order Approved!</b>",
+        parse_mode=ParseMode.HTML,
+    )
+
+    # admin feedback
+    await query.message.reply_text(
+        f"✅ <b>Approved</b>\n\n"
+        f"🆔 <code>{escape(order_id)}</code>\n"
+        f"🎮 {escape(order['product_name'])}\n"
+        f"📦 Remaining Stock: {product['stock']}",
+        parse_mode=ParseMode.HTML,
+    )
+
+    await maybe_send_low_stock_alert(context.bot, order["product_key"])
+    return
 
     if action == "auto":
         if order["category"] != "digital":
