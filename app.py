@@ -139,7 +139,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "name": "Canva Pro Edu",
     "full_name": "Canva Pro Edu Subscription",
     "description": "🟦 Canva Pro Edu account delivery service.",
-    "photo": "canva.jpg",
+    "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
     "requires_detail_label": (
         "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
         "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
