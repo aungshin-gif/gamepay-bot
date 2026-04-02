@@ -134,18 +134,18 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 50000},
         },
     },
-    "canva_pro_edu": {
+"canva_pro_edu": {
     "category": "digital",
     "name": "Canva Pro Edu",
     "full_name": "Canva Pro Edu Subscription",
-    "description": "🟦 Canva Pro Edu account delivery service.",
+    "description": "Canva Pro Edu account delivery service.",
     "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
     "requires_detail_label": (
         "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
         "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
     ),
     "plans": {
-        "1y": {"label": "1 Year Account", "price":3200},
+        "edu_1y": {"label": "1 Year Account", "price": 3200},
     },
 },
 }
@@ -190,18 +190,18 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-    "canva_pro_edu": {
+   "canva_pro_edu": {
     "auto_delivery": True,
     "accounts": [
         {
-            "plan_key": "1y",
+            "plan_key": "edu_1y",
             "email": "crister272@atomicmail.io",
             "password": "crister272@",
-            "extra": "🟦 Canva Pro Edu\n➡️ 1 Year account",
+            "extra": "Canva Pro Edu | 1 Year account",
             "used": False,
         },
     ],
-},
+}, 
 }
 
 # =========================================================
@@ -779,11 +779,18 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        await query.message.reply_photo(
-            photo=product["photo"],
-            caption=product_caption(product, product_key),
-            parse_mode=ParseMode.HTML,
-        )
+        try:
+    await query.message.reply_photo(
+        photo=product["photo"],
+        caption=product_caption(product, product_key),
+        parse_mode=ParseMode.HTML,
+    )
+except Exception as e:
+    logger.exception("Photo error for %s: %s", product_key, e)
+    await query.message.reply_text(
+        product_caption(product, product_key),
+        parse_mode=ParseMode.HTML,
+    )
 
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
