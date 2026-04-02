@@ -180,6 +180,13 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "extra": "Profile 1 ကိုပဲသုံးပါ။",
                 "used": False,
             },
+            {
+                "plan_key": "private_1m",
+                "email": "netflixshare2@example.com",
+                "password": "nf223456",
+                "extra": "Profile 1 ကိုပဲသုံးပါ။",
+                "used": False,
+            },
         ],
     },
    "canva_pro_edu": {
