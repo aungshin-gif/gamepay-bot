@@ -3,13 +3,9 @@ import sqlite3
 import logging
 from html import escape
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Tuple
 
-from telegram import (
-    Update,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -31,9 +27,11 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
 
-# Telegram sticker file_id ထည့်ပါ
-WELCOME_STICKER_ID = ""   # ဥပမာ: "CAACAgUAAxkBAA..."
-SUCCESS_STICKER_ID = ""   # ဥပမာ: "CAACAgUAAxkBAA..."
+WELCOME_STICKER_ID = ""
+SUCCESS_STICKER_ID = ""
+
+LOW_STOCK_THRESHOLD = 2
+DB_PATH = "gamepay_hub.db"
 
 PAYMENT_ACCOUNTS = {
     "kpay": {
@@ -54,11 +52,16 @@ PAYMENT_ACCOUNTS = {
     },
 }
 
+REJECT_REASONS = {
+    "wrong_amount": "ငွေပမာဏမမှန်ပါ",
+    "unclear_ss": "screenshot မရှင်းပါ",
+    "fake_payment": "payment မအောင်မြင်သေးပါ",
+    "duplicate_order": "duplicate order ဖြစ်နေပါတယ်",
+    "other": "order info ပြန်စစ်ပြီးပြန်တင်ပါ",
+}
+
 # =========================================================
 # PRODUCTS
-# Coding နဲ့ပဲ stock/product add လုပ်မယ်ဆို ဒီ dict ကိုပဲပြင်
-# digital product stock = accounts list ထဲက unused အရေအတွက်
-# game product stock = stock field
 # =========================================================
 
 PRODUCTS: Dict[str, Dict[str, Any]] = {
@@ -69,12 +72,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "⚡ Fast and trusted MLBB Weekly Pass top up service.",
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
-        "requires_detail_label": "🆔 <b>Game ID နှင့် Server ID ရေးပေးပါ</b>\n\nဥပမာ:\n<code>123456789 / 1234</code>",
+        "requires_detail_label": (
+            "🆔 <b>Game ID နှင့် Server ID ရေးပေးပါ</b>\n\n"
+            "ဥပမာ:\n<code>123456789 / 1234</code>"
+        ),
         "plans": {
-            "default": {
-                "label": "Weekly Pass",
-                "price": 6400,
-            }
+            "default": {"label": "Weekly Pass", "price": 6400},
         },
     },
     "genshin_blessing": {
@@ -84,12 +87,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "✨ Safe and quick Genshin Blessing top up service.",
         "photo": "Buy-Welkin-Moon-In-Game.png",
         "stock": 10,
-        "requires_detail_label": "🆔 <b>UID / Server ရေးပေးပါ</b>\n\nဥပမာ:\n<code>812345678 / Asia</code>",
+        "requires_detail_label": (
+            "🆔 <b>UID / Server ရေးပေးပါ</b>\n\n"
+            "ဥပမာ:\n<code>812345678 / Asia</code>"
+        ),
         "plans": {
-            "default": {
-                "label": "Blessing",
-                "price": 14800,
-            }
+            "default": {"label": "Blessing", "price": 14800},
         },
     },
     "capcut_pro": {
@@ -99,9 +102,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "📱 CapCut Pro account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
         "requires_detail_label": (
-    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
-),
+            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+        ),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 5500},
             "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
@@ -118,10 +121,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "full_name": "Netflix Premium Subscription",
         "description": "📺 Netflix Premium account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
-     "requires_detail_label": (
-    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
-),   
+        "requires_detail_label": (
+            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+        ),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 8000},
             "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
@@ -134,28 +137,24 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 50000},
         },
     },
-"canva_pro_edu": {
-    "category": "digital",
-    "name": "Canva Pro Edu",
-    "full_name": "Canva Pro Edu Subscription",
-    "description": "Canva Pro Edu account delivery service.",
-    "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
-"requires_detail_label": (
-    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
-),
-    "plans": {
-        "edu_1y": {"label": "1 Year Account", "price": 3200},
+    "canva_pro_edu": {
+        "category": "digital",
+        "name": "Canva Pro Edu",
+        "full_name": "Canva Pro Edu Subscription",
+        "description": "Canva Pro Edu account delivery service.",
+        "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
+        "requires_detail_label": (
+            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+        ),
+        "plans": {
+            "edu_1y": {"label": "1 Year Account", "price": 3200},
+        },
     },
-},
 }
 
 # =========================================================
-# DIGITAL ACCOUNT INVENTORY
-# Coding နဲ့ပဲ stock add လုပ်ချင်ရင် ဒီ accounts list ထဲထည့်
-# stock = used=False ဖြစ်တဲ့ account အရေအတွက်
-# auto_delivery=True ဆို approve လုပ်တာနဲ့ bot က customer ဆီ auto ပို့မယ်
-# auto_delivery=False ဆို admin က /deliver ORDER_ID ... နဲ့ manual ပို့မယ်
+# DIGITAL INVENTORY
 # =========================================================
 
 DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
@@ -190,18 +189,18 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-"canva_pro_edu": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "edu_1y",
-            "email": "crister272@atomicmail.io",
-            "password": "crister272@",
-            "extra": "Canva Pro Edu | 1 Year account",
-            "used": False,
-        },
-    ],
-},
+    "canva_pro_edu": {
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "edu_1y",
+                "email": "crister272@atomicmail.io",
+                "password": "crister272@",
+                "extra": "Canva Pro Edu | 1 Year account",
+                "used": False,
+            },
+        ],
+    },
 }
 
 # =========================================================
@@ -229,14 +228,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # =========================================================
-# DATABASE
+# DB HELPERS
 # =========================================================
 
-DB_PATH = "gamepay_hub.db"
-
-
 def db_connect():
-    return sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def now_str() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def new_order_id() -> str:
+    return "ORD-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f")[-20:]
 
 
 def init_db():
@@ -262,7 +268,7 @@ def init_db():
         status TEXT NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        admin_note TEXT
+        admin_note TEXT DEFAULT ''
     )
     """)
 
@@ -311,6 +317,7 @@ def sync_inventory_to_db():
                 acc["password"],
             ))
             exists = cur.fetchone()
+
             if not exists:
                 cur.execute("""
                     INSERT INTO digital_accounts (
@@ -336,97 +343,7 @@ def log_action(order_id: Optional[str], actor_id: int, action: str, note: str = 
     cur.execute("""
         INSERT INTO audit_logs (order_id, actor_id, action, note, created_at)
         VALUES (?, ?, ?, ?, ?)
-    """, (
-        order_id,
-        actor_id,
-        action,
-        note,
-        now_str(),
-    ))
-    conn.commit()
-    conn.close()
-
-
-def now_str():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
-def new_order_id() -> str:
-    return "ORD-" + datetime.now().strftime("%Y%m%d-%H%M%S-%f")[-20:]
-
-
-def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
-    conn = db_connect()
-    cur = conn.cursor()
-
-    if plan_key:
-        cur.execute("""
-            SELECT COUNT(*) FROM digital_accounts
-            WHERE product_key = ? AND plan_key = ? AND used = 0
-        """, (product_key, plan_key))
-    else:
-        cur.execute("""
-            SELECT COUNT(*) FROM digital_accounts
-            WHERE product_key = ? AND used = 0
-        """, (product_key,))
-    count = cur.fetchone()[0]
-    conn.close()
-    return count
-
-
-def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[dict]:
-    conn = db_connect()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id, email, password, extra
-        FROM digital_accounts
-        WHERE product_key = ? AND plan_key = ? AND used = 0
-        ORDER BY id ASC
-        LIMIT 1
-    """, (product_key, plan_key))
-    row = cur.fetchone()
-
-    if not row:
-        conn.close()
-        return None
-
-    acc_id, email, password, extra = row
-
-    cur.execute("""
-        UPDATE digital_accounts
-        SET used = 1, order_id = ?
-        WHERE id = ?
-    """, (order_id, acc_id))
-    conn.commit()
-    conn.close()
-
-    return {
-        "id": acc_id,
-        "email": email,
-        "password": password,
-        "extra": extra or "",
-    }
-
-
-def order_get(order_id: str) -> Optional[dict]:
-    conn = db_connect()
-    conn.row_factory = sqlite3.Row
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,))
-    row = cur.fetchone()
-    conn.close()
-    return dict(row) if row else None
-
-
-def order_update_status(order_id: str, status: str, admin_note: str = ""):
-    conn = db_connect()
-    cur = conn.cursor()
-    cur.execute("""
-        UPDATE orders
-        SET status = ?, updated_at = ?, admin_note = ?
-        WHERE order_id = ?
-    """, (status, now_str(), admin_note, order_id))
+    """, (order_id, actor_id, action, note, now_str()))
     conn.commit()
     conn.close()
 
@@ -465,13 +382,59 @@ def order_insert(data: dict):
     conn.close()
 
 
-def get_pending_orders(limit: int = 20):
+def order_get(order_id: str) -> Optional[dict]:
     conn = db_connect()
-    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,))
+    row = cur.fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def order_update_status(order_id: str, status: str, admin_note: str = ""):
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE orders
+        SET status = ?, updated_at = ?, admin_note = ?
+        WHERE order_id = ?
+    """, (status, now_str(), admin_note, order_id))
+    conn.commit()
+    conn.close()
+
+
+def order_set_admin_note(order_id: str, note: str):
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE orders
+        SET admin_note = ?, updated_at = ?
+        WHERE order_id = ?
+    """, (note, now_str(), order_id))
+    conn.commit()
+    conn.close()
+
+
+def get_user_orders(user_id: int, limit: int = 10) -> List[dict]:
+    conn = db_connect()
     cur = conn.cursor()
     cur.execute("""
         SELECT * FROM orders
-        WHERE status IN ('pending_payment_review', 'waiting_manual_delivery')
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+    """, (user_id, limit))
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def get_pending_orders(limit: int = 20) -> List[dict]:
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT * FROM orders
+        WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')
         ORDER BY created_at DESC
         LIMIT ?
     """, (limit,))
@@ -479,28 +442,211 @@ def get_pending_orders(limit: int = 20):
     conn.close()
     return [dict(r) for r in rows]
 
+
+def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
+    conn = db_connect()
+    cur = conn.cursor()
+
+    if plan_key:
+        cur.execute("""
+            SELECT COUNT(*) AS cnt
+            FROM digital_accounts
+            WHERE product_key = ? AND plan_key = ? AND used = 0
+        """, (product_key, plan_key))
+    else:
+        cur.execute("""
+            SELECT COUNT(*) AS cnt
+            FROM digital_accounts
+            WHERE product_key = ? AND used = 0
+        """, (product_key,))
+
+    count = cur.fetchone()["cnt"]
+    conn.close()
+    return int(count)
+
+
+def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[dict]:
+    conn = db_connect()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("BEGIN IMMEDIATE")
+        cur.execute("""
+            SELECT id, email, password, extra
+            FROM digital_accounts
+            WHERE product_key = ? AND plan_key = ? AND used = 0
+            ORDER BY id ASC
+            LIMIT 1
+        """, (product_key, plan_key))
+        row = cur.fetchone()
+
+        if not row:
+            conn.rollback()
+            conn.close()
+            return None
+
+        cur.execute("""
+            UPDATE digital_accounts
+            SET used = 1, order_id = ?
+            WHERE id = ? AND used = 0
+        """, (order_id, row["id"]))
+
+        if cur.rowcount != 1:
+            conn.rollback()
+            conn.close()
+            return None
+
+        conn.commit()
+        return {
+            "id": row["id"],
+            "email": row["email"],
+            "password": row["password"],
+            "extra": row["extra"] or "",
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO digital_accounts (product_key, plan_key, email, password, extra, used, order_id)
+        VALUES (?, ?, ?, ?, ?, 0, NULL)
+    """, (product_key, plan_key, email, password, extra))
+    conn.commit()
+    conn.close()
+
+
+def get_stats_summary() -> dict:
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) AS total_orders FROM orders")
+    total_orders = cur.fetchone()["total_orders"]
+
+    cur.execute("SELECT COUNT(*) AS delivered_orders FROM orders WHERE status IN ('approved', 'delivered', 'code_sent')")
+    delivered_orders = cur.fetchone()["delivered_orders"]
+
+    cur.execute("SELECT COUNT(*) AS pending_orders FROM orders WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')")
+    pending_orders = cur.fetchone()["pending_orders"]
+
+    cur.execute("SELECT COUNT(*) AS rejected_orders FROM orders WHERE status = 'rejected'")
+    rejected_orders = cur.fetchone()["rejected_orders"]
+
+    cur.execute("""
+        SELECT COALESCE(SUM(price), 0) AS total_sales
+        FROM orders
+        WHERE status IN ('approved', 'delivered', 'code_sent')
+    """)
+    total_sales = cur.fetchone()["total_sales"]
+
+    conn.close()
+    return {
+        "total_orders": int(total_orders),
+        "delivered_orders": int(delivered_orders),
+        "pending_orders": int(pending_orders),
+        "rejected_orders": int(rejected_orders),
+        "total_sales": int(total_sales),
+    }
+
+
 # =========================================================
-# UI HELPERS
+# DISPLAY / FORMAT HELPERS
 # =========================================================
 
-def main_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
-            [InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact")],
-            [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
-        ]
+def human_status(status: str) -> str:
+    mapping = {
+        "pending_payment_review": "⏳ Pending Review",
+        "waiting_manual_delivery": "🟡 Waiting Manual Delivery",
+        "approved": "✅ Approved",
+        "delivered": "✅ Delivered",
+        "code_requested": "🔐 Code Requested",
+        "code_sent": "🔐 Code Sent",
+        "rejected": "❌ Rejected",
+    }
+    return mapping.get(status, status)
+
+
+def order_summary_text(order: dict) -> str:
+    return (
+        f"🆔 <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
+        f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
+        f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
+        f"💰 <b>Price:</b> {order['price']} Ks\n"
+        f"📝 <b>Detail:</b> {escape(order.get('detail') or '-')}\n"
+        f"💳 <b>Payment:</b> {escape(order.get('payment_name') or '-')}\n"
+        f"📌 <b>Status:</b> {human_status(order['status'])}\n"
+        f"🕒 <b>Created:</b> {escape(order['created_at'])}"
     )
+
+
+def product_caption(product: dict, product_key: str) -> str:
+    if product["category"] == "digital":
+        stock = get_digital_stock(product_key)
+        cheapest = min(v["price"] for v in product["plans"].values())
+        price_text = f"From {cheapest} Ks"
+    else:
+        stock = int(product.get("stock", 0))
+        first_price = next(iter(product["plans"].values()))["price"]
+        price_text = f"{first_price} Ks"
+
+    status = "🟢 In Stock" if stock > 0 else "🔴 Out of Stock"
+
+    return (
+        f"✨ <b>{escape(product['full_name'])}</b>\n"
+        f"━━━━━━━━━━━━━━━\n\n"
+        f"💰 <b>Price:</b> {escape(price_text)}\n"
+        f"📦 <b>Stock:</b> {stock}\n"
+        f"📌 <b>Status:</b> {status}\n\n"
+        f"📝 <b>Description</b>\n"
+        f"{escape(product['description'])}\n\n"
+        f"━━━━━━━━━━━━━━━\n"
+        f"⚡ Fast • 🔒 Safe • 💖 Trusted"
+    )
+
+
+def payment_text(payment_name: str, account: str, amount: int) -> str:
+    return (
+        f"💸 <b>PAYMENT INFO</b>\n\n"
+        f"🏦 <b>Method:</b> {escape(payment_name)}\n"
+        f"📲 <b>Account:</b>\n{escape(account)}\n\n"
+        f"💰 <b>Amount:</b> {amount} Ks\n\n"
+        f"✅ ငွေလွှဲပြီး <b>payment screenshot</b> ပို့ပေးပါ\n"
+        f"📨 ပြီးတာနဲ့ admin ဆီ order တက်သွားပါမယ်"
+    )
+
+
+def welcome_text() -> str:
+    return (
+        f"🌈⚡ <b>{escape(SHOP_NAME)}</b> ⚡🌈\n\n"
+        f"🎮 <b>Welcome from {escape(SHOP_NAME)}</b>\n"
+        f"မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎\n\n"
+        f"✨ <b>What would you like to do?</b>\n"
+        f"အောက်က menu ကနေရွေးပေးပါ 👇\n\n"
+        f"⚡ Fast Service\n"
+        f"🔒 Safe Payment\n"
+        f"💖 Trusted Top Up"
+    )
+    def main_menu_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
+        [InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders")],
+        [InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact")],
+        [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
+    ])
 
 
 def category_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
-            [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
-            [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
-        ]
-    )
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
+        [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
+    ])
+
 
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
@@ -510,28 +656,37 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             continue
 
         if category_key == "digital":
+            total_stock = get_digital_stock(key)
             cheapest = min(v["price"] for v in product["plans"].values())
-            rows.append([
-                InlineKeyboardButton(
-                    f"✨ {product['name']} • From {cheapest} Ks",
-                    callback_data=f"product:{key}"
-                )
-            ])
-        else:
-            stock = int(product.get("stock", 0))
-            default_plan = next(iter(product["plans"].values()))
-            if stock > 0:
+            if total_stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"✨ {product['name']} • {default_plan['price']} Ks",
-                        callback_data=f"product:{key}"
+                        f"✨ {product['name']} • From {cheapest} Ks",
+                        callback_data=f"product:{key}",
                     )
                 ])
             else:
                 rows.append([
                     InlineKeyboardButton(
                         f"🔴 {product['name']} • Out of Stock",
-                        callback_data="out_of_stock"
+                        callback_data="out_of_stock",
+                    )
+                ])
+        else:
+            stock = int(product.get("stock", 0))
+            default_price = next(iter(product["plans"].values()))["price"]
+            if stock > 0:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"✨ {product['name']} • {default_price} Ks",
+                        callback_data=f"product:{key}",
+                    )
+                ])
+            else:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {product['name']} • Out of Stock",
+                        callback_data="out_of_stock",
                     )
                 ])
 
@@ -544,117 +699,85 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     product = PRODUCTS[product_key]
 
     for plan_key, plan in product["plans"].items():
-        # Digital products => always available
         if product["category"] == "digital":
-            rows.append([
-                InlineKeyboardButton(
-                    f"{plan['label']} • {plan['price']} Ks",
-                    callback_data=f"plan:{plan_key}"
-                )
-            ])
-        else:
-            # Game products => real stock check
-            stock = int(product.get("stock", 0))
+            stock = get_digital_stock(product_key, plan_key)
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
                         f"{plan['label']} • {plan['price']} Ks",
-                        callback_data=f"plan:{plan_key}"
+                        callback_data=f"plan:{plan_key}",
                     )
                 ])
             else:
                 rows.append([
                     InlineKeyboardButton(
                         f"🔴 {plan['label']} • Out of Stock",
-                        callback_data="out_of_stock"
+                        callback_data="out_of_stock",
+                    )
+                ])
+        else:
+            stock = int(product.get("stock", 0))
+            if stock > 0:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"{plan['label']} • {plan['price']} Ks",
+                        callback_data=f"plan:{plan_key}",
+                    )
+                ])
+            else:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {plan['label']} • Out of Stock",
+                        callback_data="out_of_stock",
                     )
                 ])
 
     rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
     return InlineKeyboardMarkup(rows)
 
+
 def payment_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        [
-            [InlineKeyboardButton(PAYMENT_ACCOUNTS["kpay"]["label"], callback_data="pay:kpay")],
-            [InlineKeyboardButton(PAYMENT_ACCOUNTS["wave"]["label"], callback_data="pay:wave")],
-            [InlineKeyboardButton(PAYMENT_ACCOUNTS["aya"]["label"], callback_data="pay:aya")],
-            [InlineKeyboardButton(PAYMENT_ACCOUNTS["uab"]["label"], callback_data="pay:uab")],
-            [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
-        ]
-    )
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(PAYMENT_ACCOUNTS["kpay"]["label"], callback_data="pay:kpay")],
+        [InlineKeyboardButton(PAYMENT_ACCOUNTS["wave"]["label"], callback_data="pay:wave")],
+        [InlineKeyboardButton(PAYMENT_ACCOUNTS["aya"]["label"], callback_data="pay:aya")],
+        [InlineKeyboardButton(PAYMENT_ACCOUNTS["uab"]["label"], callback_data="pay:uab")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
+    ])
 
 
 def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
     if category == "digital":
-        return InlineKeyboardMarkup(
-            [[
+        return InlineKeyboardMarkup([
+            [
                 InlineKeyboardButton("⚡ Auto", callback_data=f"auto:{order_id}"),
                 InlineKeyboardButton("✍️ Manual", callback_data=f"manual:{order_id}"),
-                InlineKeyboardButton("❌ Reject", callback_data=f"reject:{order_id}"),
-            ]]
-        )
+            ],
+            [
+                InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
+            ],
+        ])
 
-    return InlineKeyboardMarkup(
-        [[
+    return InlineKeyboardMarkup([
+        [
             InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
-            InlineKeyboardButton("❌ Reject", callback_data=f"reject:{order_id}"),
-        ]]
-    )
+            InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
+        ]
+    ])
 
 
-def welcome_text() -> str:
-    return f"""🌈⚡ <b>{escape(SHOP_NAME)}</b> ⚡🌈
+def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
+        [InlineKeyboardButton("Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
+        [InlineKeyboardButton("Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
+        [InlineKeyboardButton("Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
+        [InlineKeyboardButton("Other", callback_data=f"reject:{order_id}:other")],
+    ])
 
-🎮 <b>Welcome from {escape(SHOP_NAME)}</b>
-မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎
-
-✨ <b>What would you like to do?</b>
-အောက်က menu ကနေရွေးပေးပါ 👇
-
-⚡ Fast Service
-🔒 Safe Payment
-💖 Trusted Top Up"""
-
-
-def product_caption(product: dict, product_key: str) -> str:
-    if product["category"] == "digital":
-        stock = get_digital_stock(product_key)
-        price_text = f"From {min(v['price'] for v in product['plans'].values())} Ks"
-    else:
-        stock = int(product.get("stock", 0))
-        price_text = f"{next(iter(product['plans'].values()))['price']} Ks"
-
-    status = "🟢 In Stock" if stock > 0 else "🔴 Out of Stock"
-
-    return f"""✨ <b>{escape(product['full_name'])}</b>
-━━━━━━━━━━━━━━━
-
-💰 <b>Price:</b> {escape(price_text)}
-📦 <b>Stock:</b> {stock}
-📌 <b>Status:</b> {status}
-
-📝 <b>Description</b>
-{escape(product['description'])}
-
-━━━━━━━━━━━━━━━
-⚡ Fast • 🔒 Safe • 💖 Trusted"""
-
-
-def payment_text(payment_name: str, account: str, amount: int) -> str:
-    return f"""💸 <b>PAYMENT INFO</b>
-
-🏦 <b>Method:</b> {escape(payment_name)}
-📲 <b>Account:</b>
-{escape(account)}
-
-💰 <b>Amount:</b> {amount} Ks
-
-✅ ငွေလွှဲပြီး <b>payment screenshot</b> ပို့ပေးပါ
-📨 ပြီးတာနဲ့ admin ဆီ order တက်သွားပါမယ်"""
 
 # =========================================================
-# STICKER HELPERS
+# STICKER / ALERT HELPERS
 # =========================================================
 
 async def send_optional_sticker(message_obj, sticker_id: str):
@@ -665,6 +788,7 @@ async def send_optional_sticker(message_obj, sticker_id: str):
     except Exception as e:
         logger.warning("Sticker send failed: %s", e)
 
+
 async def send_optional_bot_sticker(bot, chat_id: int, sticker_id: str):
     if not sticker_id:
         return
@@ -673,13 +797,58 @@ async def send_optional_bot_sticker(bot, chat_id: int, sticker_id: str):
     except Exception as e:
         logger.warning("Bot sticker send failed: %s", e)
 
+
+async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[str] = None):
+    try:
+        product = PRODUCTS.get(product_key)
+        if not product:
+            return
+
+
+# =========================================================
+# KEYBOARDS
+# =========================================================
+        if product["category"] == "digital":
+            current_stock = get_digital_stock(product_key, plan_key)
+            if current_stock <= LOW_STOCK_THRESHOLD:
+                product_name = product["full_name"]
+                if plan_key and plan_key in product["plans"]:
+                    plan_label = product["plans"][plan_key]["label"]
+                else:
+                    plan_label = "All Plans"
+
+                await bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=(
+                        f"⚠️ <b>Low Stock Alert</b>\n\n"
+                        f"🎮 <b>Product:</b> {escape(product_name)}\n"
+                        f"📋 <b>Plan:</b> {escape(plan_label)}\n"
+                        f"📦 <b>Remaining:</b> {current_stock}"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                )
+        else:
+            current_stock = int(product.get("stock", 0))
+            if current_stock <= LOW_STOCK_THRESHOLD:
+                await bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=(
+                        f"⚠️ <b>Low Stock Alert</b>\n\n"
+                        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
+                        f"📦 <b>Remaining:</b> {current_stock}"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                )
+    except Exception as e:
+        logger.warning("Low stock alert failed: %s", e)
+
+
 # =========================================================
 # CUSTOMER FLOW
 # =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-
     if update.message:
         await send_optional_sticker(update.message, WELCOME_STICKER_ID)
         await update.message.reply_text(
@@ -687,7 +856,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
-        return MENU_STATE
+    return MENU_STATE
 
 
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -702,6 +871,31 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode=ParseMode.HTML,
         )
         return CATEGORY_STATE
+
+    if data == "menu_myorders":
+        rows = get_user_orders(query.from_user.id, limit=5)
+        if not rows:
+            await query.message.reply_text(
+                "📦 သင့် order history မရှိသေးပါ။\n/start နှိပ်ပြီး order တင်လို့ရပါတယ်။"
+            )
+            return MENU_STATE
+
+        lines = ["📦 <b>Your Recent Orders</b>\n"]
+        for o in rows:
+            lines.append(
+                f"🆔 <code>{escape(o['order_id'])}</code>\n"
+                f"🎮 {escape(o['product_name'])}\n"
+                f"📋 {escape(o['plan_label'])}\n"
+                f"📌 {human_status(o['status'])}\n"
+                f"🕒 {escape(o['created_at'])}\n"
+            )
+        lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
+
+        await query.message.reply_text(
+            "\n".join(lines),
+            parse_mode=ParseMode.HTML,
+        )
+        return MENU_STATE
 
     if data == "menu_contact":
         await query.message.reply_text(
@@ -758,11 +952,11 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "back_categories":
         await query.message.reply_text(
-            "📦 <b>Please choose a product</b>",
-            reply_markup=products_keyboard(context.user_data.get("category_key", "digital")),
+            "🗂️ <b>Please choose a category</b>",
+            reply_markup=category_keyboard(),
             parse_mode=ParseMode.HTML,
         )
-        return PRODUCT_STATE
+        return CATEGORY_STATE
 
     if data == "out_of_stock":
         await query.message.reply_text("🔴 This item is out of stock.")
@@ -787,7 +981,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=ParseMode.HTML,
             )
         except Exception as e:
-            logger.exception("Photo error for %s: %s", product_key, e)
+            logger.warning("Photo send failed for %s: %s", product_key, e)
             await query.message.reply_text(
                 product_caption(product, product_key),
                 parse_mode=ParseMode.HTML,
@@ -827,9 +1021,18 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         product = PRODUCTS[product_key]
         plan = product["plans"][plan_key]
 
+        if product["category"] == "digital":
+            if get_digital_stock(product_key, plan_key) <= 0:
+                await query.message.reply_text("🔴 ဒီ plan က stock မရှိတော့ပါ။")
+                return PLAN_STATE
+        else:
+            if int(product.get("stock", 0)) <= 0:
+                await query.message.reply_text("🔴 ဒီ item က stock မရှိတော့ပါ။")
+                return PLAN_STATE
+
         context.user_data["plan_key"] = plan_key
         context.user_data["plan_label"] = plan["label"]
-        context.user_data["price"] = plan["price"]
+        context.user_data["price"] = int(plan["price"])
 
         await query.message.reply_text(
             product["requires_detail_label"],
@@ -838,14 +1041,12 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return DETAIL_STATE
 
     return PLAN_STATE
-
-
-async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return DETAIL_STATE
 
     text = update.message.text.strip()
-    if len(text) < 1:
+    if not text:
         await update.message.reply_text("❌ Detail ပို့ပေးပါ။")
         return DETAIL_STATE
 
@@ -893,18 +1094,31 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.HTML,
     )
     return SCREENSHOT_STATE
-    
+
+
 async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.photo:
-        await update.message.reply_text(
-            "📷 Payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
-            parse_mode=ParseMode.HTML,
-        )
+        if update.message:
+            await update.message.reply_text(
+                "📷 Payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
+                parse_mode=ParseMode.HTML,
+            )
         return SCREENSHOT_STATE
+
+    required_keys = [
+        "product_key", "product_name", "plan_key", "plan_label",
+        "category", "price", "payment_key", "payment_name"
+    ]
+    for key in required_keys:
+        if key not in context.user_data:
+            await update.message.reply_text(
+                "❌ Order session မစုံတော့ပါ။ /start နဲ့ပြန်စပါ။"
+            )
+            context.user_data.clear()
+            return ConversationHandler.END
 
     user = update.effective_user
     photo_file_id = update.message.photo[-1].file_id
-
     order_id = new_order_id()
 
     data = {
@@ -927,6 +1141,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "updated_at": now_str(),
         "admin_note": "",
     }
+
     order_insert(data)
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
@@ -934,16 +1149,10 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "╔══════════════════════╗\n"
         "   📥 <b>NEW ORDER</b>\n"
         "╚══════════════════════╝\n\n"
-        f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-        f"🎮 <b>Product:</b> {escape(data['product_name'])}\n"
-        f"📋 <b>Plan:</b> {escape(data['plan_label'])}\n"
-        f"💰 <b>Price:</b> {data['price']} Ks\n"
-        f"📝 <b>Detail:</b> {escape(data['detail'])}\n"
-        f"💳 <b>Payment:</b> {escape(data['payment_name'])}\n\n"
+        f"{order_summary_text(data)}\n\n"
         f"👤 <b>Customer:</b> {escape(data['full_name'])}\n"
         f"📎 <b>Username:</b> {escape(data['username'] or '-')}\n"
-        f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>\n"
-        f"📌 <b>Status:</b> Pending Review"
+        f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
     try:
@@ -961,7 +1170,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await update.message.reply_text(
         "✅ <b>Order received successfully!</b>\n\n"
-        f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
+        f"{order_summary_text(data)}\n\n"
         "📨 Screenshot + Order info ကို admin ဆီပို့ပြီးပါပြီ\n"
         "⏳ စစ်ဆေးပြီး order ကိုဆက်လုပ်ပေးပါမယ်",
         parse_mode=ParseMode.HTML,
@@ -969,8 +1178,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     context.user_data.clear()
     return ConversationHandler.END
-
-# =========================================================
+    # =========================================================
 # ADMIN FLOW
 # =========================================================
 
@@ -983,6 +1191,64 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     raw = query.data
+
+    if raw.startswith("rejectmenu:"):
+        order_id = raw.split(":", 1)[1]
+        order = order_get(order_id)
+        if not order:
+            await query.answer("Order not found", show_alert=True)
+            return
+
+        await query.message.reply_text(
+            f"❌ <b>Reject Reason ရွေးပါ</b>\n🆔 <code>{escape(order_id)}</code>",
+            parse_mode=ParseMode.HTML,
+            reply_markup=reject_reason_keyboard(order_id),
+        )
+        return
+
+    if raw.startswith("reject:"):
+        parts = raw.split(":", 2)
+        if len(parts) != 3:
+            await query.answer("Invalid reject action", show_alert=True)
+            return
+
+        _, order_id, reason_key = parts
+        order = order_get(order_id)
+        if not order:
+            await query.answer("Order not found", show_alert=True)
+            return
+
+        reason_text = REJECT_REASONS.get(reason_key, "Order rejected")
+        order_update_status(order_id, "rejected", reason_text)
+        log_action(order_id, query.from_user.id, "rejected", reason_text)
+
+        try:
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=(
+                    "❌ <b>Order Rejected</b>\n\n"
+                    f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                    f"📌 <b>Reason:</b> {escape(reason_text)}\n\n"
+                    "လိုအပ်ရင် screenshot / info ကိုပြန်စစ်ပြီး ပြန်တင်ပေးပါ။"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+        except Exception as e:
+            logger.exception("Failed to notify rejected user: %s", e)
+
+        try:
+            caption = query.message.caption or ""
+            await query.message.edit_caption(
+                caption=caption + f"\n\n❌ <b>Status: Rejected</b>\n📌 <b>Reason:</b> {escape(reason_text)}",
+                parse_mode=ParseMode.HTML,
+                reply_markup=None,
+            )
+        except Exception as e:
+            logger.warning("Failed to edit rejected message caption: %s", e)
+
+        await query.message.reply_text("✅ Rejected.")
+        return
+
     action, order_id = raw.split(":", 1)
     order = order_get(order_id)
 
@@ -990,175 +1256,22 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.answer("Order not found", show_alert=True)
         return
 
-    if action == "reject":
-        order_update_status(order_id, "rejected", "Rejected by admin")
-        log_action(order_id, query.from_user.id, "rejected")
-
-        try:
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=(
-                    "❌ <b>Order Rejected!</b>\n\n"
-                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                    "📷 Payment screenshot / info ကိုပြန်စစ်ပြီး ပြန်ပို့ပေးပါ။"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-        except Exception as e:
-            logger.exception("Failed to notify reject: %s", e)
-
-        try:
-            await query.edit_message_caption(
-                caption=query.message.caption + "\n\n❌ <b>Status: Rejected</b>",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.exception("Failed to edit reject caption: %s", e)
-        return
-
-    if action == "approve":
-        if order["category"] == "game":
-            product = PRODUCTS.get(order["product_key"])
-            if not product or int(product.get("stock", 0)) <= 0:
-                await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-                return
-
-            product["stock"] -= 1
-            order_update_status(order_id, "approved", "Game order approved")
-            log_action(order_id, query.from_user.id, "approved_game")
-
-            try:
-                await context.bot.send_message(
-                    chat_id=order["user_id"],
-                    text=(
-                        "✅ <b>Order Approved!</b>\n\n"
-                        f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                        "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
-                        "💖 Thanks for using Gamepay Hub"
-                    )
-                    parse_mode=ParseMode.HTML,
-                )
-                await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
-            except Exception as e:
-                logger.exception("Failed to notify game approve: %s", e)
-
-            try:
-                await query.edit_message_caption(
-                    caption=query.message.caption + "\n\n✅ <b>Status: Approved</b>",
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=None,
-                )
-            except Exception as e:
-                logger.exception("Failed to edit approve caption: %s", e)
-            return
-
-        # digital
-        inventory_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
-        auto_delivery = bool(inventory_cfg.get("auto_delivery", False))
-
-        account = reserve_account(order["product_key"], order["plan_key"], order_id)
-
-        if not account:
-            order_update_status(order_id, "waiting_manual_delivery", "No auto account available")
-            log_action(order_id, query.from_user.id, "waiting_manual_delivery")
-
-            try:
-                await query.edit_message_caption(
-                    caption=query.message.caption + "\n\n🟡 <b>Status: Waiting Manual Delivery</b>",
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=None,
-                )
-            except Exception as e:
-                logger.exception("Failed to edit manual delivery caption: %s", e)
-
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(
-                    f"📦 <b>Manual delivery required</b>\n\n"
-                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                    f"Product: {escape(order['product_name'])}\n"
-                    f"Plan: {escape(order['plan_label'])}\n\n"
-                    "ပို့ချင်တဲ့ account info ကို ဒီ command နဲ့ပို့ပါ:\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        if auto_delivery:
-            order_update_status(order_id, "delivered", "Auto delivered")
-            log_action(order_id, query.from_user.id, "auto_delivered")
-
-            delivery_text = (
-                f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
-                f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-                f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
-            )
-            if account["extra"]:
-                delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
-
-            delivery_text += (
-    "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
-    "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
-    "💖 Thanks for using Gamepay Hub"
-            )
-async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-
-    if query.from_user.id != ADMIN_ID:
-        await query.answer("ဒီ button ကို admin ပဲသုံးလို့ရပါတယ်။", show_alert=True)
-        return
-
-    action, order_id = query.data.split(":", 1)
-    order = order_get(order_id)
-
-    if not order:
-        await query.answer("Order not found", show_alert=True)
-        return
-
-    if action == "reject":
-        order_update_status(order_id, "rejected", "Rejected by admin")
-        log_action(order_id, query.from_user.id, "rejected")
-
-        try:
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=(
-                    "❌ <b>Order Rejected!</b>\n\n"
-                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                    "📷 Payment screenshot / info ကိုပြန်စစ်ပြီး ပြန်ပို့ပေးပါ။"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-        except Exception as e:
-            logger.exception("Failed to notify reject: %s", e)
-
-        try:
-            await query.edit_message_caption(
-                caption=query.message.caption + "\n\n❌ <b>Status: Rejected</b>",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.exception("Failed to edit reject caption: %s", e)
-        return
-
-    # game product approve
     if action == "approve":
         if order["category"] != "game":
             await query.answer("ဒီ button က game order အတွက်ပဲပါ။", show_alert=True)
             return
 
         product = PRODUCTS.get(order["product_key"])
-        if not product or int(product.get("stock", 0)) <= 0:
+        if not product:
+            await query.message.reply_text("❌ Product not found.")
+            return
+
+        current_stock = int(product.get("stock", 0))
+        if current_stock <= 0:
             await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
             return
 
-        product["stock"] -= 1
+        product["stock"] = current_stock - 1
         order_update_status(order_id, "approved", "Game order approved")
         log_action(order_id, query.from_user.id, "approved_game")
 
@@ -1167,7 +1280,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=order["user_id"],
                 text=(
                     "✅ <b>Order Approved!</b>\n\n"
-                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
+                    f"{order_summary_text(order)}\n\n"
                     "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
                     "💖 Thanks for using Gamepay Hub"
                 ),
@@ -1178,22 +1291,51 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.exception("Failed to notify game approve: %s", e)
 
         try:
-            await query.edit_message_caption(
-                caption=query.message.caption + "\n\n✅ <b>Status: Approved</b>",
+            caption = query.message.caption or ""
+            await query.message.edit_caption(
+                caption=caption + "\n\n✅ <b>Status: Approved</b>",
                 parse_mode=ParseMode.HTML,
                 reply_markup=None,
             )
         except Exception as e:
-            logger.exception("Failed to edit approve caption: %s", e)
+            logger.warning("Failed to edit game approval caption: %s", e)
+
+        await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
 
-    # digital auto delivery
     if action == "auto":
         if order["category"] != "digital":
             await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
             return
 
-        inventory_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+        if not bool(product_cfg.get("auto_delivery", False)):
+            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
+            log_action(order_id, query.from_user.id, "manual_only_product")
+
+            try:
+                caption = query.message.caption or ""
+                await query.message.edit_caption(
+                    caption=caption + "\n\n🟡 <b>Status: Manual Delivery Required</b>",
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=None,
+                )
+            except Exception as e:
+                logger.warning("Failed to edit manual-only caption: %s", e)
+
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"✍️ <b>Manual delivery required</b>\n\n"
+                    f"🆔 <code>{escape(order_id)}</code>\n"
+                    f"🎮 {escape(order['product_name'])}\n"
+                    f"📋 {escape(order['plan_label'])}\n\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
         account = reserve_account(order["product_key"], order["plan_key"], order_id)
 
         if not account:
@@ -1201,22 +1343,23 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             log_action(order_id, query.from_user.id, "auto_failed_waiting_manual")
 
             try:
-                await query.edit_message_caption(
-                    caption=query.message.caption + "\n\n🟡 <b>Status: No Auto Stock / Waiting Manual Delivery</b>",
+                caption = query.message.caption or ""
+                await query.message.edit_caption(
+                    caption=caption + "\n\n🟡 <b>Status: No Auto Stock / Waiting Manual Delivery</b>",
                     parse_mode=ParseMode.HTML,
                     reply_markup=None,
                 )
             except Exception as e:
-                logger.exception("Failed to edit auto-failed caption: %s", e)
+                logger.warning("Failed to edit auto-failed caption: %s", e)
 
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
                     f"❌ <b>Auto stock not found</b>\n\n"
-                    f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                    f"🎮 Product: {escape(order['product_name'])}\n"
-                    f"📋 Plan: {escape(order['plan_label'])}\n\n"
-                    "Manual delivery လုပ်ချင်ရင် ဒီ command သုံးပါ:\n"
+                    f"🆔 <code>{escape(order_id)}</code>\n"
+                    f"🎮 {escape(order['product_name'])}\n"
+                    f"📋 {escape(order['plan_label'])}\n\n"
+                    "Manual delivery လုပ်ချင်ရင်:\n"
                     f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
                 ),
                 parse_mode=ParseMode.HTML,
@@ -1233,14 +1376,16 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
             f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
         )
-1236 if account["extra"]:
-1237     delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
-1239 delivery_text += (
-1240     "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
-1241     "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
-1242     "💖 Thanks for using Gamepay Hub"
-1243 )
+        if account["extra"]:
+            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
+
+        delivery_text += (
+            "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
+            "<code>Code</code> လို့ရိုက်ပို့ပေးပါ။\n\n"
+            "💖 Thanks for using Gamepay Hub"
+        )
+
         try:
             await context.bot.send_message(
                 chat_id=order["user_id"],
@@ -1252,17 +1397,18 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.exception("Failed to auto deliver digital: %s", e)
 
         try:
-            await query.edit_message_caption(
-                caption=query.message.caption + "\n\n✅ <b>Status: Auto Delivered</b>",
+            caption = query.message.caption or ""
+            await query.message.edit_caption(
+                caption=caption + "\n\n✅ <b>Status: Auto Delivered</b>",
                 parse_mode=ParseMode.HTML,
                 reply_markup=None,
             )
         except Exception as e:
-            logger.exception("Failed to edit auto delivery caption: %s", e)
-        return
+            logger.warning("Failed to edit auto delivery caption: %s", e)
 
-    # digital manual delivery
-    if action == "manual":
+        await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
+        return
+        if action == "manual":
         if order["category"] != "digital":
             await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
             return
@@ -1271,21 +1417,22 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log_action(order_id, query.from_user.id, "manual_delivery_selected")
 
         try:
-            await query.edit_message_caption(
-                caption=query.message.caption + "\n\n🟡 <b>Status: Waiting Manual Delivery</b>",
+            caption = query.message.caption or ""
+            await query.message.edit_caption(
+                caption=caption + "\n\n🟡 <b>Status: Waiting Manual Delivery</b>",
                 parse_mode=ParseMode.HTML,
                 reply_markup=None,
             )
         except Exception as e:
-            logger.exception("Failed to edit manual caption: %s", e)
+            logger.warning("Failed to edit manual caption: %s", e)
 
         await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
                 f"✍️ <b>Manual delivery selected</b>\n\n"
-                f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
-                f"🎮 Product: {escape(order['product_name'])}\n"
-                f"📋 Plan: {escape(order['plan_label'])}\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
+                f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n\n"
                 "Customer ဆီပို့ချင်တဲ့ Email / Password ကို ဒီ command နဲ့ပို့ပါ:\n\n"
                 f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>\n\n"
                 "ဒါမှမဟုတ် multiline နဲ့လည်းပို့လို့ရတယ်:\n"
@@ -1293,6 +1440,12 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ),
             parse_mode=ParseMode.HTML,
         )
+        return
+
+
+# =========================================================
+# ADMIN COMMANDS
+# =========================================================
 
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -1314,9 +1467,9 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    _, order_id, delivery_text = parts[0], parts[1], parts[2]
-
+    _, order_id, delivery_text = parts
     order = order_get(order_id)
+
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
@@ -1328,6 +1481,7 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
                 f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
                 f"<pre>{escape(delivery_text)}</pre>\n\n"
+                "🔐 Login code လိုအပ်လာရင် <code>Code</code> လို့ပို့နိုင်ပါတယ်။\n\n"
                 "💖 Thanks for using Gamepay Hub"
             ),
             parse_mode=ParseMode.HTML,
@@ -1341,6 +1495,307 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order_update_status(order_id, "delivered", "Manually delivered")
     log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text("✅ Delivered successfully.")
+
+
+async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) < 2:
+        await update.message.reply_text(
+            "Usage:\n<code>/code ORDER_ID 123456</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    order_id = context.args[0]
+    code_value = " ".join(context.args[1:]).strip()
+
+    order = order_get(order_id)
+    if not order:
+        await update.message.reply_text("❌ Order not found.")
+        return
+
+    try:
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=(
+                f"🔐 <b>Your login code is ready</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>\n\n"
+                "✅ ကျေးဇူးပြုပြီး ချက်ချင်းအသုံးပြုပေးပါ။"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        logger.exception("Failed to send login code: %s", e)
+        await update.message.reply_text("❌ Customer ဆီ code မပို့နိုင်ပါ။")
+        return
+
+    order_update_status(order_id, "code_sent", "Admin sent login code")
+    log_action(order_id, update.effective_user.id, "code_sent", code_value)
+    await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
+
+
+async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    rows = get_pending_orders(limit=20)
+    if not rows:
+        await update.message.reply_text("✅ Pending orders မရှိပါ။")
+        return
+
+    lines = ["📋 <b>Pending Orders</b>\n"]
+    for o in rows:
+        lines.append(
+            f"🆔 <code>{escape(o['order_id'])}</code>\n"
+            f"🎮 {escape(o['product_name'])}\n"
+            f"📋 {escape(o['plan_label'])}\n"
+            f"👤 {escape(o['full_name'])}\n"
+            f"📌 {human_status(o['status'])}\n"
+        )
+
+    await update.message.reply_text(
+        "\n".join(lines),
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if not context.args:
+        await update.message.reply_text("Usage: /order ORDER_ID")
+        return
+
+    order_id = context.args[0]
+    order = order_get(order_id)
+
+    if not order:
+        await update.message.reply_text("❌ Order not found.")
+        return
+
+    text = order_summary_text(order)
+    if order.get("admin_note"):
+        text += f"\n📝 <b>Admin Note:</b> {escape(order['admin_note'])}"
+
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    stats = get_stats_summary()
+    text = (
+        "📊 <b>Bot Statistics</b>\n\n"
+        f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
+        f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+        f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
+        f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
+        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks"
+    )
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
+async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    lines = ["📦 <b>Stock List</b>\n"]
+
+    for key, p in PRODUCTS.items():
+        if p["category"] == "digital":
+            total_stock = get_digital_stock(key)
+            lines.append(f"💻 <b>{escape(p['name'])}</b> → {total_stock}")
+            for plan_key, plan in p["plans"].items():
+                lines.append(
+                    f"   • {escape(plan['label'])} = {get_digital_stock(key, plan_key)}"
+                )
+        else:
+            lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
+
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+    async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) != 2:
+        await update.message.reply_text(
+            "Usage:\n<code>/add_game_stock PRODUCT_KEY QTY</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    product_key = context.args[0].strip()
+    qty_text = context.args[1].strip()
+
+    if product_key not in PRODUCTS:
+        await update.message.reply_text("❌ Invalid product key.")
+        return
+
+    if PRODUCTS[product_key]["category"] != "game":
+        await update.message.reply_text("❌ ဒီ command က game product အတွက်ပဲပါ။")
+        return
+
+    try:
+        qty = int(qty_text)
+    except ValueError:
+        await update.message.reply_text("❌ QTY must be a number.")
+        return
+
+    if qty <= 0:
+        await update.message.reply_text("❌ QTY must be greater than 0.")
+        return
+
+    PRODUCTS[product_key]["stock"] = int(PRODUCTS[product_key].get("stock", 0)) + qty
+    log_action(None, update.effective_user.id, "add_game_stock", f"{product_key} +{qty}")
+
+    await update.message.reply_text(
+        f"✅ <b>Game stock updated</b>\n\n"
+        f"🎮 <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
+        f"➕ <b>Added:</b> {qty}\n"
+        f"📦 <b>New Stock:</b> {PRODUCTS[product_key]['stock']}",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if not update.message or not update.message.text:
+        return
+
+    raw = update.message.text.strip()
+    payload = raw[len("/add_account"):].strip()
+
+    if not payload:
+        await update.message.reply_text(
+            "Usage:\n"
+            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD</code>\n\n"
+            "or\n"
+            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA NOTE</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    if "|" in payload:
+        main_part, extra = payload.split("|", 1)
+        extra = extra.strip()
+    else:
+        main_part = payload
+        extra = ""
+
+    parts = main_part.split()
+    if len(parts) < 4:
+        await update.message.reply_text(
+            "❌ Format မမှန်ပါ。\n"
+            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    product_key, plan_key, email, password = parts[0], parts[1], parts[2], " ".join(parts[3:])
+
+    if product_key not in PRODUCTS:
+        await update.message.reply_text("❌ Invalid product key.")
+        return
+
+    product = PRODUCTS[product_key]
+    if product["category"] != "digital":
+        await update.message.reply_text("❌ ဒီ command က digital product အတွက်ပဲပါ။")
+        return
+
+    if plan_key not in product["plans"]:
+        await update.message.reply_text("❌ Invalid plan key.")
+        return
+
+    add_digital_account(product_key, plan_key, email, password, extra)
+    log_action(None, update.effective_user.id, "add_account", f"{product_key}/{plan_key}/{email}")
+
+    await update.message.reply_text(
+        f"✅ <b>Digital account added</b>\n\n"
+        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
+        f"📋 <b>Plan:</b> {escape(product['plans'][plan_key]['label'])}\n"
+        f"📧 <b>Email:</b> <code>{escape(email)}</code>\n"
+        f"📦 <b>Available Stock:</b> {get_digital_stock(product_key, plan_key)}",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    await update.message.reply_text(
+        "📌 <b>Stock Commands</b>\n\n"
+        "🎮 Game stock add:\n"
+        "<code>/add_game_stock PRODUCT_KEY QTY</code>\n\n"
+        "💻 Digital account add:\n"
+        "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA</code>\n\n"
+        "ဥပမာ:\n"
+        "<code>/add_game_stock mlbb_weekly 10</code>\n\n"
+        "<code>/add_account capcut_pro share_1m test@gmail.com 123456 | Profile 1</code>",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+# =========================================================
+# CUSTOMER EXTRA COMMANDS
+# =========================================================
+
+async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    rows = get_user_orders(user.id, limit=10)
+
+    if not rows:
+        await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
+        return
+
+    lines = ["📦 <b>Your Recent Orders</b>\n"]
+    for o in rows:
+        lines.append(
+            f"🆔 <code>{escape(o['order_id'])}</code>\n"
+            f"🎮 {escape(o['product_name'])}\n"
+            f"📋 {escape(o['plan_label'])}\n"
+            f"💰 {o['price']} Ks\n"
+            f"📌 {human_status(o['status'])}\n"
+            f"🕒 {escape(o['created_at'])}\n"
+        )
+
+    lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+
+
+async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "Usage:\n<code>/track ORDER_ID</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    order_id = context.args[0].strip()
+    order = order_get(order_id)
+
+    if not order:
+        await update.message.reply_text("❌ Order not found.")
+        return
+
+    if update.effective_user.id != ADMIN_ID and order["user_id"] != update.effective_user.id:
+        await update.message.reply_text("❌ ဒီ order ကိုကြည့်ခွင့်မရှိပါ။")
+        return
+
+    text = order_summary_text(order)
+    if order.get("admin_note") and update.effective_user.id == ADMIN_ID:
+        text += f"\n📝 <b>Admin Note:</b> {escape(order['admin_note'])}"
+
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
+
 async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
@@ -1354,12 +1809,7 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     if text != "code":
         return
 
-    order = None
-    rows = get_pending_orders(limit=100)
-
-    # delivered digital orders among recent records
     conn = db_connect()
-    conn.row_factory = sqlite3.Row
     cur = conn.cursor()
     cur.execute("""
         SELECT * FROM orders
@@ -1400,130 +1850,7 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
         ),
         parse_mode=ParseMode.HTML,
     )
-    async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
 
-    if len(context.args) < 2:
-        await update.message.reply_text(
-            "Usage:\n<code>/code ORDER_ID 123456</code>",
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
-    order_id = context.args[0]
-    code_value = " ".join(context.args[1:]).strip()
-
-    order = order_get(order_id)
-    if not order:
-        await update.message.reply_text("❌ Order not found.")
-        return
-
-    try:
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=(
-                f"🔐 <b>Your login code is ready</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>\n\n"
-                "✅ ကျေးဇူးပြုပြီး ချက်ချင်းအသုံးပြုပေးပါ။"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-    except Exception as e:
-        logger.exception("Failed to send login code: %s", e)
-        await update.message.reply_text("❌ Customer ဆီ code မပို့နိုင်ပါ။")
-        return
-
-    order_update_status(order_id, "code_sent", "Admin sent login code")
-    log_action(order_id, update.effective_user.id, "code_sent", code_value)
-    await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
-async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    rows = get_pending_orders(limit=20)
-    if not rows:
-        await update.message.reply_text("✅ Pending orders မရှိပါ။")
-        return
-
-    lines = ["📋 <b>Pending Orders</b>\n"]
-    for o in rows:
-        lines.append(
-            f"🆔 <code>{escape(o['order_id'])}</code>\n"
-            f"🎮 {escape(o['product_name'])}\n"
-            f"📋 {escape(o['plan_label'])}\n"
-            f"👤 {escape(o['full_name'])}\n"
-            f"📌 {escape(o['status'])}\n"
-        )
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
-
-async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    if not context.args:
-        await update.message.reply_text("Usage: /order ORDER_ID")
-        return
-
-    order_id = context.args[0]
-    order = order_get(order_id)
-    if not order:
-        await update.message.reply_text("❌ Order not found.")
-        return
-
-    text = (
-        f"🆔 <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
-        f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
-        f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
-        f"💰 <b>Price:</b> {order['price']} Ks\n"
-        f"📝 <b>Detail:</b> {escape(order['detail'] or '-')}\n"
-        f"👤 <b>User:</b> {escape(order['full_name'])}\n"
-        f"📎 <b>Username:</b> {escape(order['username'] or '-')}\n"
-        f"📌 <b>Status:</b> {escape(order['status'])}\n"
-        f"🕒 <b>Created:</b> {escape(order['created_at'])}"
-    )
-    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
-
-
-async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    lines = ["📦 <b>Stock List</b>\n"]
-
-    for key, p in PRODUCTS.items():
-        if p["category"] == "digital":
-            total_stock = get_digital_stock(key)
-            lines.append(f"💻 <b>{escape(p['name'])}</b> → {total_stock}")
-            for plan_key, plan in p["plans"].items():
-                lines.append(f"   • {escape(plan['label'])} = {get_digital_stock(key, plan_key)}")
-        else:
-            lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
-
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
-
-async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    await update.message.reply_text(
-        "Coding နဲ့ပဲ stock add မယ်ဆို:\n\n"
-        "1. game product → PRODUCTS dict ထဲက <code>stock</code> number ပြင်\n"
-        "2. digital product → DIGITAL_INVENTORY dict ထဲက <code>accounts</code> list ထဲ account အသစ်ထည့်\n"
-        "3. bot restart လုပ်\n\n"
-        "ဥပမာ digital account:\n"
-        "<code>{\n"
-        "  \"plan_key\": \"share_1m\",\n"
-        "  \"email\": \"new@example.com\",\n"
-        "  \"password\": \"123456\",\n"
-        "  \"extra\": \"Profile 1\",\n"
-        "  \"used\": False,\n"
-        "}</code>",
-        parse_mode=ParseMode.HTML,
-    )
 
 # =========================================================
 # CANCEL
@@ -1531,13 +1858,16 @@ async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-    await update.message.reply_text(
-        "❌ Order cancelled.",
-        reply_markup=main_menu_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
+    if update.message:
+        await update.message.reply_text(
+            "❌ Order cancelled.",
+            reply_markup=main_menu_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
     return ConversationHandler.END
-             # =========================================================
+
+
+# =========================================================
 # MAIN
 # =========================================================
 
@@ -1573,7 +1903,8 @@ def main():
                 CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)"),
             ],
             SCREENSHOT_STATE: [
-                MessageHandler(filters.PHOTO | (filters.TEXT & ~filters.COMMAND), screenshot_handler),
+                MessageHandler(filters.PHOTO, screenshot_handler),
+                MessageHandler(filters.TEXT & ~filters.COMMAND, screenshot_handler),
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
@@ -1582,20 +1913,29 @@ def main():
 
     application.add_handler(conv_handler)
 
-    # admin buttons
     application.add_handler(
-    CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|reject:)")
+        CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)")
     )
-    # admin commands
+
+    application.add_handler(CommandHandler("myorders", myorders_command))
+    application.add_handler(CommandHandler("track", track_command))
+
     application.add_handler(CommandHandler("deliver", deliver_command))
     application.add_handler(CommandHandler("orders", orders_command))
     application.add_handler(CommandHandler("order", order_command))
     application.add_handler(CommandHandler("stock", stock_command))
+    application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("addstock", addstock_command))
-application.add_handler(CommandHandler("code", code_command))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler))
+    application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
+    application.add_handler(CommandHandler("add_account", add_account_command))
+    application.add_handler(CommandHandler("code", code_command))
+
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
+    )
+
     application.run_polling()
 
 
 if __name__ == "__main__":
-    main()           
+    main()
