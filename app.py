@@ -61,10 +61,6 @@ REJECT_REASONS = {
     "other": "order info ပြန်စစ်ပြီးပြန်တင်ပါ",
 }
 
-# =========================================================
-# PRODUCTS
-# =========================================================
-
 PRODUCTS: Dict[str, Dict[str, Any]] = {
     "mlbb_weekly": {
         "category": "game",
@@ -153,7 +149,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         },
     },
 }
-
 DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     "capcut_pro": {
         "auto_delivery": True,
@@ -215,6 +210,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
+
 # =========================================================
 # DATABASE
 # =========================================================
@@ -287,9 +283,7 @@ def init_db():
     conn.commit()
     conn.close()
     sync_inventory_to_db()
-
-
-def sync_inventory_to_db():
+    def sync_inventory_to_db():
     conn = db_connect()
     cur = conn.cursor()
 
@@ -538,9 +532,6 @@ def get_stats_summary() -> dict:
         "total_sales": int(total_sales),
     }
 
-# =========================================================
-# TEXT / UI HELPERS
-# =========================================================
 
 def human_status(status: str) -> str:
     mapping = {
@@ -566,9 +557,7 @@ def order_summary_text(order: dict) -> str:
         f"📌 <b>Status:</b> {human_status(order['status'])}\n"
         f"🕒 <b>Created:</b> {escape(order['created_at'])}"
     )
-
-
-def product_caption(product: dict, product_key: str) -> str:
+    def product_caption(product: dict, product_key: str) -> str:
     if product["category"] == "digital":
         stock = get_digital_stock(product_key)
         cheapest = min(v["price"] for v in product["plans"].values())
@@ -615,7 +604,9 @@ def welcome_text() -> str:
         f"🔒 Safe Payment\n"
         f"💖 Trusted Top Up"
     )
-    def main_menu_keyboard() -> InlineKeyboardMarkup:
+
+
+def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
         [InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders")],
@@ -676,9 +667,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
 
     rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
-
-
-def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
+    def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     rows = []
     product = PRODUCTS[product_key]
 
@@ -759,21 +748,19 @@ def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
 
 
 async def send_optional_sticker(message_obj, sticker_id: str):
-    if not sticker_id:
-        return
-    try:
-        await message_obj.reply_sticker(sticker=sticker_id)
-    except Exception as e:
-        logger.warning("Sticker send failed: %s", e)
+    if sticker_id:
+        try:
+            await message_obj.reply_sticker(sticker=sticker_id)
+        except Exception as e:
+            logger.warning("Sticker send failed: %s", e)
 
 
 async def send_optional_bot_sticker(bot, chat_id: int, sticker_id: str):
-    if not sticker_id:
-        return
-    try:
-        await bot.send_sticker(chat_id=chat_id, sticker=sticker_id)
-    except Exception as e:
-        logger.warning("Bot sticker send failed: %s", e)
+    if sticker_id:
+        try:
+            await bot.send_sticker(chat_id=chat_id, sticker=sticker_id)
+        except Exception as e:
+            logger.warning("Bot sticker send failed: %s", e)
 
 
 async def send_product_preview(message_obj, product_key: str):
@@ -789,9 +776,7 @@ async def send_product_preview(message_obj, product_key: str):
     except Exception as e:
         logger.warning("Photo preview failed for %s: %s", product_key, e)
         await message_obj.reply_text(caption, parse_mode=ParseMode.HTML)
-
-
-async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[str] = None):
+        async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[str] = None):
     try:
         product = PRODUCTS.get(product_key)
         if not product:
@@ -828,13 +813,14 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                 )
     except Exception as e:
         logger.warning("Low stock alert failed: %s", e)
-        # =========================================================
+
+
+# =========================================================
 # CUSTOMER FLOW
 # =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
-
     if update.message:
         await send_optional_sticker(update.message, WELCOME_STICKER_ID)
         await update.message.reply_text(
@@ -861,9 +847,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_myorders":
         rows = get_user_orders(query.from_user.id, limit=5)
         if not rows:
-            await query.message.reply_text(
-                "📦 သင့် order history မရှိသေးပါ။\n/start နှိပ်ပြီး order တင်လို့ရပါတယ်။"
-            )
+            await query.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
             return MENU_STATE
 
         lines = ["📦 <b>Your Recent Orders</b>\n"]
@@ -876,15 +860,13 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"🕒 {escape(o['created_at'])}\n"
             )
         lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
-
         await query.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
         return MENU_STATE
 
     if data == "menu_contact":
         await query.message.reply_text(
             "📞 <b>Contact Admin</b>\n\n"
-            f"👤 Telegram: {escape(CONTACT_USERNAME)}\n"
-            "အခက်အခဲရှိရင် admin ကိုတိုက်ရိုက်ဆက်သွယ်နိုင်ပါတယ်။",
+            f"👤 Telegram: {escape(CONTACT_USERNAME)}",
             parse_mode=ParseMode.HTML,
         )
         return MENU_STATE
@@ -917,7 +899,6 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("cat:"):
         category_key = data.split(":", 1)[1]
         context.user_data["category_key"] = category_key
-
         await query.message.reply_text(
             "📦 <b>Please choose a product</b>",
             reply_markup=products_keyboard(category_key),
@@ -947,18 +928,16 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data.startswith("product:"):
         product_key = data.split(":", 1)[1]
-        product = PRODUCTS.get(product_key)
-
-        if not product:
+        if product_key not in PRODUCTS:
             await query.message.reply_text("❌ Invalid product.")
             return PRODUCT_STATE
 
+        product = PRODUCTS[product_key]
         context.user_data["product_key"] = product_key
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
         await send_product_preview(query.message, product_key)
-
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
             reply_markup=plans_keyboard(product_key),
@@ -967,7 +946,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return PLAN_STATE
 
     return PRODUCT_STATE
-   async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data
@@ -1033,7 +1012,6 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return DETAIL_STATE
 
     context.user_data["detail"] = text
-
     await update.message.reply_text(
         "💳 <b>Please choose a payment method</b>",
         reply_markup=payment_keyboard(),
@@ -1068,15 +1046,15 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.message.reply_text("❌ Invalid payment method.")
         return PAYMENT_STATE
 
-    payment_name = PAYMENT_ACCOUNTS[payment_key]["label"]
-    payment_account = PAYMENT_ACCOUNTS[payment_key]["text"]
-    amount = int(context.user_data["price"])
-
     context.user_data["payment_key"] = payment_key
-    context.user_data["payment_name"] = payment_name
+    context.user_data["payment_name"] = PAYMENT_ACCOUNTS[payment_key]["label"]
 
     await query.message.reply_text(
-        payment_text(payment_name, payment_account, amount),
+        payment_text(
+            PAYMENT_ACCOUNTS[payment_key]["label"],
+            PAYMENT_ACCOUNTS[payment_key]["text"],
+            int(context.user_data["price"]),
+        ),
         parse_mode=ParseMode.HTML,
     )
     return SCREENSHOT_STATE
@@ -1090,24 +1068,6 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 parse_mode=ParseMode.HTML,
             )
         return SCREENSHOT_STATE
-
-    required_keys = [
-        "product_key",
-        "product_name",
-        "plan_key",
-        "plan_label",
-        "category",
-        "price",
-        "payment_key",
-        "payment_name",
-    ]
-    for key in required_keys:
-        if key not in context.user_data:
-            await update.message.reply_text(
-                "❌ Order session မစုံတော့ပါ။ /start နဲ့ပြန်စပါ။"
-            )
-            context.user_data.clear()
-            return ConversationHandler.END
 
     user = update.effective_user
     photo_file_id = update.message.photo[-1].file_id
@@ -1138,41 +1098,30 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
     admin_caption = (
-        "╔══════════════════════╗\n"
-        "   📥 <b>NEW ORDER</b>\n"
-        "╚══════════════════════╝\n\n"
+        "📥 <b>NEW ORDER</b>\n\n"
         f"{order_summary_text(data)}\n\n"
         f"👤 <b>Customer:</b> {escape(data['full_name'])}\n"
         f"📎 <b>Username:</b> {escape(data['username'] or '-')}\n"
         f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
-    try:
-        await context.bot.send_photo(
-            chat_id=ADMIN_ID,
-            photo=photo_file_id,
-            caption=admin_caption,
-            parse_mode=ParseMode.HTML,
-            reply_markup=admin_action_keyboard(order_id, data["category"]),
-        )
-    except Exception as e:
-        logger.exception("Failed to send order to admin: %s", e)
-        await update.message.reply_text("❌ Admin ဆီ order မပို့နိုင်သေးပါ။")
-        return SCREENSHOT_STATE
+    await context.bot.send_photo(
+        chat_id=ADMIN_ID,
+        photo=photo_file_id,
+        caption=admin_caption,
+        parse_mode=ParseMode.HTML,
+        reply_markup=admin_action_keyboard(order_id, data["category"]),
+    )
 
     await update.message.reply_text(
         "✅ <b>Order received successfully!</b>\n\n"
-        f"{order_summary_text(data)}\n\n"
-        "📨 Screenshot + Order info ကို admin ဆီပို့ပြီးပါပြီ\n"
-        "⏳ စစ်ဆေးပြီး order ကိုဆက်လုပ်ပေးပါမယ်",
+        f"{order_summary_text(data)}",
         parse_mode=ParseMode.HTML,
     )
 
     context.user_data.clear()
-    return ConversationHandler.END 
-# =========================================================
-# ADMIN FLOW
-# =========================================================
+    return ConversationHandler.END
+
 
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -1186,11 +1135,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if raw.startswith("rejectmenu:"):
         order_id = raw.split(":", 1)[1]
-        order = order_get(order_id)
-        if not order:
-            await query.answer("Order not found", show_alert=True)
-            return
-
         await query.message.reply_text(
             f"❌ <b>Reject Reason ရွေးပါ</b>\n🆔 <code>{escape(order_id)}</code>",
             parse_mode=ParseMode.HTML,
@@ -1199,161 +1143,71 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if raw.startswith("reject:"):
-        parts = raw.split(":", 2)
-        if len(parts) != 3:
-            await query.answer("Invalid reject action", show_alert=True)
-            return
-
-        _, order_id, reason_key = parts
+        _, order_id, reason_key = raw.split(":", 2)
         order = order_get(order_id)
         if not order:
-            await query.answer("Order not found", show_alert=True)
             return
 
         reason_text = REJECT_REASONS.get(reason_key, "Order rejected")
         order_update_status(order_id, "rejected", reason_text)
         log_action(order_id, query.from_user.id, "rejected", reason_text)
 
-        try:
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=(
-                    "❌ <b>Order Rejected</b>\n\n"
-                    f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                    f"📌 <b>Reason:</b> {escape(reason_text)}\n\n"
-                    "လိုအပ်ရင် screenshot / info ကိုပြန်စစ်ပြီး ပြန်တင်ပေးပါ။"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-        except Exception as e:
-            logger.exception("Failed to notify rejected user: %s", e)
-
-        try:
-            caption = query.message.caption or ""
-            await query.message.edit_caption(
-                caption=caption + f"\n\n❌ <b>Status: Rejected</b>\n📌 <b>Reason:</b> {escape(reason_text)}",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.warning("Failed to edit rejected message caption: %s", e)
-
-        await query.message.reply_text("✅ Rejected.")
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=(
+                "❌ <b>Order Rejected</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"📌 <b>Reason:</b> {escape(reason_text)}"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
         return
 
     action, order_id = raw.split(":", 1)
     order = order_get(order_id)
-
     if not order:
-        await query.answer("Order not found", show_alert=True)
         return
 
     if action == "approve":
-        if order["category"] != "game":
-            await query.answer("ဒီ button က game order အတွက်ပဲပါ။", show_alert=True)
-            return
-
         product = PRODUCTS.get(order["product_key"])
-        if not product:
-            await query.message.reply_text("❌ Product not found.")
+        if not product or order["category"] != "game":
             return
 
-        current_stock = int(product.get("stock", 0))
-        if current_stock <= 0:
+        if int(product.get("stock", 0)) <= 0:
             await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
             return
 
-        product["stock"] = current_stock - 1
+        product["stock"] -= 1
         order_update_status(order_id, "approved", "Game order approved")
         log_action(order_id, query.from_user.id, "approved_game")
-
-        try:
-            refreshed_order = order_get(order_id) or order
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=(
-                    "✅ <b>Order Approved!</b>\n\n"
-                    f"{order_summary_text(refreshed_order)}\n\n"
-                    "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
-                    "💖 Thanks for using Gamepay Hub"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-            await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
-        except Exception as e:
-            logger.exception("Failed to notify game approve: %s", e)
-
-        try:
-            caption = query.message.caption or ""
-            await query.message.edit_caption(
-                caption=caption + "\n\n✅ <b>Status: Approved</b>",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.warning("Failed to edit game approval caption: %s", e)
-
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text="✅ <b>Order Approved!</b>",
+            parse_mode=ParseMode.HTML,
+        )
         await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
 
     if action == "auto":
         if order["category"] != "digital":
-            await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
             return
 
         product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
         if not bool(product_cfg.get("auto_delivery", False)):
             order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
-            log_action(order_id, query.from_user.id, "manual_only_product")
-
-            try:
-                caption = query.message.caption or ""
-                await query.message.edit_caption(
-                    caption=caption + "\n\n🟡 <b>Status: Manual Delivery Required</b>",
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=None,
-                )
-            except Exception as e:
-                logger.warning("Failed to edit manual-only caption: %s", e)
-
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=(
-                    f"✍️ <b>Manual delivery required</b>\n\n"
-                    f"🆔 <code>{escape(order_id)}</code>\n"
-                    f"🎮 {escape(order['product_name'])}\n"
-                    f"📋 {escape(order['plan_label'])}\n\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
-                ),
+                text=f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
                 parse_mode=ParseMode.HTML,
             )
             return
-            account = reserve_account(order["product_key"], order["plan_key"], order_id)
 
+        account = reserve_account(order["product_key"], order["plan_key"], order_id)
         if not account:
             order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
-            log_action(order_id, query.from_user.id, "auto_failed_waiting_manual")
-
-            try:
-                caption = query.message.caption or ""
-                await query.message.edit_caption(
-                    caption=caption + "\n\n🟡 <b>Status: No Auto Stock / Waiting Manual Delivery</b>",
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=None,
-                )
-            except Exception as e:
-                logger.warning("Failed to edit auto-failed caption: %s", e)
-
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=(
-                    f"❌ <b>Auto stock not found</b>\n\n"
-                    f"🆔 <code>{escape(order_id)}</code>\n"
-                    f"🎮 {escape(order['product_name'])}\n"
-                    f"📋 {escape(order['plan_label'])}\n\n"
-                    "Manual delivery လုပ်ချင်ရင်:\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
-                ),
+                text=f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
                 parse_mode=ParseMode.HTML,
             )
             return
@@ -1364,127 +1218,61 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         delivery_text = (
             f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
             f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
             f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
             f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
         )
-
         if account["extra"]:
             delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
+        delivery_text += "\n<code>Code</code> လို့ရိုက်ပို့ပြီး login code တောင်းနိုင်ပါတယ်။"
 
-        delivery_text += (
-            "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
-            "<code>Code</code> လို့ရိုက်ပို့ပေးပါ။\n\n"
-            "💖 Thanks for using Gamepay Hub"
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=delivery_text,
+            parse_mode=ParseMode.HTML,
         )
-
-        try:
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=delivery_text,
-                parse_mode=ParseMode.HTML,
-            )
-            await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
-        except Exception as e:
-            logger.exception("Failed to auto deliver digital: %s", e)
-
-        try:
-            caption = query.message.caption or ""
-            await query.message.edit_caption(
-                caption=caption + "\n\n✅ <b>Status: Auto Delivered</b>",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.warning("Failed to edit auto delivery caption: %s", e)
-
         await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
         return
 
     if action == "manual":
         if order["category"] != "digital":
-            await query.answer("ဒီ button က digital order အတွက်ပဲပါ။", show_alert=True)
             return
 
         order_update_status(order_id, "waiting_manual_delivery", "Waiting admin manual delivery")
-        log_action(order_id, query.from_user.id, "manual_delivery_selected")
-
-        try:
-            caption = query.message.caption or ""
-            await query.message.edit_caption(
-                caption=caption + "\n\n🟡 <b>Status: Waiting Manual Delivery</b>",
-                parse_mode=ParseMode.HTML,
-                reply_markup=None,
-            )
-        except Exception as e:
-            logger.warning("Failed to edit manual caption: %s", e)
-
         await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
                 f"✍️ <b>Manual delivery selected</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
-                f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n\n"
-                "Customer ဆီပို့ချင်တဲ့ Email / Password ကို ဒီ command နဲ့ပို့ပါ:\n\n"
-                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>\n\n"
-                "ဒါမှမဟုတ် multiline နဲ့လည်းပို့လို့ရတယ်:\n"
-                f"<code>/deliver {escape(order_id)}\nEmail: yourmail@gmail.com\nPassword: 123456</code>"
+                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>"
             ),
             parse_mode=ParseMode.HTML,
         )
         return
 
 
-# =========================================================
-# COMMANDS
-# =========================================================
-
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
+    if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
         return
 
-    if not update.message or not update.message.text:
-        return
-
-    full_text = update.message.text.strip()
-    parts = full_text.split(maxsplit=2)
-
+    parts = update.message.text.strip().split(maxsplit=2)
     if len(parts) < 3:
-        await update.message.reply_text(
-            "Usage:\n"
-            "<code>/deliver ORDER_ID Email: xxx Password: yyy</code>\n\n"
-            "or\n"
-            "<code>/deliver ORDER_ID\nEmail: xxx\nPassword: yyy</code>",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("Usage: /deliver ORDER_ID Email: xxx Password: yyy")
         return
 
     _, order_id, delivery_text = parts
     order = order_get(order_id)
-
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
 
-    try:
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=(
-                f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"<pre>{escape(delivery_text)}</pre>\n\n"
-                "🔐 Login code လိုအပ်လာရင် <code>Code</code> လို့ပို့နိုင်ပါတယ်။\n\n"
-                "💖 Thanks for using Gamepay Hub"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-        await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
-    except Exception as e:
-        logger.exception("Failed to manual deliver: %s", e)
-        await update.message.reply_text("❌ Customer ဆီမပို့နိုင်ပါ။")
-        return
-
+    await context.bot.send_message(
+        chat_id=order["user_id"],
+        text=(
+            f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"<pre>{escape(delivery_text)}</pre>"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
     order_update_status(order_id, "delivered", "Manually delivered")
     log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text("✅ Delivered successfully.")
@@ -1493,47 +1281,33 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
-
     if len(context.args) < 2:
-        await update.message.reply_text(
-            "Usage:\n<code>/code ORDER_ID 123456</code>",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("Usage: /code ORDER_ID 123456")
         return
 
     order_id = context.args[0]
-    code_value = " ".join(context.args[1:]).strip()
-
+    code_value = " ".join(context.args[1:])
     order = order_get(order_id)
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
 
-    try:
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=(
-                f"🔐 <b>Your login code is ready</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>\n\n"
-                "✅ ကျေးဇူးပြုပြီး ချက်ချင်းအသုံးပြုပေးပါ။"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-    except Exception as e:
-        logger.exception("Failed to send login code: %s", e)
-        await update.message.reply_text("❌ Customer ဆီ code မပို့နိုင်ပါ။")
-        return
-
+    await context.bot.send_message(
+        chat_id=order["user_id"],
+        text=(
+            f"🔐 <b>Your login code is ready</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
     order_update_status(order_id, "code_sent", "Admin sent login code")
-    log_action(order_id, update.effective_user.id, "code_sent", code_value)
     await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
 
 
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
-
     rows = get_pending_orders(limit=20)
     if not rows:
         await update.message.reply_text("✅ Pending orders မရှိပါ။")
@@ -1548,249 +1322,123 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"👤 {escape(o['full_name'])}\n"
             f"📌 {human_status(o['status'])}\n"
         )
-
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
-
     if not context.args:
         await update.message.reply_text("Usage: /order ORDER_ID")
         return
 
-    order_id = context.args[0]
-    order = order_get(order_id)
-
+    order = order_get(context.args[0])
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
-
-    text = order_summary_text(order)
-    if order.get("admin_note"):
-        text += f"\n📝 <b>Admin Note:</b> {escape(order['admin_note'])}"
-
-    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
 
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
-
     stats = get_stats_summary()
-    text = (
+    await update.message.reply_text(
         "📊 <b>Bot Statistics</b>\n\n"
         f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
         f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
         f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
         f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
-        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks"
+        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks",
+        parse_mode=ParseMode.HTML,
     )
-    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
 async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
-
     lines = ["📦 <b>Stock List</b>\n"]
-
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
-            total_stock = get_digital_stock(key)
-            lines.append(f"💻 <b>{escape(p['name'])}</b> → {total_stock}")
-            for plan_key, plan in p["plans"].items():
-                lines.append(f"   • {escape(plan['label'])} = {get_digital_stock(key, plan_key)}")
+            lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_digital_stock(key)}")
         else:
             lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
-
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
+    if update.effective_user.id != ADMIN_ID or len(context.args) != 2:
         return
-
-    if len(context.args) != 2:
-        await update.message.reply_text(
-            "Usage:\n<code>/add_game_stock PRODUCT_KEY QTY</code>",
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
-    product_key = context.args[0].strip()
-    qty_text = context.args[1].strip()
-
-    if product_key not in PRODUCTS:
-        await update.message.reply_text("❌ Invalid product key.")
-        return
-
-    if PRODUCTS[product_key]["category"] != "game":
-        await update.message.reply_text("❌ ဒီ command က game product အတွက်ပဲပါ။")
-        return
-
-    try:
-        qty = int(qty_text)
-    except ValueError:
-        await update.message.reply_text("❌ QTY must be a number.")
-        return
-
-    if qty <= 0:
-        await update.message.reply_text("❌ QTY must be greater than 0.")
-        return
-
-    PRODUCTS[product_key]["stock"] = int(PRODUCTS[product_key].get("stock", 0)) + qty
-    log_action(None, update.effective_user.id, "add_game_stock", f"{product_key} +{qty}")
-
-    await update.message.reply_text(
-        f"✅ <b>Game stock updated</b>\n\n"
-        f"🎮 <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
-        f"➕ <b>Added:</b> {qty}\n"
-        f"📦 <b>New Stock:</b> {PRODUCTS[product_key]['stock']}",
-        parse_mode=ParseMode.HTML,
-    )
+    product_key = context.args[0]
+    qty = int(context.args[1])
+    if product_key in PRODUCTS and PRODUCTS[product_key]["category"] == "game":
+        PRODUCTS[product_key]["stock"] = int(PRODUCTS[product_key].get("stock", 0)) + qty
+        await update.message.reply_text("✅ Game stock updated.")
 
 
 async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
+    if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
         return
-
-    if not update.message or not update.message.text:
-        return
-
-    raw = update.message.text.strip()
-    payload = raw[len("/add_account"):].strip()
-
-    if not payload:
-        await update.message.reply_text(
-            "Usage:\n"
-            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD</code>\n\n"
-            "or\n"
-            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA NOTE</code>",
-            parse_mode=ParseMode.HTML,
-        )
-        return
-
+    payload = update.message.text[len("/add_account"):].strip()
+    extra = ""
     if "|" in payload:
         main_part, extra = payload.split("|", 1)
         extra = extra.strip()
     else:
         main_part = payload
-        extra = ""
-
     parts = main_part.split()
     if len(parts) < 4:
-        await update.message.reply_text(
-            "❌ Format မမှန်ပါ。\n"
-            "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA</code>",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("❌ Format မမှန်ပါ။")
         return
-
     product_key, plan_key, email = parts[0], parts[1], parts[2]
     password = " ".join(parts[3:])
-
-    if product_key not in PRODUCTS:
-        await update.message.reply_text("❌ Invalid product key.")
-        return
-
-    product = PRODUCTS[product_key]
-    if product["category"] != "digital":
-        await update.message.reply_text("❌ ဒီ command က digital product အတွက်ပဲပါ။")
-        return
-
-    if plan_key not in product["plans"]:
-        await update.message.reply_text("❌ Invalid plan key.")
-        return
-
     add_digital_account(product_key, plan_key, email, password, extra)
-    log_action(None, update.effective_user.id, "add_account", f"{product_key}/{plan_key}/{email}")
-
-    await update.message.reply_text(
-        f"✅ <b>Digital account added</b>\n\n"
-        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
-        f"📋 <b>Plan:</b> {escape(product['plans'][plan_key]['label'])}\n"
-        f"📧 <b>Email:</b> <code>{escape(email)}</code>\n"
-        f"📦 <b>Available Stock:</b> {get_digital_stock(product_key, plan_key)}",
-        parse_mode=ParseMode.HTML,
-    )
+    await update.message.reply_text("✅ Digital account added.")
 
 
 async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    await update.message.reply_text(
-        "📌 <b>Stock Commands</b>\n\n"
-        "🎮 Game stock add:\n"
-        "<code>/add_game_stock PRODUCT_KEY QTY</code>\n\n"
-        "💻 Digital account add:\n"
-        "<code>/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA</code>\n\n"
-        "ဥပမာ:\n"
-        "<code>/add_game_stock mlbb_weekly 10</code>\n\n"
-        "<code>/add_account capcut_pro share_1m test@gmail.com 123456 | Profile 1</code>",
-        parse_mode=ParseMode.HTML,
-    )
+    if update.effective_user.id == ADMIN_ID:
+        await update.message.reply_text(
+            "/add_game_stock PRODUCT_KEY QTY\n/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA"
+        )
 
 
 async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    rows = get_user_orders(user.id, limit=10)
-
+    rows = get_user_orders(update.effective_user.id, limit=10)
     if not rows:
         await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
         return
-
     lines = ["📦 <b>Your Recent Orders</b>\n"]
     for o in rows:
         lines.append(
             f"🆔 <code>{escape(o['order_id'])}</code>\n"
             f"🎮 {escape(o['product_name'])}\n"
             f"📋 {escape(o['plan_label'])}\n"
-            f"💰 {o['price']} Ks\n"
             f"📌 {human_status(o['status'])}\n"
-            f"🕒 {escape(o['created_at'])}\n"
         )
-
-    lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text(
-            "Usage:\n<code>/track ORDER_ID</code>",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("Usage: /track ORDER_ID")
         return
-
-    order_id = context.args[0].strip()
-    order = order_get(order_id)
-
+    order = order_get(context.args[0])
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
-
     if update.effective_user.id != ADMIN_ID and order["user_id"] != update.effective_user.id:
         await update.message.reply_text("❌ ဒီ order ကိုကြည့်ခွင့်မရှိပါ။")
         return
-
-    text = order_summary_text(order)
-    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+    await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
 
 
 async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
-
-    user = update.effective_user
-    text = update.message.text.strip().lower()
-
-    if user.id == ADMIN_ID:
+    if update.effective_user.id == ADMIN_ID:
         return
-
-    if text != "code":
+    if update.message.text.strip().lower() != "code":
         return
 
     conn = db_connect()
@@ -1802,7 +1450,7 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
           AND status IN ('delivered', 'code_requested', 'code_sent')
         ORDER BY created_at DESC
         LIMIT 1
-    """, (user.id,))
+    """, (update.effective_user.id,))
     row = cur.fetchone()
     conn.close()
 
@@ -1811,27 +1459,11 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
         return
 
     order = dict(row)
-    order_id = order["order_id"]
-
-    order_update_status(order_id, "code_requested", "Customer requested login code")
-    log_action(order_id, user.id, "code_requested", "Customer typed Code")
-
-    await update.message.reply_text(
-        "⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။\nCode ရလာတာနဲ့ ပြန်ပို့ပေးပါမယ်။"
-    )
-
+    order_update_status(order["order_id"], "code_requested", "Customer requested login code")
+    await update.message.reply_text("⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။")
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=(
-            f"🔔 <b>Login Code Requested</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
-            f"👤 <b>Customer:</b> {escape(order['full_name'])}\n"
-            f"📎 <b>Username:</b> {escape(order['username'] or '-')}\n"
-            f"🪪 <b>User ID:</b> <code>{order['user_id']}</code>\n\n"
-            f"Code ပို့ရန်:\n"
-            f"<code>/code {escape(order_id)} 123456</code>"
-        ),
+        text=f"<code>/code {escape(order['order_id'])} 123456</code>",
         parse_mode=ParseMode.HTML,
     )
 
@@ -1839,11 +1471,7 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
-        await update.message.reply_text(
-            "❌ Order cancelled.",
-            reply_markup=main_menu_keyboard(),
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("❌ Order cancelled.", reply_markup=main_menu_keyboard())
     return ConversationHandler.END
 
 
@@ -1854,47 +1482,26 @@ def main():
         raise ValueError("ADMIN_ID environment variable is missing or invalid.")
 
     init_db()
-
     application = Application.builder().token(BOT_TOKEN).build()
-
-    conv_handler = ConversationHandler(
+conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            MENU_STATE: [
-                CallbackQueryHandler(menu_handler, pattern=r"^menu_"),
-            ],
-            CATEGORY_STATE: [
-                CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)"),
-            ],
-            PRODUCT_STATE: [
-                CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)"),
-            ],
-            PLAN_STATE: [
-                CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)"),
-            ],
-            DETAIL_STATE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
-            ],
-            PAYMENT_STATE: [
-                CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)"),
-            ],
-            SCREENSHOT_STATE: [
-                MessageHandler(filters.PHOTO, screenshot_handler),
-                MessageHandler(filters.TEXT & ~filters.COMMAND, screenshot_handler),
-            ],
+            MENU_STATE: [CallbackQueryHandler(menu_handler, pattern=r"^menu_")],
+            CATEGORY_STATE: [CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)")],
+            PRODUCT_STATE: [CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)")],
+            PLAN_STATE: [CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")],
+            DETAIL_STATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler)],
+            PAYMENT_STATE: [CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)")],
+            SCREENSHOT_STATE: [MessageHandler(filters.PHOTO, screenshot_handler)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True,
     )
 
     application.add_handler(conv_handler)
-    application.add_handler(
-        CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)")
-    )
-
-  application.add_handler(CommandHandler("myorders", myorders_command))
+    application.add_handler(CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"))
+    application.add_handler(CommandHandler("myorders", myorders_command))
     application.add_handler(CommandHandler("track", track_command))
-
     application.add_handler(CommandHandler("deliver", deliver_command))
     application.add_handler(CommandHandler("orders", orders_command))
     application.add_handler(CommandHandler("order", order_command))
@@ -1904,13 +1511,11 @@ def main():
     application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
     application.add_handler(CommandHandler("add_account", add_account_command))
     application.add_handler(CommandHandler("code", code_command))
-
-    application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
-    )
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler))
 
     application.run_polling()
 
 
 if __name__ == "__main__":
-    main() 
+    main()
+    
