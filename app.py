@@ -145,7 +145,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
     ),
     "plans": {
-        "1y": {"label": "1 Year Account", "price": 0},
+        "1y": {"label": "1 Year Account", "price":3200},
     },
 },
 }
