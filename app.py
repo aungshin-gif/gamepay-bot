@@ -1036,7 +1036,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         f"🆔 Order ID: <code>{escape(order_id)}</code>\n"
                         "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
                         "💖 Thanks for using Gamepay Hub"
-                    ),
+                    )
                     parse_mode=ParseMode.HTML,
                 )
                 await send_optional_bot_sticker(context.bot, order["user_id"], SUCCESS_STICKER_ID)
