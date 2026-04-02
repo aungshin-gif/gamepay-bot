@@ -1100,7 +1100,11 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if account["extra"]:
                 delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
-            delivery_text += "\n💖 Thanks for using Gamepay Hub"
+            delivery_text += (
+    "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
+    "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
+    "💖 Thanks for using Gamepay Hub"
+            )
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1233,7 +1237,11 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if account["extra"]:
             delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
-        delivery_text += "\n💖 Thanks for using Gamepay Hub"
+        delivery_text += (
+    "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
+    "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
+    "💖 Thanks for using Gamepay Hub"
+        )
 
         try:
             await context.bot.send_message(
@@ -1335,7 +1343,103 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order_update_status(order_id, "delivered", "Manually delivered")
     log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text("✅ Delivered successfully.")
+async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
 
+    user = update.effective_user
+    text = update.message.text.strip().lower()
+
+    if user.id == ADMIN_ID:
+        return
+
+    if text != "code":
+        return
+
+    order = None
+    rows = get_pending_orders(limit=100)
+
+    # delivered digital orders among recent records
+    conn = db_connect()
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT * FROM orders
+        WHERE user_id = ?
+          AND category = 'digital'
+          AND status IN ('delivered', 'code_requested', 'code_sent')
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (user.id,))
+    row = cur.fetchone()
+    conn.close()
+
+    if not row:
+        await update.message.reply_text("❌ Active digital order မတွေ့ပါ။")
+        return
+
+    order = dict(row)
+    order_id = order["order_id"]
+
+    order_update_status(order_id, "code_requested", "Customer requested login code")
+    log_action(order_id, user.id, "code_requested", "Customer typed Code")
+
+    await update.message.reply_text(
+        "⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။\nCode ရလာတာနဲ့ ပြန်ပို့ပေးပါမယ်။"
+    )
+
+    await context.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=(
+            f"🔔 <b>Login Code Requested</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
+            f"👤 <b>Customer:</b> {escape(order['full_name'])}\n"
+            f"📎 <b>Username:</b> {escape(order['username'] or '-')}\n"
+            f"🪪 <b>User ID:</b> <code>{order['user_id']}</code>\n\n"
+            f"Code ပို့ရန်:\n"
+            f"<code>/code {escape(order_id)} 123456</code>"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
+    async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) < 2:
+        await update.message.reply_text(
+            "Usage:\n<code>/code ORDER_ID 123456</code>",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    order_id = context.args[0]
+    code_value = " ".join(context.args[1:]).strip()
+
+    order = order_get(order_id)
+    if not order:
+        await update.message.reply_text("❌ Order not found.")
+        return
+
+    try:
+        await context.bot.send_message(
+            chat_id=order["user_id"],
+            text=(
+                f"🔐 <b>Your login code is ready</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>\n\n"
+                "✅ ကျေးဇူးပြုပြီး ချက်ချင်းအသုံးပြုပေးပါ။"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        logger.exception("Failed to send login code: %s", e)
+        await update.message.reply_text("❌ Customer ဆီ code မပို့နိုင်ပါ။")
+        return
+
+    order_update_status(order_id, "code_sent", "Admin sent login code")
+    log_action(order_id, update.effective_user.id, "code_sent", code_value)
+    await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -1490,7 +1594,8 @@ def main():
     application.add_handler(CommandHandler("order", order_command))
     application.add_handler(CommandHandler("stock", stock_command))
     application.add_handler(CommandHandler("addstock", addstock_command))
-
+application.add_handler(CommandHandler("code", code_command))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler))
     application.run_polling()
 
 
