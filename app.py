@@ -476,7 +476,6 @@ def category_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
 
@@ -485,21 +484,30 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             continue
 
         if category_key == "digital":
-            stock = get_digital_stock(key)
             cheapest = min(v["price"] for v in product["plans"].values())
-            if stock > 0:
-                text = f"✨ {product['name']} • From {cheapest} Ks"
-                rows.append([InlineKeyboardButton(text, callback_data=f"product:{key}")])
-            else:
-                rows.append([InlineKeyboardButton(f"🔴 {product['name']} • Out of Stock", callback_data="out_of_stock")])
+            rows.append([
+                InlineKeyboardButton(
+                    f"✨ {product['name']} • From {cheapest} Ks",
+                    callback_data=f"product:{key}"
+                )
+            ])
         else:
             stock = int(product.get("stock", 0))
             default_plan = next(iter(product["plans"].values()))
             if stock > 0:
-                text = f"✨ {product['name']} • {default_plan['price']} Ks"
-                rows.append([InlineKeyboardButton(text, callback_data=f"product:{key}")])
+                rows.append([
+                    InlineKeyboardButton(
+                        f"✨ {product['name']} • {default_plan['price']} Ks",
+                        callback_data=f"product:{key}"
+                    )
+                ])
             else:
-                rows.append([InlineKeyboardButton(f"🔴 {product['name']} • Out of Stock", callback_data="out_of_stock")])
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {product['name']} • Out of Stock",
+                        callback_data="out_of_stock"
+                    )
+                ])
 
     rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
@@ -510,12 +518,8 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     product = PRODUCTS[product_key]
 
     for plan_key, plan in product["plans"].items():
+        # Digital products => always available
         if product["category"] == "digital":
-            stock = get_digital_stock(product_key, plan_key)
-        else:
-            stock = int(product.get("stock", 0))
-
-        if stock > 0:
             rows.append([
                 InlineKeyboardButton(
                     f"{plan['label']} • {plan['price']} Ks",
@@ -523,16 +527,25 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 )
             ])
         else:
-            rows.append([
-                InlineKeyboardButton(
-                    f"🔴 {plan['label']} • Out of Stock",
-                    callback_data="out_of_stock"
-                )
-            ])
+            # Game products => real stock check
+            stock = int(product.get("stock", 0))
+            if stock > 0:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"{plan['label']} • {plan['price']} Ks",
+                        callback_data=f"plan:{plan_key}"
+                    )
+                ])
+            else:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {plan['label']} • Out of Stock",
+                        callback_data="out_of_stock"
+                    )
+                ])
 
     rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
     return InlineKeyboardMarkup(rows)
-
 
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
