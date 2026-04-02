@@ -134,6 +134,20 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 50000},
         },
     },
+    "canva_pro_edu": {
+    "category": "digital",
+    "name": "Canva Pro Edu",
+    "full_name": "Canva Pro Edu Subscription",
+    "description": "🟦 Canva Pro Edu account delivery service.",
+    "photo": "canva.jpg",
+    "requires_detail_label": (
+        "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+        "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
+    ),
+    "plans": {
+        "1y": {"label": "1 Year Account", "price": 0},
+    },
+},
 }
 
 # =========================================================
@@ -176,6 +190,18 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "canva_pro_edu": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "1y",
+            "email": "crister272@atomicmail.io",
+            "password": "crister272@",
+            "extra": "🟦 Canva Pro Edu\n➡️ 1 Year account",
+            "used": False,
+        },
+    ],
+},
 }
 
 # =========================================================
