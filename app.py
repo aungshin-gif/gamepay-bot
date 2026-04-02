@@ -1233,16 +1233,14 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
             f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
         )
+1236 if account["extra"]:
+1237     delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
-        if account["extra"]:
-            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
-
-        delivery_text += (
-    "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
-    "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
-    "💖 Thanks for using Gamepay Hub"
-        )
-
+1239 delivery_text += (
+1240     "\n🔐 <b>Login ဝင်ရန် Code လိုအပ်ပါက</b>\n"
+1241     "<code>Code</code> လို့ရိုက်ပို့ပေးပါ。\n\n"
+1242     "💖 Thanks for using Gamepay Hub"
+1243 )
         try:
             await context.bot.send_message(
                 chat_id=order["user_id"],
