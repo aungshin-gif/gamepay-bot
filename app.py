@@ -779,7 +779,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        try:
+       try:
     await query.message.reply_photo(
         photo=product["photo"],
         caption=product_caption(product, product_key),
@@ -790,7 +790,7 @@ except Exception as e:
     await query.message.reply_text(
         product_caption(product, product_key),
         parse_mode=ParseMode.HTML,
-    )
+    ) 
 
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
