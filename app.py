@@ -190,7 +190,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-   "canva_pro_edu": {
+"canva_pro_edu": {
     "auto_delivery": True,
     "accounts": [
         {
@@ -201,7 +201,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             "used": False,
         },
     ],
-}, 
+},
 }
 
 # =========================================================
@@ -758,11 +758,11 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "back_categories":
         await query.message.reply_text(
-            "🗂️ <b>Please choose a category</b>\nရွေးချယ်ပေးပါ 👇",
-            reply_markup=category_keyboard(),
+            "📦 <b>Please choose a product</b>",
+            reply_markup=products_keyboard(context.user_data.get("category_key", "digital")),
             parse_mode=ParseMode.HTML,
         )
-        return CATEGORY_STATE
+        return PRODUCT_STATE
 
     if data == "out_of_stock":
         await query.message.reply_text("🔴 This item is out of stock.")
@@ -771,6 +771,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("product:"):
         product_key = data.split(":", 1)[1]
         product = PRODUCTS.get(product_key)
+
         if not product:
             await query.message.reply_text("❌ Invalid product.")
             return PRODUCT_STATE
@@ -779,18 +780,18 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-       try:
-    await query.message.reply_photo(
-        photo=product["photo"],
-        caption=product_caption(product, product_key),
-        parse_mode=ParseMode.HTML,
-    )
-except Exception as e:
-    logger.exception("Photo error for %s: %s", product_key, e)
-    await query.message.reply_text(
-        product_caption(product, product_key),
-        parse_mode=ParseMode.HTML,
-    ) 
+        try:
+            await query.message.reply_photo(
+                photo=product["photo"],
+                caption=product_caption(product, product_key),
+                parse_mode=ParseMode.HTML,
+            )
+        except Exception as e:
+            logger.exception("Photo error for %s: %s", product_key, e)
+            await query.message.reply_text(
+                product_caption(product, product_key),
+                parse_mode=ParseMode.HTML,
+            )
 
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
