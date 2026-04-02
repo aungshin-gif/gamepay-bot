@@ -1329,15 +1329,21 @@ async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_T
         return
 
     if len(context.args) != 1:
-        await update.message.reply_text("Usage:\n/delete_account email@example.com")
+        await update.message.reply_text(
+            "Usage:\n/delete_account email@example.com",
+            parse_mode=ParseMode.HTML,
+        )
         return
 
-    email = context.args[0]
+    email = context.args[0].strip()
 
     conn = db_connect()
     cur = conn.cursor()
 
-    cur.execute("DELETE FROM digital_accounts WHERE email = ? AND used = 0", (email,))
+    cur.execute(
+        "DELETE FROM digital_accounts WHERE email = ? AND used = 0",
+        (email,),
+    )
     deleted = cur.rowcount
 
     conn.commit()
@@ -1347,6 +1353,59 @@ async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_T
         await update.message.reply_text(f"✅ Deleted: {email}")
     else:
         await update.message.reply_text("❌ Email not found or already used")
+
+
+async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if len(context.args) != 2:
+        await update.message.reply_text(
+            "Usage:\n/remove_game_stock PRODUCT_KEY QTY",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    product_key = context.args[0].strip()
+    qty_text = context.args[1].strip()
+
+    if product_key not in PRODUCTS:
+        await update.message.reply_text("❌ Invalid product key.")
+        return
+
+    if PRODUCTS[product_key]["category"] != "game":
+        await update.message.reply_text("❌ ဒီ command က game product အတွက်ပဲပါ။")
+        return
+
+    try:
+        qty = int(qty_text)
+    except ValueError:
+        await update.message.reply_text("❌ QTY must be a number.")
+        return
+
+    if qty <= 0:
+        await update.message.reply_text("❌ QTY must be greater than 0.")
+        return
+
+    current_stock = int(PRODUCTS[product_key].get("stock", 0))
+
+    if qty > current_stock:
+        await update.message.reply_text(
+            f"❌ Current stock = {current_stock} only.",
+            parse_mode=ParseMode.HTML,
+        )
+        return
+
+    PRODUCTS[product_key]["stock"] = current_stock - qty
+    log_action(None, update.effective_user.id, "remove_game_stock", f"{product_key} -{qty}")
+
+    await update.message.reply_text(
+        f"✅ <b>Game stock reduced</b>\n\n"
+        f"🎮 <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
+        f"➖ <b>Removed:</b> {qty}\n"
+        f"📦 <b>Remaining Stock:</b> {PRODUCTS[product_key]['stock']}",
+        parse_mode=ParseMode.HTML,
+    )
 
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -1545,23 +1604,34 @@ def main():
         allow_reentry=True,
     )
 
-    application.add_handler(conv_handler)
-    application.add_handler(CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"))
-    application.add_handler(CommandHandler("myorders", myorders_command))
-    application.add_handler(CommandHandler("track", track_command))
-    application.add_handler(CommandHandler("deliver", deliver_command))
-    application.add_handler(CommandHandler("orders", orders_command))
-    application.add_handler(CommandHandler("order", order_command))
-    application.add_handler(CommandHandler("stock", stock_command))
-    application.add_handler(CommandHandler("stats", stats_command))
-    application.add_handler(CommandHandler("addstock", addstock_command))
-    application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
-    application.add_handler(CommandHandler("add_account", add_account_command))
-    application.add_handler(CommandHandler("code", code_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler))
+  application.add_handler(conv_handler)
 
-    application.run_polling()
+application.add_handler(
+    CallbackQueryHandler(
+        admin_action,
+        pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"
+    )
+)
 
+application.add_handler(CommandHandler("myorders", myorders_command))
+application.add_handler(CommandHandler("track", track_command))
+application.add_handler(CommandHandler("deliver", deliver_command))
+application.add_handler(CommandHandler("orders", orders_command))
+application.add_handler(CommandHandler("order", order_command))
+application.add_handler(CommandHandler("stock", stock_command))
+application.add_handler(CommandHandler("stats", stats_command))
+application.add_handler(CommandHandler("addstock", addstock_command))
+application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
+application.add_handler(CommandHandler("remove_game_stock", remove_game_stock_command))
+application.add_handler(CommandHandler("add_account", add_account_command))
+application.add_handler(CommandHandler("delete_account", delete_account_command))
+application.add_handler(CommandHandler("code", code_command))
+
+application.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
+)
+
+application.run_polling()  
 
 if __name__ == "__main__":
     main()
