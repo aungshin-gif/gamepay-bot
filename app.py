@@ -22,7 +22,8 @@ from telegram.ext import (
 # =========================================================
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+ADMIN_ID_RAW = os.getenv("ADMIN_ID", "0").strip()
+ADMIN_ID = int(ADMIN_ID_RAW) if ADMIN_ID_RAW.isdigit() else 0
 
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
@@ -153,10 +154,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# =========================================================
-# DIGITAL INVENTORY
-# =========================================================
-
 DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     "capcut_pro": {
         "auto_delivery": True,
@@ -203,10 +200,6 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# =========================================================
-# STATES
-# =========================================================
-
 (
     MENU_STATE,
     CATEGORY_STATE,
@@ -216,10 +209,6 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     PAYMENT_STATE,
     SCREENSHOT_STATE,
 ) = range(7)
-
-# =========================================================
-# LOGGING
-# =========================================================
 
 logging.basicConfig(
     format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
@@ -428,9 +417,7 @@ def get_pending_orders(limit: int = 20) -> List[dict]:
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
-
-
-def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
+    def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     conn = db_connect()
     cur = conn.cursor()
 
@@ -550,8 +537,9 @@ def get_stats_summary() -> dict:
         "rejected_orders": int(rejected_orders),
         "total_sales": int(total_sales),
     }
-    # =========================================================
-# UI / TEXT HELPERS
+
+# =========================================================
+# TEXT / UI HELPERS
 # =========================================================
 
 def human_status(status: str) -> str:
@@ -627,9 +615,7 @@ def welcome_text() -> str:
         f"🔒 Safe Payment\n"
         f"💖 Trusted Top Up"
     )
-
-
-def main_menu_keyboard() -> InlineKeyboardMarkup:
+    def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
         [InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders")],
@@ -751,9 +737,7 @@ def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton("⚡ Auto", callback_data=f"auto:{order_id}"),
                 InlineKeyboardButton("✍️ Manual", callback_data=f"manual:{order_id}"),
             ],
-            [
-                InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
-            ],
+            [InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}")],
         ])
 
     return InlineKeyboardMarkup([
@@ -792,6 +776,21 @@ async def send_optional_bot_sticker(bot, chat_id: int, sticker_id: str):
         logger.warning("Bot sticker send failed: %s", e)
 
 
+async def send_product_preview(message_obj, product_key: str):
+    product = PRODUCTS[product_key]
+    caption = product_caption(product, product_key)
+
+    try:
+        await message_obj.reply_photo(
+            photo=product["photo"],
+            caption=caption,
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception as e:
+        logger.warning("Photo preview failed for %s: %s", product_key, e)
+        await message_obj.reply_text(caption, parse_mode=ParseMode.HTML)
+
+
 async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[str] = None):
     try:
         product = PRODUCTS.get(product_key)
@@ -801,7 +800,6 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
         if product["category"] == "digital":
             current_stock = get_digital_stock(product_key, plan_key)
             if current_stock <= LOW_STOCK_THRESHOLD:
-                product_name = product["full_name"]
                 plan_label = "All Plans"
                 if plan_key and plan_key in product["plans"]:
                     plan_label = product["plans"][plan_key]["label"]
@@ -810,7 +808,7 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                     chat_id=ADMIN_ID,
                     text=(
                         f"⚠️ <b>Low Stock Alert</b>\n\n"
-                        f"🎮 <b>Product:</b> {escape(product_name)}\n"
+                        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
                         f"📋 <b>Plan:</b> {escape(plan_label)}\n"
                         f"📦 <b>Remaining:</b> {current_stock}"
                     ),
@@ -844,7 +842,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
-
     return MENU_STATE
 
 
@@ -880,10 +877,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
         lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
 
-        await query.message.reply_text(
-            "\n".join(lines),
-            parse_mode=ParseMode.HTML,
-        )
+        await query.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
         return MENU_STATE
 
     if data == "menu_contact":
@@ -963,18 +957,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        try:
-            await query.message.reply_photo(
-                photo=product["photo"],
-                caption=product_caption(product, product_key),
-                parse_mode=ParseMode.HTML,
-            )
-        except Exception as e:
-            logger.warning("Photo send failed for %s: %s", product_key, e)
-            await query.message.reply_text(
-                product_caption(product, product_key),
-                parse_mode=ParseMode.HTML,
-            )
+        await send_product_preview(query.message, product_key)
 
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
@@ -984,9 +967,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return PLAN_STATE
 
     return PRODUCT_STATE
-
-
-async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+   async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data
@@ -1007,7 +988,17 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data.startswith("plan:"):
         plan_key = data.split(":", 1)[1]
         product_key = context.user_data.get("product_key")
+
+        if not product_key or product_key not in PRODUCTS:
+            await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
+            context.user_data.clear()
+            return ConversationHandler.END
+
         product = PRODUCTS[product_key]
+        if plan_key not in product["plans"]:
+            await query.message.reply_text("❌ Invalid plan.")
+            return PLAN_STATE
+
         plan = product["plans"][plan_key]
 
         if product["category"] == "digital":
@@ -1029,9 +1020,10 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return DETAIL_STATE
 
-
     return PLAN_STATE
-    async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+
+async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return DETAIL_STATE
 
@@ -1057,6 +1049,10 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "back_plan":
         product_key = context.user_data.get("product_key")
+        if not product_key:
+            await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
+            return ConversationHandler.END
+
         await query.message.reply_text(
             "📋 <b>Please choose a plan</b>",
             reply_markup=plans_keyboard(product_key),
@@ -1173,9 +1169,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     )
 
     context.user_data.clear()
-    return ConversationHandler.END
-
-
+    return ConversationHandler.END 
 # =========================================================
 # ADMIN FLOW
 # =========================================================
@@ -1246,7 +1240,15 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await query.message.reply_text("✅ Rejected.")
         return
-        if action == "approve":
+
+    action, order_id = raw.split(":", 1)
+    order = order_get(order_id)
+
+    if not order:
+        await query.answer("Order not found", show_alert=True)
+        return
+
+    if action == "approve":
         if order["category"] != "game":
             await query.answer("ဒီ button က game order အတွက်ပဲပါ။", show_alert=True)
             return
@@ -1266,11 +1268,12 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log_action(order_id, query.from_user.id, "approved_game")
 
         try:
+            refreshed_order = order_get(order_id) or order
             await context.bot.send_message(
                 chat_id=order["user_id"],
                 text=(
                     "✅ <b>Order Approved!</b>\n\n"
-                    f"{order_summary_text(order)}\n\n"
+                    f"{order_summary_text(refreshed_order)}\n\n"
                     "🎮 Manual top up လုပ်ပေးပြီးပါပြီ\n"
                     "💖 Thanks for using Gamepay Hub"
                 ),
@@ -1325,8 +1328,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 parse_mode=ParseMode.HTML,
             )
             return
-
-        account = reserve_account(order["product_key"], order["plan_key"], order_id)
+            account = reserve_account(order["product_key"], order["plan_key"], order_id)
 
         if not account:
             order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
@@ -1599,9 +1601,7 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             total_stock = get_digital_stock(key)
             lines.append(f"💻 <b>{escape(p['name'])}</b> → {total_stock}")
             for plan_key, plan in p["plans"].items():
-                lines.append(
-                    f"   • {escape(plan['label'])} = {get_digital_stock(key, plan_key)}"
-                )
+                lines.append(f"   • {escape(plan['label'])} = {get_digital_stock(key, plan_key)}")
         else:
             lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
 
@@ -1688,7 +1688,8 @@ async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
 
-    product_key, plan_key, email, password = parts[0], parts[1], parts[2], " ".join(parts[3:])
+    product_key, plan_key, email = parts[0], parts[1], parts[2]
+    password = " ".join(parts[3:])
 
     if product_key not in PRODUCTS:
         await update.message.reply_text("❌ Invalid product key.")
@@ -1776,10 +1777,8 @@ async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     text = order_summary_text(order)
-    if order.get("admin_note") and update.effective_user.id == ADMIN_ID:
-        text += f"\n📝 <b>Admin Note:</b> {escape(order['admin_note'])}"
-
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
+
 
 async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
@@ -1889,12 +1888,11 @@ def main():
     )
 
     application.add_handler(conv_handler)
-
     application.add_handler(
         CallbackQueryHandler(admin_action, pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)")
     )
 
-    application.add_handler(CommandHandler("myorders", myorders_command))
+  application.add_handler(CommandHandler("myorders", myorders_command))
     application.add_handler(CommandHandler("track", track_command))
 
     application.add_handler(CommandHandler("deliver", deliver_command))
@@ -1915,5 +1913,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
+    main() 
