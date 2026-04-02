@@ -99,9 +99,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "📱 CapCut Pro account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
-        ),
+    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 5500},
             "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
@@ -118,10 +118,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "full_name": "Netflix Premium Subscription",
         "description": "📺 Netflix Premium account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
-        "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
-        ),
+     "requires_detail_label": (
+    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+),   
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 8000},
             "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
@@ -140,10 +140,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "full_name": "Canva Pro Edu Subscription",
     "description": "Canva Pro Edu account delivery service.",
     "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
-    "requires_detail_label": (
-        "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-        "မလိုအပ်ရင် <code>-</code> ပို့လို့ရပါတယ်။"
-    ),
+"requires_detail_label": (
+    "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+    "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+),
     "plans": {
         "edu_1y": {"label": "1 Year Account", "price": 3200},
     },
