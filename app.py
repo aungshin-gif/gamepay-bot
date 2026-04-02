@@ -1324,7 +1324,29 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     order_update_status(order_id, "code_sent", "Admin sent login code")
     await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
+async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
 
+    if len(context.args) != 1:
+        await update.message.reply_text("Usage:\n/delete_account email@example.com")
+        return
+
+    email = context.args[0]
+
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM digital_accounts WHERE email = ? AND used = 0", (email,))
+    deleted = cur.rowcount
+
+    conn.commit()
+    conn.close()
+
+    if deleted:
+        await update.message.reply_text(f"✅ Deleted: {email}")
+    else:
+        await update.message.reply_text("❌ Email not found or already used")
 
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
