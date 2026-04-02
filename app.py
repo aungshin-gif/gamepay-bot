@@ -1579,7 +1579,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 # MAIN
 # =========================================================
-
 def main():
     if not BOT_TOKEN:
         raise ValueError("BOT_TOKEN environment variable is missing.")
@@ -1604,34 +1603,35 @@ def main():
         allow_reentry=True,
     )
 
-  application.add_handler(conv_handler)
+    application.add_handler(conv_handler)
 
-application.add_handler(
-    CallbackQueryHandler(
-        admin_action,
-        pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"
+    application.add_handler(
+        CallbackQueryHandler(
+            admin_action,
+            pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"
+        )
     )
-)
 
-application.add_handler(CommandHandler("myorders", myorders_command))
-application.add_handler(CommandHandler("track", track_command))
-application.add_handler(CommandHandler("deliver", deliver_command))
-application.add_handler(CommandHandler("orders", orders_command))
-application.add_handler(CommandHandler("order", order_command))
-application.add_handler(CommandHandler("stock", stock_command))
-application.add_handler(CommandHandler("stats", stats_command))
-application.add_handler(CommandHandler("addstock", addstock_command))
-application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
-application.add_handler(CommandHandler("remove_game_stock", remove_game_stock_command))
-application.add_handler(CommandHandler("add_account", add_account_command))
-application.add_handler(CommandHandler("delete_account", delete_account_command))
-application.add_handler(CommandHandler("code", code_command))
+    application.add_handler(CommandHandler("myorders", myorders_command))
+    application.add_handler(CommandHandler("track", track_command))
+    application.add_handler(CommandHandler("deliver", deliver_command))
+    application.add_handler(CommandHandler("orders", orders_command))
+    application.add_handler(CommandHandler("order", order_command))
+    application.add_handler(CommandHandler("stock", stock_command))
+    application.add_handler(CommandHandler("stats", stats_command))
+    application.add_handler(CommandHandler("addstock", addstock_command))
+    application.add_handler(CommandHandler("add_game_stock", add_game_stock_command))
+    application.add_handler(CommandHandler("remove_game_stock", remove_game_stock_command))
+    application.add_handler(CommandHandler("add_account", add_account_command))
+    application.add_handler(CommandHandler("delete_account", delete_account_command))
+    application.add_handler(CommandHandler("code", code_command))
 
-application.add_handler(
-    MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
-)
+    application.add_handler(
+        MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
+    )
 
-application.run_polling()  
+    application.run_polling()
+
 
 if __name__ == "__main__":
     main()
