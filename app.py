@@ -182,18 +182,39 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-    "canva_pro_edu": {
-        "auto_delivery": True,
-        "accounts": [
-            {
-                "plan_key": "edu_1y",
-                "email": "crister272@atomicmail.io",
-                "password": "crister272@",
-                "extra": "Canva Pro Edu | 1 Year account",
-                "used": False,
-            },
-        ],
-    },
+   "canva_pro_edu": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "edu_1y",
+            "email": "crister272@atomicmail.io",
+            "password": "crister272@",
+            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+            "used": False,
+        },
+        {
+            "plan_key": "edu_1y",
+            "email": "alam0404@atomicmail.io",
+            "password": "alam0404@",
+            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+            "used": False,
+        },
+        {
+            "plan_key": "edu_1y",
+            "email": "basta205@atomicmail.io",
+            "password": "basta205@",
+            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+            "used": False,
+        },
+        {
+            "plan_key": "edu_1y",
+            "email": "fatfs575@atomicmail.io",
+            "password": "fatfs575@",
+            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+            "used": False,
+        },
+    ],
+}, 
 }
 
 (
