@@ -112,6 +112,21 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 12000},
         },
     },
+            "spotify_premium": {
+            "category": "digital",
+            "name": "Spotify Premium",
+            "full_name": "Spotify Premium Subscription",
+            "description": "🎵 Spotify Premium account delivery service.",
+            "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
+            "requires_detail_label": (
+                "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+                "မလိုအပ်ရင် <code>No</code> လို့ပေးပါ။"
+            ),
+            "plans": {
+                "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
+            },
+        },
+    
     "netflix_premium": {
         "category": "digital",
         "name": "Netflix Premium",
@@ -177,6 +192,19 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+            "spotify_premium": {
+            "auto_delivery": True,
+            "accounts": [
+                {
+                    "plan_key": "family_1m",
+                    "email": "2iws8@24hournons.top",
+                    "password": "masuk12345",
+                    "extra": "😀 Family 1 Month",
+                    "used": False,
+                },
+            ],
+        },
+    
     "netflix_premium": {
         "auto_delivery": False,
         "accounts": [
