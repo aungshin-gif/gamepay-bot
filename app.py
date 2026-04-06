@@ -112,21 +112,20 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 12000},
         },
     },
-            "spotify_premium": {
-            "category": "digital",
-            "name": "Spotify Premium",
-            "full_name": "Spotify Premium Subscription",
-            "description": "🎵 Spotify Premium account delivery service.",
-            "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
-            "requires_detail_label": (
-                "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-                "မလိုအပ်ရင် <code>No</code> လို့ပေးပါ။"
-            ),
-            "plans": {
-                "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
-            },
+    "spotify_premium": {
+        "category": "digital",
+        "name": "Spotify Premium",
+        "full_name": "Spotify Premium Subscription",
+        "description": "🎵 Spotify Premium account delivery service.",
+        "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
+        "requires_detail_label": (
+            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> လို့ပေးပါ။"
+        ),
+        "plans": {
+            "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
         },
-    
+    },
     "netflix_premium": {
         "category": "digital",
         "name": "Netflix Premium",
@@ -192,19 +191,18 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-            "spotify_premium": {
-            "auto_delivery": True,
-            "accounts": [
-                {
-                    "plan_key": "family_1m",
-                    "email": "2iws8@24hournons.top",
-                    "password": "masuk12345",
-                    "extra": "😀 Family 1 Month",
-                    "used": False,
-                },
-            ],
-        },
-    
+    "spotify_premium": {
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "family_1m",
+                "email": "2iws8@24hournons.top",
+                "password": "masuk12345",
+                "extra": "😀 Family 1 Month",
+                "used": False,
+            },
+        ],
+    },
     "netflix_premium": {
         "auto_delivery": False,
         "accounts": [
@@ -224,39 +222,39 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
-   "canva_pro_edu": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "edu_1y",
-            "email": "crister272@atomicmail.io",
-            "password": "crister272@",
-            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
-            "used": False,
-        },
-        {
-            "plan_key": "edu_1y",
-            "email": "alam0404@atomicmail.io",
-            "password": "alam0404@",
-            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
-            "used": False,
-        },
-        {
-            "plan_key": "edu_1y",
-            "email": "basta205@atomicmail.io",
-            "password": "basta205@",
-            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
-            "used": False,
-        },
-        {
-            "plan_key": "edu_1y",
-            "email": "fatfs575@atomicmail.io",
-            "password": "fatfs575@",
-            "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
-            "used": False,
-        },
-    ],
-}, 
+    "canva_pro_edu": {
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "edu_1y",
+                "email": "crister272@atomicmail.io",
+                "password": "crister272@",
+                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "used": False,
+            },
+            {
+                "plan_key": "edu_1y",
+                "email": "alam0404@atomicmail.io",
+                "password": "alam0404@",
+                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "used": False,
+            },
+            {
+                "plan_key": "edu_1y",
+                "email": "basta205@atomicmail.io",
+                "password": "basta205@",
+                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "used": False,
+            },
+            {
+                "plan_key": "edu_1y",
+                "email": "fatfs575@atomicmail.io",
+                "password": "fatfs575@",
+                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "used": False,
+            },
+        ],
+    },
 }
 
 (
@@ -679,20 +677,52 @@ def welcome_text() -> str:
     )
 
 
+def category_text() -> str:
+    return "🗂️ <b>Please choose a category</b>\nရွေးချယ်ပေးပါ 👇"
+
+
+def products_text(category_key: str) -> str:
+    if category_key == "game":
+        return "🎮 <b>Please choose a game product</b>"
+    return "💻 <b>Please choose a digital product</b>"
+
+
+def plan_text(product_key: str) -> str:
+    product = PRODUCTS[product_key]
+    return product_caption(product, product_key) + "\n\n📋 <b>Please choose a plan</b>"
+
+
+async def safe_edit_message(query, text: str, reply_markup=None):
+    try:
+        await query.edit_message_text(
+            text=text,
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
+        )
+    except Exception:
+        await query.message.reply_text(
+            text=text,
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
+        )
+
+
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
-        [InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders")],
-        [InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact")],
+        [
+            InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
+            InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
+        ],
         [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
     ])
 
 
 def category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
-        [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
+        [InlineKeyboardButton("🟩 🎮 Game Top Up", callback_data="cat:game")],
+        [InlineKeyboardButton("🟦 💻 Digital Products", callback_data="cat:digital")],
+        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_main")],
     ])
 
 
@@ -709,7 +739,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             if total_stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"✨ {product['name']} • From {cheapest} Ks",
+                        f"🟢 {product['name']} • From {cheapest} Ks",
                         callback_data=f"product:{key}",
                     )
                 ])
@@ -726,7 +756,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"✨ {product['name']} • {default_price} Ks",
+                        f"🟢 {product['name']} • {default_price} Ks",
                         callback_data=f"product:{key}",
                     )
                 ])
@@ -738,7 +768,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-    rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
+    rows.append([InlineKeyboardButton("🟥 ⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
 
 
@@ -752,7 +782,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"{plan['label']} • {plan['price']} Ks",
+                        f"🟩 {plan['label']} • {plan['price']} Ks",
                         callback_data=f"plan:{plan_key}",
                     )
                 ])
@@ -768,7 +798,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"{plan['label']} • {plan['price']} Ks",
+                        f"🟩 {plan['label']} • {plan['price']} Ks",
                         callback_data=f"plan:{plan_key}",
                     )
                 ])
@@ -780,17 +810,29 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-    rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
+    rows.append([InlineKeyboardButton("🟥 ⬅️ Back to Products", callback_data="back_products")])
     return InlineKeyboardMarkup(rows)
 
 
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(PAYMENT_ACCOUNTS["kpay"]["label"], callback_data="pay:kpay")],
-        [InlineKeyboardButton(PAYMENT_ACCOUNTS["wave"]["label"], callback_data="pay:wave")],
-        [InlineKeyboardButton(PAYMENT_ACCOUNTS["aya"]["label"], callback_data="pay:aya")],
-        [InlineKeyboardButton(PAYMENT_ACCOUNTS["uab"]["label"], callback_data="pay:uab")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
+        [InlineKeyboardButton("💙 KPay", callback_data="pay:kpay")],
+        [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
+        [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
+        [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
+        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_plan")],
+    ])
+
+
+def payment_back_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_plan")],
+    ])
+
+
+def simple_back_main_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_main")],
     ])
 
 
@@ -836,21 +878,6 @@ async def send_optional_bot_sticker(bot, chat_id: int, sticker_id: str):
             await bot.send_sticker(chat_id=chat_id, sticker=sticker_id)
         except Exception as e:
             logger.warning("Bot sticker send failed: %s", e)
-
-
-async def send_product_preview(message_obj, product_key: str):
-    product = PRODUCTS[product_key]
-    caption = product_caption(product, product_key)
-
-    try:
-        await message_obj.reply_photo(
-            photo=product["photo"],
-            caption=caption,
-            parse_mode=ParseMode.HTML,
-        )
-    except Exception as e:
-        logger.warning("Photo preview failed for %s: %s", product_key, e)
-        await message_obj.reply_text(caption, parse_mode=ParseMode.HTML)
 
 
 async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[str] = None):
@@ -913,17 +940,17 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     if data == "menu_shop":
-        await query.message.reply_text(
-            "🗂️ <b>Please choose a category</b>\nရွေးချယ်ပေးပါ 👇",
+        await safe_edit_message(
+            query,
+            category_text(),
             reply_markup=category_keyboard(),
-            parse_mode=ParseMode.HTML,
         )
         return CATEGORY_STATE
 
     if data == "menu_myorders":
         rows = get_user_orders(query.from_user.id, limit=5)
         if not rows:
-            await query.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
+            await query.answer("📦 သင့် order history မရှိသေးပါ။", show_alert=True)
             return MENU_STATE
 
         lines = ["📦 <b>Your Recent Orders</b>\n"]
@@ -936,23 +963,29 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"🕒 {escape(o['created_at'])}\n"
             )
         lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
-        await query.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-        return MENU_STATE
+
+        await safe_edit_message(
+            query,
+            "\n".join(lines),
+            reply_markup=simple_back_main_keyboard(),
+        )
+        return CATEGORY_STATE
 
     if data == "menu_contact":
-        await query.message.reply_text(
+        await safe_edit_message(
+            query,
             "📞 <b>Contact Admin</b>\n\n"
             f"👤 Telegram: {escape(CONTACT_USERNAME)}",
-            parse_mode=ParseMode.HTML,
+            reply_markup=simple_back_main_keyboard(),
         )
-        return MENU_STATE
+        return CATEGORY_STATE
 
     if data == "menu_restart":
         context.user_data.clear()
-        await query.message.reply_text(
+        await safe_edit_message(
+            query,
             welcome_text(),
             reply_markup=main_menu_keyboard(),
-            parse_mode=ParseMode.HTML,
         )
         return MENU_STATE
 
@@ -965,20 +998,21 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     if data == "back_main":
-        await query.message.reply_text(
+        context.user_data.clear()
+        await safe_edit_message(
+            query,
             welcome_text(),
             reply_markup=main_menu_keyboard(),
-            parse_mode=ParseMode.HTML,
         )
         return MENU_STATE
 
     if data.startswith("cat:"):
         category_key = data.split(":", 1)[1]
         context.user_data["category_key"] = category_key
-        await query.message.reply_text(
-            "📦 <b>Please choose a product</b>",
+        await safe_edit_message(
+            query,
+            products_text(category_key),
             reply_markup=products_keyboard(category_key),
-            parse_mode=ParseMode.HTML,
         )
         return PRODUCT_STATE
 
@@ -991,21 +1025,21 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     if data == "back_categories":
-        await query.message.reply_text(
-            "🗂️ <b>Please choose a category</b>",
+        await safe_edit_message(
+            query,
+            category_text(),
             reply_markup=category_keyboard(),
-            parse_mode=ParseMode.HTML,
         )
         return CATEGORY_STATE
 
     if data == "out_of_stock":
-        await query.message.reply_text("🔴 This item is out of stock.")
+        await query.answer("🔴 This item is out of stock.", show_alert=True)
         return PRODUCT_STATE
 
     if data.startswith("product:"):
         product_key = data.split(":", 1)[1]
         if product_key not in PRODUCTS:
-            await query.message.reply_text("❌ Invalid product.")
+            await query.answer("❌ Invalid product.", show_alert=True)
             return PRODUCT_STATE
 
         product = PRODUCTS[product_key]
@@ -1013,11 +1047,10 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        await send_product_preview(query.message, product_key)
-        await query.message.reply_text(
-            "📋 <b>Please choose a plan</b>",
+        await safe_edit_message(
+            query,
+            plan_text(product_key),
             reply_markup=plans_keyboard(product_key),
-            parse_mode=ParseMode.HTML,
         )
         return PLAN_STATE
 
@@ -1031,15 +1064,15 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "back_products":
         category_key = context.user_data.get("category_key", "game")
-        await query.message.reply_text(
-            "📦 <b>Please choose a product</b>",
+        await safe_edit_message(
+            query,
+            products_text(category_key),
             reply_markup=products_keyboard(category_key),
-            parse_mode=ParseMode.HTML,
         )
         return PRODUCT_STATE
 
     if data == "out_of_stock":
-        await query.message.reply_text("🔴 This plan is out of stock.")
+        await query.answer("🔴 This plan is out of stock.", show_alert=True)
         return PLAN_STATE
 
     if data.startswith("plan:"):
@@ -1053,18 +1086,18 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         product = PRODUCTS[product_key]
         if plan_key not in product["plans"]:
-            await query.message.reply_text("❌ Invalid plan.")
+            await query.answer("❌ Invalid plan.", show_alert=True)
             return PLAN_STATE
 
         plan = product["plans"][plan_key]
 
         if product["category"] == "digital":
             if get_digital_stock(product_key, plan_key) <= 0:
-                await query.message.reply_text("🔴 ဒီ plan က stock မရှိတော့ပါ။")
+                await query.answer("🔴 ဒီ plan က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
         else:
             if int(product.get("stock", 0)) <= 0:
-                await query.message.reply_text("🔴 ဒီ item က stock မရှိတော့ပါ။")
+                await query.answer("🔴 ဒီ item က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
 
         context.user_data["plan_key"] = plan_key
@@ -1109,10 +1142,10 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
             return ConversationHandler.END
 
-        await query.message.reply_text(
-            "📋 <b>Please choose a plan</b>",
+        await safe_edit_message(
+            query,
+            plan_text(product_key),
             reply_markup=plans_keyboard(product_key),
-            parse_mode=ParseMode.HTML,
         )
         return PLAN_STATE
 
@@ -1121,19 +1154,20 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     payment_key = data.split(":", 1)[1]
     if payment_key not in PAYMENT_ACCOUNTS:
-        await query.message.reply_text("❌ Invalid payment method.")
+        await query.answer("❌ Invalid payment method.", show_alert=True)
         return PAYMENT_STATE
 
     context.user_data["payment_key"] = payment_key
     context.user_data["payment_name"] = PAYMENT_ACCOUNTS[payment_key]["label"]
 
-    await query.message.reply_text(
+    await safe_edit_message(
+        query,
         payment_text(
             PAYMENT_ACCOUNTS[payment_key]["label"],
             PAYMENT_ACCOUNTS[payment_key]["text"],
             int(context.user_data["price"]),
         ),
-        parse_mode=ParseMode.HTML,
+        reply_markup=payment_back_keyboard(),
     )
     return SCREENSHOT_STATE
 
@@ -1214,7 +1248,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     raw = query.data
 
-    # reject menu
     if raw.startswith("rejectmenu:"):
         order_id = raw.split(":", 1)[1]
         await query.message.reply_text(
@@ -1224,7 +1257,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # reject action
     if raw.startswith("reject:"):
         try:
             _, order_id, reason_key = raw.split(":", 2)
@@ -1250,7 +1282,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # approve / auto / manual
     try:
         action, order_id = raw.split(":", 1)
     except ValueError:
@@ -1260,7 +1291,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not order:
         return
 
-    # GAME APPROVE
     if action == "approve":
         product = PRODUCTS.get(order["product_key"])
         if not product or order["category"] != "game":
@@ -1296,7 +1326,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
 
-    # DIGITAL AUTO
     if action == "auto":
         if order["category"] != "digital":
             return
@@ -1359,134 +1388,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
         return
 
-    # DIGITAL MANUAL
-    if action == "manual":
-        if order["category"] != "digital":
-            return
-
-        order_update_status(order_id, "waiting_manual_delivery", "Waiting admin manual delivery")
-
-        await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=(
-                f"✍️ <b>Manual delivery selected</b>\n\n"
-                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-        return
-                
-    
-
-
-    # =====================================================
-    # GAME APPROVE
-    # =====================================================
-    if action == "approve":
-        product = PRODUCTS.get(order["product_key"])
-        if not product or order["category"] != "game":
-            return
-
-        if int(product.get("stock", 0)) <= 0:
-            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-            return
-
-        product["stock"] -= 1
-        order_update_status(order_id, "approved", "Game order approved")
-        log_action(order_id, query.from_user.id, "approved_game")
-
-        # customer notify
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=(
-                "✅ <b>Order Approved!</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🎮 <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
-                "💖 Thanks for using Gamepay Hub"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-
-        # admin feedback
-        await query.message.reply_text(
-            f"✅ <b>Approved</b>\n\n"
-            f"🆔 <code>{escape(order_id)}</code>\n"
-            f"🎮 {escape(order.get('product_name', '-'))}\n"
-            f"📦 Remaining Stock: {product['stock']}",
-            parse_mode=ParseMode.HTML,
-        )
-
-        await maybe_send_low_stock_alert(context.bot, order["product_key"])
-        return
-
-    # =====================================================
-    # DIGITAL AUTO
-    # =====================================================
-    if action == "auto":
-        if order["category"] != "digital":
-            return
-
-        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
-
-        if not bool(product_cfg.get("auto_delivery", False)):
-            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(
-                    f"✍️ <b>Manual delivery required</b>\n\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        account = reserve_account(order["product_key"], order["plan_key"], order_id)
-        if not account:
-            order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(
-                    f"❌ <b>Auto stock not found</b>\n\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-            return
-
-        order_update_status(order_id, "delivered", "Auto delivered")
-        log_action(order_id, query.from_user.id, "auto_delivered")
-
-        delivery_text = (
-            f"✅ <b>Your {escape(order.get('product_name', '-'))} order is ready!</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-            f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
-        )
-
-        if account["extra"]:
-            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
-
-        delivery_text += "\n<code>Code</code> လို့ရိုက်ပို့ပြီး login code တောင်းနိုင်ပါတယ်။"
-
-        await context.bot.send_message(
-            chat_id=order["user_id"],
-            text=delivery_text,
-            parse_mode=ParseMode.HTML,
-        )
-
-        await query.message.reply_text(
-            f"✅ <b>Auto Delivered</b>\n\n"
-            f"🆔 <code>{escape(order_id)}</code>\n"
-            f"🎮 {escape(order.get('product_name', '-'))}",
-            parse_mode=ParseMode.HTML,
-        )
-
-        await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
-        return
-
-    # =====================================================
-    # DIGITAL MANUAL
-    # =====================================================
     if action == "manual":
         if order["category"] != "digital":
             return
@@ -1539,6 +1440,7 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     if len(context.args) < 2:
         await update.message.reply_text("Usage: /code ORDER_ID 123456")
         return
@@ -1561,6 +1463,8 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     order_update_status(order_id, "code_sent", "Admin sent login code")
     await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
+
+
 async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -1644,9 +1548,11 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
         parse_mode=ParseMode.HTML,
     )
 
+
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     rows = get_pending_orders(limit=20)
     if not rows:
         await update.message.reply_text("✅ Pending orders မရှိပါ။")
@@ -1667,6 +1573,7 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     if not context.args:
         await update.message.reply_text("Usage: /order ORDER_ID")
         return
@@ -1675,12 +1582,14 @@ async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
+
     await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
 
 
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     stats = get_stats_summary()
     await update.message.reply_text(
         "📊 <b>Bot Statistics</b>\n\n"
@@ -1696,6 +1605,7 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     lines = ["📦 <b>Stock List</b>\n"]
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
@@ -1708,8 +1618,10 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or len(context.args) != 2:
         return
+
     product_key = context.args[0]
     qty = int(context.args[1])
+
     if product_key in PRODUCTS and PRODUCTS[product_key]["category"] == "game":
         PRODUCTS[product_key]["stock"] = int(PRODUCTS[product_key].get("stock", 0)) + qty
         await update.message.reply_text("✅ Game stock updated.")
@@ -1718,17 +1630,21 @@ async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_T
 async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
         return
+
     payload = update.message.text[len("/add_account"):].strip()
     extra = ""
+
     if "|" in payload:
         main_part, extra = payload.split("|", 1)
         extra = extra.strip()
     else:
         main_part = payload
+
     parts = main_part.split()
     if len(parts) < 4:
         await update.message.reply_text("❌ Format မမှန်ပါ။")
         return
+
     product_key, plan_key, email = parts[0], parts[1], parts[2]
     password = " ".join(parts[3:])
     add_digital_account(product_key, plan_key, email, password, extra)
@@ -1747,6 +1663,7 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not rows:
         await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
         return
+
     lines = ["📦 <b>Your Recent Orders</b>\n"]
     for o in rows:
         lines.append(
@@ -1762,13 +1679,16 @@ async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("Usage: /track ORDER_ID")
         return
+
     order = order_get(context.args[0])
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
+
     if update.effective_user.id != ADMIN_ID and order["user_id"] != update.effective_user.id:
         await update.message.reply_text("❌ ဒီ order ကိုကြည့်ခွင့်မရှိပါ။")
         return
+
     await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
 
 
@@ -1810,12 +1730,17 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
-        await update.message.reply_text("❌ Order cancelled.", reply_markup=main_menu_keyboard())
+        await update.message.reply_text(
+            "❌ Order cancelled.",
+            reply_markup=main_menu_keyboard(),
+            parse_mode=ParseMode.HTML,
+        )
     return ConversationHandler.END
 
 # =========================================================
 # MAIN
 # =========================================================
+
 def main():
     if not BOT_TOKEN:
         raise ValueError("BOT_TOKEN environment variable is missing.")
@@ -1828,13 +1753,28 @@ def main():
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
-            MENU_STATE: [CallbackQueryHandler(menu_handler, pattern=r"^menu_")],
-            CATEGORY_STATE: [CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)")],
-            PRODUCT_STATE: [CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)")],
-            PLAN_STATE: [CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")],
-            DETAIL_STATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler)],
-            PAYMENT_STATE: [CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)")],
-            SCREENSHOT_STATE: [MessageHandler(filters.PHOTO, screenshot_handler)],
+            MENU_STATE: [
+                CallbackQueryHandler(menu_handler, pattern=r"^menu_")
+            ],
+            CATEGORY_STATE: [
+                CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)")
+            ],
+            PRODUCT_STATE: [
+                CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)")
+            ],
+            PLAN_STATE: [
+                CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")
+            ],
+            DETAIL_STATE: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler)
+            ],
+            PAYMENT_STATE: [
+                CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)")
+            ],
+            SCREENSHOT_STATE: [
+                MessageHandler(filters.PHOTO, screenshot_handler),
+                CallbackQueryHandler(payment_handler, pattern=r"^back_plan$")
+            ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
         allow_reentry=True,
