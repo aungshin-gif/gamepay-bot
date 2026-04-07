@@ -5,7 +5,7 @@ from html import escape
 from datetime import datetime
 from typing import Optional, Dict, Any, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -55,10 +55,10 @@ PAYMENT_ACCOUNTS = {
 
 REJECT_REASONS = {
     "wrong_amount": "ငွေပမာဏမမှန်ပါ",
-    "unclear_ss": "screenshot မရှင်းပါ",
-    "fake_payment": "payment မအောင်မြင်သေးပါ",
-    "duplicate_order": "duplicate order ဖြစ်နေပါတယ်",
-    "other": "order info ပြန်စစ်ပြီးပြန်တင်ပါ",
+    "unclear_ss": "Screenshot မရှင်းပါ",
+    "fake_payment": "Payment မအောင်မြင်သေးပါ",
+    "duplicate_order": "Duplicate order ဖြစ်နေပါတယ်",
+    "other": "Order info ပြန်စစ်ပြီး ပြန်တင်ပါ",
 }
 
 PRODUCTS: Dict[str, Dict[str, Any]] = {
@@ -70,8 +70,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
         "requires_detail_label": (
-            "🆔 <b>Game ID နှင့် Server ID ရေးပေးပါ</b>\n\n"
-            "ဥပမာ:\n<code>123456789 / 1234</code>"
+            "🆔 <b>Game ID + Server ID ပို့ပေးပါ</b>\n\n"
+            "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+            "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
         ),
         "plans": {
             "default": {"label": "Weekly Pass", "price": 6400},
@@ -85,8 +86,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "Buy-Welkin-Moon-In-Game.png",
         "stock": 10,
         "requires_detail_label": (
-            "🆔 <b>UID / Server ရေးပေးပါ</b>\n\n"
-            "ဥပမာ:\n<code>812345678 / Asia</code>"
+            "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
+            "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
+            "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
         ),
         "plans": {
             "default": {"label": "Blessing", "price": 14800},
@@ -99,8 +101,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "📱 CapCut Pro account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 5500},
@@ -119,8 +121,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "🎵 Spotify Premium account delivery service.",
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> လို့ပေးပါ။"
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
             "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
@@ -133,8 +135,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "📺 Netflix Premium account delivery service.",
         "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 8000},
@@ -152,11 +154,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "category": "digital",
         "name": "Canva Pro Edu",
         "full_name": "Canva Pro Edu Subscription",
-        "description": "Canva Pro Edu account delivery service.",
+        "description": "🎨 Canva Pro Edu account delivery service.",
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note/message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ပို့ပေးပါ။"
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
             "edu_1y": {"label": "1 Year Account", "price": 3200},
@@ -198,7 +200,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "plan_key": "family_1m",
                 "email": "2iws8@24hournons.top",
                 "password": "masuk12345",
-                "extra": "😀 Family 1 Month",
+                "extra": "🎵 Family 1 Month",
                 "used": False,
             },
         ],
@@ -210,14 +212,14 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "plan_key": "share_1m",
                 "email": "netflixshare1@example.com",
                 "password": "nf123456",
-                "extra": "Profile 1 ကိုပဲသုံးပါ။",
+                "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
                 "used": False,
             },
             {
                 "plan_key": "private_1m",
                 "email": "netflixshare2@example.com",
                 "password": "nf223456",
-                "extra": "Profile 1 ကိုပဲသုံးပါ။",
+                "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
                 "used": False,
             },
         ],
@@ -229,28 +231,28 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "plan_key": "edu_1y",
                 "email": "crister272@atomicmail.io",
                 "password": "crister272@",
-                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
                 "used": False,
             },
             {
                 "plan_key": "edu_1y",
                 "email": "alam0404@atomicmail.io",
                 "password": "alam0404@",
-                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
                 "used": False,
             },
             {
                 "plan_key": "edu_1y",
                 "email": "basta205@atomicmail.io",
                 "password": "basta205@",
-                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
                 "used": False,
             },
             {
                 "plan_key": "edu_1y",
                 "email": "fatfs575@atomicmail.io",
                 "password": "fatfs575@",
-                "extra": "Canva Pro Edu | 1 Year account | access via atomicmail.io",
+                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
                 "used": False,
             },
         ],
@@ -599,8 +601,16 @@ def get_stats_summary() -> dict:
     }
 
 # =========================================================
-# HELPERS
+# UI HELPERS
 # =========================================================
+
+def glam_title(title: str) -> str:
+    return f"╭━❰ <b>{escape(title)}</b> ❱━╮"
+
+
+def glam_footer() -> str:
+    return "╰━━━━━━━━━━━━━━━━━━╯"
+
 
 def human_status(status: str) -> str:
     mapping = {
@@ -617,14 +627,16 @@ def human_status(status: str) -> str:
 
 def order_summary_text(order: dict) -> str:
     return (
+        f"{glam_title('ORDER SUMMARY')}\n"
         f"🆔 <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
-        f"🎮 <b>Product:</b> {escape(order['product_name'])}\n"
-        f"📋 <b>Plan:</b> {escape(order['plan_label'])}\n"
-        f"💰 <b>Price:</b> {order['price']} Ks\n"
-        f"📝 <b>Detail:</b> {escape(order.get('detail') or '-')}\n"
-        f"💳 <b>Payment:</b> {escape(order.get('payment_name') or '-')}\n"
+        f"🛍️ <b>Product:</b> {escape(order['product_name'])}\n"
+        f"📦 <b>Plan:</b> {escape(order['plan_label'])}\n"
+        f"💸 <b>Price:</b> {order['price']} Ks\n"
+        f"📝 <b>Detail / Note:</b> {escape(order.get('detail') or '-')}\n"
+        f"🏦 <b>Payment:</b> {escape(order.get('payment_name') or '-')}\n"
         f"📌 <b>Status:</b> {human_status(order['status'])}\n"
-        f"🕒 <b>Created:</b> {escape(order['created_at'])}"
+        f"🕒 <b>Created:</b> {escape(order['created_at'])}\n"
+        f"{glam_footer()}"
     )
 
 
@@ -641,55 +653,78 @@ def product_caption(product: dict, product_key: str) -> str:
     status = "🟢 In Stock" if stock > 0 else "🔴 Out of Stock"
 
     return (
-        f"✨ <b>{escape(product['full_name'])}</b>\n"
-        f"━━━━━━━━━━━━━━━\n\n"
+        f"{glam_title(product['full_name'])}\n"
         f"💰 <b>Price:</b> {escape(price_text)}\n"
         f"📦 <b>Stock:</b> {stock}\n"
         f"📌 <b>Status:</b> {status}\n\n"
         f"📝 <b>Description</b>\n"
         f"{escape(product['description'])}\n\n"
-        f"━━━━━━━━━━━━━━━\n"
-        f"⚡ Fast • 🔒 Safe • 💖 Trusted"
+        f"⚡ Fast Service\n"
+        f"🔒 Safe Payment\n"
+        f"💖 Trusted Shop\n"
+        f"{glam_footer()}"
     )
 
 
 def payment_text(payment_name: str, account: str, amount: int) -> str:
     return (
-        f"💸 <b>PAYMENT INFO</b>\n\n"
-        f"🏦 <b>Method:</b> {escape(payment_name)}\n"
-        f"📲 <b>Account:</b>\n{escape(account)}\n\n"
-        f"💰 <b>Amount:</b> {amount} Ks\n\n"
-        f"✅ ငွေလွှဲပြီး <b>payment screenshot</b> ပို့ပေးပါ\n"
-        f"📨 ပြီးတာနဲ့ admin ဆီ order တက်သွားပါမယ်"
+        f"{glam_title('PAYMENT INFO')}\n"
+        f"🏦 <b>Method:</b> {escape(payment_name)}\n\n"
+        f"📲 <b>Account Details</b>\n"
+        f"<pre>{escape(account)}</pre>\n"
+        f"💸 <b>Amount:</b> {amount} Ks\n\n"
+        f"📷 ငွေလွှဲပြီး <b>payment screenshot</b> ကို photo နဲ့ပို့ပေးပါ\n"
+        f"✅ ပို့ပြီးတာနဲ့ admin ဆီ review တက်သွားပါမယ်\n"
+        f"{glam_footer()}"
     )
 
 
 def welcome_text() -> str:
     return (
-        f"🌈⚡ <b>{escape(SHOP_NAME)}</b> ⚡🌈\n\n"
-        f"🎮 <b>Welcome from {escape(SHOP_NAME)}</b>\n"
-        f"မြန်ဆန် • စိတ်ချရ • ယုံကြည်ရတဲ့ Top Up Service 💎\n\n"
-        f"✨ <b>What would you like to do?</b>\n"
-        f"အောက်က menu ကနေရွေးပေးပါ 👇\n\n"
-        f"⚡ Fast Service\n"
+        f"{glam_title(SHOP_NAME)}\n"
+        f"🌈 <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
+        f"🎮 Game Top Up\n"
+        f"💻 Digital Products\n"
+        f"⚡ Fast Delivery\n"
         f"🔒 Safe Payment\n"
-        f"💖 Trusted Top Up"
+        f"💎 Premium Service\n\n"
+        f"👇 <b>Please choose from the menu below</b>\n"
+        f"{glam_footer()}"
     )
 
 
 def category_text() -> str:
-    return "🗂️ <b>Please choose a category</b>\nရွေးချယ်ပေးပါ 👇"
+    return (
+        f"{glam_title('SHOP CATEGORIES')}\n"
+        f"🎯 <b>Please choose a category</b>\n"
+        f"အောက်က category ကိုရွေးပေးပါ 👇\n"
+        f"{glam_footer()}"
+    )
 
 
 def products_text(category_key: str) -> str:
-    if category_key == "game":
-        return "🎮 <b>Please choose a game product</b>"
-    return "💻 <b>Please choose a digital product</b>"
+    title = "🎮 GAME PRODUCTS" if category_key == "game" else "💻 DIGITAL PRODUCTS"
+    return (
+        f"{glam_title(title)}\n"
+        f"🛍️ <b>Please choose a product</b>\n"
+        f"{glam_footer()}"
+    )
 
 
 def plan_text(product_key: str) -> str:
     product = PRODUCTS[product_key]
     return product_caption(product, product_key) + "\n\n📋 <b>Please choose a plan</b>"
+
+
+def detail_text(product_key: str) -> str:
+    product = PRODUCTS[product_key]
+    return (
+        f"{glam_title('DETAIL / NOTE')}\n"
+        f"{product['requires_detail_label']}\n\n"
+        f"⬇️ Text ပို့နိုင်ပါတယ်\n"
+        f"သို့မဟုတ် button ကိုနှိပ်နိုင်ပါတယ်\n"
+        f"{glam_footer()}"
+    )
 
 
 async def safe_edit_message(query, text: str, reply_markup=None):
@@ -707,9 +742,26 @@ async def safe_edit_message(query, text: str, reply_markup=None):
         )
 
 
+async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
+    product = PRODUCTS[product_key]
+    caption = plan_text(product_key)
+    photo = product.get("photo")
+
+    try:
+        if photo and (photo.startswith("http://") or photo.startswith("https://")):
+            await query.edit_message_media(
+                media=InputMediaPhoto(media=photo, caption=caption, parse_mode=ParseMode.HTML),
+                reply_markup=reply_markup,
+            )
+        else:
+            await safe_edit_message(query, caption, reply_markup=reply_markup)
+    except Exception:
+        await safe_edit_message(query, caption, reply_markup=reply_markup)
+
+
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛍️ Shop", callback_data="menu_shop")],
+        [InlineKeyboardButton("🛍️ Shop Now", callback_data="menu_shop")],
         [
             InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
             InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
@@ -720,9 +772,9 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
 
 def category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🟩 🎮 Game Top Up", callback_data="cat:game")],
-        [InlineKeyboardButton("🟦 💻 Digital Products", callback_data="cat:digital")],
-        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_main")],
+        [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
+        [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
     ])
 
 
@@ -768,7 +820,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-    rows.append([InlineKeyboardButton("🟥 ⬅️ Back to Categories", callback_data="back_categories")])
+    rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
 
 
@@ -782,7 +834,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"🟩 {plan['label']} • {plan['price']} Ks",
+                        f"✨ {plan['label']} • {plan['price']} Ks",
                         callback_data=f"plan:{plan_key}",
                     )
                 ])
@@ -798,7 +850,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             if stock > 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"🟩 {plan['label']} • {plan['price']} Ks",
+                        f"✨ {plan['label']} • {plan['price']} Ks",
                         callback_data=f"plan:{plan_key}",
                     )
                 ])
@@ -810,8 +862,18 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-    rows.append([InlineKeyboardButton("🟥 ⬅️ Back to Products", callback_data="back_products")])
+    rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
     return InlineKeyboardMarkup(rows)
+
+
+def detail_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("⏭️ Skip / No Note", callback_data="detail_skip")],
+        [
+            InlineKeyboardButton("⬅️ Back to Plans", callback_data="detail_back_plan"),
+            InlineKeyboardButton("❌ Cancel", callback_data="detail_cancel"),
+        ],
+    ])
 
 
 def payment_keyboard() -> InlineKeyboardMarkup:
@@ -820,19 +882,20 @@ def payment_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
         [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
         [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
-        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_plan")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
     ])
 
 
 def payment_back_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_plan")],
+        [InlineKeyboardButton("⬅️ Back to Payment", callback_data="back_payment_methods")],
+        [InlineKeyboardButton("⬅️ Back to Plans", callback_data="back_plan")],
     ])
 
 
 def simple_back_main_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🟥 ⬅️ Back", callback_data="back_main")],
+        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
     ])
 
 
@@ -840,10 +903,10 @@ def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
     if category == "digital":
         return InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("⚡ Auto", callback_data=f"auto:{order_id}"),
-                InlineKeyboardButton("✍️ Manual", callback_data=f"manual:{order_id}"),
+                InlineKeyboardButton("⚡ Auto Deliver", callback_data=f"auto:{order_id}"),
+                InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
             ],
-            [InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}")],
+            [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
         ])
 
     return InlineKeyboardMarkup([
@@ -856,11 +919,11 @@ def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
 
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
-        [InlineKeyboardButton("Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
-        [InlineKeyboardButton("Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
-        [InlineKeyboardButton("Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
-        [InlineKeyboardButton("Other", callback_data=f"reject:{order_id}:other")],
+        [InlineKeyboardButton("💸 ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
+        [InlineKeyboardButton("🖼️ Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
+        [InlineKeyboardButton("🚫 Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
+        [InlineKeyboardButton("♻️ Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
+        [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other")],
     ])
 
 
@@ -896,10 +959,11 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                 await bot.send_message(
                     chat_id=ADMIN_ID,
                     text=(
-                        f"⚠️ <b>Low Stock Alert</b>\n\n"
-                        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
-                        f"📋 <b>Plan:</b> {escape(plan_label)}\n"
-                        f"📦 <b>Remaining:</b> {current_stock}"
+                        f"{glam_title('LOW STOCK ALERT')}\n"
+                        f"🛍️ <b>Product:</b> {escape(product['full_name'])}\n"
+                        f"📦 <b>Plan:</b> {escape(plan_label)}\n"
+                        f"📉 <b>Remaining:</b> {current_stock}\n"
+                        f"{glam_footer()}"
                     ),
                     parse_mode=ParseMode.HTML,
                 )
@@ -909,9 +973,10 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                 await bot.send_message(
                     chat_id=ADMIN_ID,
                     text=(
-                        f"⚠️ <b>Low Stock Alert</b>\n\n"
-                        f"🎮 <b>Product:</b> {escape(product['full_name'])}\n"
-                        f"📦 <b>Remaining:</b> {current_stock}"
+                        f"{glam_title('LOW STOCK ALERT')}\n"
+                        f"🛍️ <b>Product:</b> {escape(product['full_name'])}\n"
+                        f"📉 <b>Remaining:</b> {current_stock}\n"
+                        f"{glam_footer()}"
                     ),
                     parse_mode=ParseMode.HTML,
                 )
@@ -953,16 +1018,18 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("📦 သင့် order history မရှိသေးပါ။", show_alert=True)
             return MENU_STATE
 
-        lines = ["📦 <b>Your Recent Orders</b>\n"]
+        lines = [f"{glam_title('YOUR RECENT ORDERS')}"]
         for o in rows:
             lines.append(
-                f"🆔 <code>{escape(o['order_id'])}</code>\n"
-                f"🎮 {escape(o['product_name'])}\n"
-                f"📋 {escape(o['plan_label'])}\n"
+                f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
+                f"🛍️ {escape(o['product_name'])}\n"
+                f"📦 {escape(o['plan_label'])}\n"
                 f"📌 {human_status(o['status'])}\n"
                 f"🕒 {escape(o['created_at'])}\n"
+                f"━━━━━━━━━━━━━━"
             )
-        lines.append("အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
+        lines.append("\n🔎 အသေးစိတ်ကြည့်ရန်: <code>/track ORDER_ID</code>")
+        lines.append(glam_footer())
 
         await safe_edit_message(
             query,
@@ -974,8 +1041,9 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_contact":
         await safe_edit_message(
             query,
-            "📞 <b>Contact Admin</b>\n\n"
-            f"👤 Telegram: {escape(CONTACT_USERNAME)}",
+            f"{glam_title('CONTACT ADMIN')}\n"
+            f"👤 Telegram: {escape(CONTACT_USERNAME)}\n"
+            f"{glam_footer()}",
             reply_markup=simple_back_main_keyboard(),
         )
         return CATEGORY_STATE
@@ -1047,9 +1115,9 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        await safe_edit_message(
+        await send_or_edit_product_card(
             query,
-            plan_text(product_key),
+            product_key,
             reply_markup=plans_keyboard(product_key),
         )
         return PLAN_STATE
@@ -1105,8 +1173,9 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["price"] = int(plan["price"])
 
         await query.message.reply_text(
-            product["requires_detail_label"],
+            detail_text(product_key),
             parse_mode=ParseMode.HTML,
+            reply_markup=detail_keyboard(),
         )
         return DETAIL_STATE
 
@@ -1119,16 +1188,62 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = update.message.text.strip()
     if not text:
-        await update.message.reply_text("❌ Detail ပို့ပေးပါ။")
+        await update.message.reply_text("❌ Detail / note ပို့ပေးပါ။", reply_markup=detail_keyboard())
         return DETAIL_STATE
 
     context.user_data["detail"] = text
     await update.message.reply_text(
-        "💳 <b>Please choose a payment method</b>",
+        f"{glam_title('PAYMENT METHOD')}\n"
+        f"💳 <b>Please choose a payment method</b>\n"
+        f"{glam_footer()}",
         reply_markup=payment_keyboard(),
         parse_mode=ParseMode.HTML,
     )
     return PAYMENT_STATE
+
+
+async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    data = query.data
+
+    if data == "detail_skip":
+        context.user_data["detail"] = "No"
+        await safe_edit_message(
+            query,
+            f"{glam_title('PAYMENT METHOD')}\n"
+            f"💳 <b>Please choose a payment method</b>\n"
+            f"{glam_footer()}",
+            reply_markup=payment_keyboard(),
+        )
+        return PAYMENT_STATE
+
+    if data == "detail_back_plan":
+        product_key = context.user_data.get("product_key")
+        if not product_key:
+            context.user_data.clear()
+            await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
+            return MENU_STATE
+
+        await send_or_edit_product_card(
+            query,
+            product_key,
+            reply_markup=plans_keyboard(product_key),
+        )
+        return PLAN_STATE
+
+    if data == "detail_cancel":
+        context.user_data.clear()
+        await safe_edit_message(
+            query,
+            f"{glam_title('ORDER CANCELLED')}\n"
+            f"❌ Your current order has been cancelled.\n"
+            f"{glam_footer()}",
+            reply_markup=main_menu_keyboard(),
+        )
+        return MENU_STATE
+
+    return DETAIL_STATE
 
 
 async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1142,12 +1257,22 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
             return ConversationHandler.END
 
-        await safe_edit_message(
+        await send_or_edit_product_card(
             query,
-            plan_text(product_key),
+            product_key,
             reply_markup=plans_keyboard(product_key),
         )
         return PLAN_STATE
+
+    if data == "back_payment_methods":
+        await safe_edit_message(
+            query,
+            f"{glam_title('PAYMENT METHOD')}\n"
+            f"💳 <b>Please choose a payment method</b>\n"
+            f"{glam_footer()}",
+            reply_markup=payment_keyboard(),
+        )
+        return PAYMENT_STATE
 
     if not data.startswith("pay:"):
         return PAYMENT_STATE
@@ -1176,7 +1301,9 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if not update.message or not update.message.photo:
         if update.message:
             await update.message.reply_text(
-                "📷 Payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
+                f"{glam_title('UPLOAD SCREENSHOT')}\n"
+                f"📷 Payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။\n"
+                f"{glam_footer()}",
                 parse_mode=ParseMode.HTML,
             )
         return SCREENSHOT_STATE
@@ -1210,10 +1337,10 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
     admin_caption = (
-        "📥 <b>NEW ORDER</b>\n\n"
+        f"{glam_title('NEW ORDER RECEIVED')}\n\n"
         f"{order_summary_text(data)}\n\n"
         f"👤 <b>Customer:</b> {escape(data['full_name'])}\n"
-        f"📎 <b>Username:</b> {escape(data['username'] or '-')}\n"
+        f"🔗 <b>Username:</b> {escape(data['username'] or '-')}\n"
         f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
@@ -1225,9 +1352,14 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         reply_markup=admin_action_keyboard(order_id, data["category"]),
     )
 
+    await send_optional_bot_sticker(context.bot, user.id, SUCCESS_STICKER_ID)
+
     await update.message.reply_text(
-        "✅ <b>Order received successfully!</b>\n\n"
-        f"{order_summary_text(data)}",
+        f"{glam_title('ORDER RECEIVED')}\n"
+        f"✅ <b>Your order has been submitted successfully!</b>\n\n"
+        f"{order_summary_text(data)}\n\n"
+        f"⏳ Admin review ပြီးတာနဲ့ result ပြန်ပို့ပေးပါမယ်\n"
+        f"{glam_footer()}",
         parse_mode=ParseMode.HTML,
     )
 
@@ -1251,7 +1383,10 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if raw.startswith("rejectmenu:"):
         order_id = raw.split(":", 1)[1]
         await query.message.reply_text(
-            f"❌ <b>Reject Reason ရွေးပါ</b>\n🆔 <code>{escape(order_id)}</code>",
+            f"{glam_title('REJECT REASON')}\n"
+            f"🆔 <code>{escape(order_id)}</code>\n"
+            f"❌ Reject reason ရွေးပေးပါ\n"
+            f"{glam_footer()}",
             parse_mode=ParseMode.HTML,
             reply_markup=reject_reason_keyboard(order_id),
         )
@@ -1274,10 +1409,20 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=(
-                "❌ <b>Order Rejected</b>\n\n"
+                f"{glam_title('ORDER REJECTED')}\n"
+                f"❌ <b>Your order was rejected</b>\n\n"
                 f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"📌 <b>Reason:</b> {escape(reason_text)}"
+                f"📌 <b>Reason:</b> {escape(reason_text)}\n"
+                f"{glam_footer()}"
             ),
+            parse_mode=ParseMode.HTML,
+        )
+
+        await query.message.reply_text(
+            f"{glam_title('ORDER REJECTED')}\n"
+            f"🆔 <code>{escape(order_id)}</code>\n"
+            f"📌 {escape(reason_text)}\n"
+            f"{glam_footer()}",
             parse_mode=ParseMode.HTML,
         )
         return
@@ -1307,19 +1452,22 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=(
-                "✅ <b>Order Approved!</b>\n\n"
+                f"{glam_title('ORDER APPROVED')}\n"
+                f"✅ <b>Your order is approved!</b>\n\n"
                 f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🎮 <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
-                "💖 Thanks for using Gamepay Hub"
+                f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+                f"💖 Thanks for using Gamepay Hub\n"
+                f"{glam_footer()}"
             ),
             parse_mode=ParseMode.HTML,
         )
 
         await query.message.reply_text(
-            f"✅ <b>Approved</b>\n\n"
+            f"{glam_title('APPROVED')}\n"
             f"🆔 <code>{escape(order_id)}</code>\n"
-            f"🎮 {escape(order.get('product_name', '-'))}\n"
-            f"📦 Remaining Stock: {product['stock']}",
+            f"🛍️ {escape(order.get('product_name', '-'))}\n"
+            f"📦 Remaining Stock: {product['stock']}\n"
+            f"{glam_footer()}",
             parse_mode=ParseMode.HTML,
         )
 
@@ -1337,8 +1485,9 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
-                    f"✍️ <b>Manual delivery required</b>\n\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                    f"{glam_title('MANUAL DELIVERY REQUIRED')}\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
+                    f"{glam_footer()}"
                 ),
                 parse_mode=ParseMode.HTML,
             )
@@ -1350,8 +1499,9 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
-                    f"❌ <b>Auto stock not found</b>\n\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                    f"{glam_title('AUTO STOCK NOT FOUND')}\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
+                    f"{glam_footer()}"
                 ),
                 parse_mode=ParseMode.HTML,
             )
@@ -1361,6 +1511,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         log_action(order_id, query.from_user.id, "auto_delivered")
 
         delivery_text = (
+            f"{glam_title('ACCOUNT READY')}\n"
             f"✅ <b>Your {escape(order.get('product_name', '-'))} order is ready!</b>\n\n"
             f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
             f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
@@ -1370,7 +1521,10 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if account["extra"]:
             delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
 
-        delivery_text += "\n<code>Code</code> လို့ရိုက်ပို့ပြီး login code တောင်းနိုင်ပါတယ်။"
+        delivery_text += (
+            "\n🔐 Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။\n"
+            f"{glam_footer()}"
+        )
 
         await context.bot.send_message(
             chat_id=order["user_id"],
@@ -1379,9 +1533,10 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await query.message.reply_text(
-            f"✅ <b>Auto Delivered</b>\n\n"
+            f"{glam_title('AUTO DELIVERED')}\n"
             f"🆔 <code>{escape(order_id)}</code>\n"
-            f"🎮 {escape(order.get('product_name', '-'))}",
+            f"🛍️ {escape(order.get('product_name', '-'))}\n"
+            f"{glam_footer()}",
             parse_mode=ParseMode.HTML,
         )
 
@@ -1397,8 +1552,9 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=(
-                f"✍️ <b>Manual delivery selected</b>\n\n"
-                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>"
+                f"{glam_title('MANUAL DELIVERY SELECTED')}\n"
+                f"<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>\n"
+                f"{glam_footer()}"
             ),
             parse_mode=ParseMode.HTML,
         )
@@ -1426,9 +1582,11 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=order["user_id"],
         text=(
+            f"{glam_title('ACCOUNT READY')}\n"
             f"✅ <b>Your {escape(order['product_name'])} order is ready!</b>\n\n"
             f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"<pre>{escape(delivery_text)}</pre>"
+            f"<pre>{escape(delivery_text)}</pre>\n"
+            f"{glam_footer()}"
         ),
         parse_mode=ParseMode.HTML,
     )
@@ -1455,9 +1613,11 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=order["user_id"],
         text=(
+            f"{glam_title('LOGIN CODE READY')}\n"
             f"🔐 <b>Your login code is ready</b>\n\n"
             f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>"
+            f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>\n"
+            f"{glam_footer()}"
         ),
         parse_mode=ParseMode.HTML,
     )
@@ -1470,10 +1630,7 @@ async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_T
         return
 
     if len(context.args) != 1:
-        await update.message.reply_text(
-            "Usage:\n/delete_account email@example.com",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("Usage:\n/delete_account email@example.com")
         return
 
     email = context.args[0].strip()
@@ -1501,10 +1658,7 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
         return
 
     if len(context.args) != 2:
-        await update.message.reply_text(
-            "Usage:\n/remove_game_stock PRODUCT_KEY QTY",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text("Usage:\n/remove_game_stock PRODUCT_KEY QTY")
         return
 
     product_key = context.args[0].strip()
@@ -1531,20 +1685,18 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
     current_stock = int(PRODUCTS[product_key].get("stock", 0))
 
     if qty > current_stock:
-        await update.message.reply_text(
-            f"❌ Current stock = {current_stock} only.",
-            parse_mode=ParseMode.HTML,
-        )
+        await update.message.reply_text(f"❌ Current stock = {current_stock} only.")
         return
 
     PRODUCTS[product_key]["stock"] = current_stock - qty
     log_action(None, update.effective_user.id, "remove_game_stock", f"{product_key} -{qty}")
 
     await update.message.reply_text(
-        f"✅ <b>Game stock reduced</b>\n\n"
-        f"🎮 <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
+        f"{glam_title('GAME STOCK REDUCED')}\n"
+        f"🛍️ <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
         f"➖ <b>Removed:</b> {qty}\n"
-        f"📦 <b>Remaining Stock:</b> {PRODUCTS[product_key]['stock']}",
+        f"📦 <b>Remaining Stock:</b> {PRODUCTS[product_key]['stock']}\n"
+        f"{glam_footer()}",
         parse_mode=ParseMode.HTML,
     )
 
@@ -1558,15 +1710,17 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ Pending orders မရှိပါ။")
         return
 
-    lines = ["📋 <b>Pending Orders</b>\n"]
+    lines = [f"{glam_title('PENDING ORDERS')}"]
     for o in rows:
         lines.append(
-            f"🆔 <code>{escape(o['order_id'])}</code>\n"
-            f"🎮 {escape(o['product_name'])}\n"
-            f"📋 {escape(o['plan_label'])}\n"
+            f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
+            f"🛍️ {escape(o['product_name'])}\n"
+            f"📦 {escape(o['plan_label'])}\n"
             f"👤 {escape(o['full_name'])}\n"
             f"📌 {human_status(o['status'])}\n"
+            f"━━━━━━━━━━━━━━"
         )
+    lines.append(glam_footer())
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -1592,12 +1746,13 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     stats = get_stats_summary()
     await update.message.reply_text(
-        "📊 <b>Bot Statistics</b>\n\n"
+        f"{glam_title('BOT STATISTICS')}\n"
         f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
         f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
         f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
         f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
-        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks",
+        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks\n"
+        f"{glam_footer()}",
         parse_mode=ParseMode.HTML,
     )
 
@@ -1606,12 +1761,13 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    lines = ["📦 <b>Stock List</b>\n"]
+    lines = [f"{glam_title('STOCK LIST')}"]
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
             lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_digital_stock(key)}")
         else:
             lines.append(f"🎮 <b>{escape(p['name'])}</b> → {int(p.get('stock', 0))}")
+    lines.append(glam_footer())
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -1664,14 +1820,16 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
         return
 
-    lines = ["📦 <b>Your Recent Orders</b>\n"]
+    lines = [f"{glam_title('YOUR RECENT ORDERS')}"]
     for o in rows:
         lines.append(
-            f"🆔 <code>{escape(o['order_id'])}</code>\n"
-            f"🎮 {escape(o['product_name'])}\n"
-            f"📋 {escape(o['plan_label'])}\n"
+            f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
+            f"🛍️ {escape(o['product_name'])}\n"
+            f"📦 {escape(o['plan_label'])}\n"
             f"📌 {human_status(o['status'])}\n"
+            f"━━━━━━━━━━━━━━"
         )
+    lines.append(glam_footer())
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -1722,7 +1880,11 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     await update.message.reply_text("⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။")
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"<code>/code {escape(order['order_id'])} 123456</code>",
+        text=(
+            f"{glam_title('CODE REQUESTED')}\n"
+            f"<code>/code {escape(order['order_id'])} 123456</code>\n"
+            f"{glam_footer()}"
+        ),
         parse_mode=ParseMode.HTML,
     )
 
@@ -1731,7 +1893,9 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
         await update.message.reply_text(
-            "❌ Order cancelled.",
+            f"{glam_title('ORDER CANCELLED')}\n"
+            f"❌ Current order cancelled.\n"
+            f"{glam_footer()}",
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
@@ -1766,14 +1930,15 @@ def main():
                 CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")
             ],
             DETAIL_STATE: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler)
+                MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
+                CallbackQueryHandler(detail_callback_handler, pattern=r"^(detail_skip$|detail_back_plan$|detail_cancel$)")
             ],
             PAYMENT_STATE: [
-                CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$)")
+                CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$|back_payment_methods$)")
             ],
             SCREENSHOT_STATE: [
                 MessageHandler(filters.PHOTO, screenshot_handler),
-                CallbackQueryHandler(payment_handler, pattern=r"^back_plan$")
+                CallbackQueryHandler(payment_handler, pattern=r"^(back_plan$|back_payment_methods$)")
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
