@@ -27,6 +27,7 @@ ADMIN_ID = int(ADMIN_ID_RAW) if ADMIN_ID_RAW.isdigit() else 0
 
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
+CHANNEL_URL = "https://t.me/gamepaydyet"
 
 WELCOME_STICKER_ID = ""
 SUCCESS_STICKER_ID = ""
@@ -947,6 +948,7 @@ async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("🛍️ Shop Now", callback_data="menu_shop")],
+        [InlineKeyboardButton("📢 Channel ဝင်ရန်", url=CHANNEL_URL)],
         [
             InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
             InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
