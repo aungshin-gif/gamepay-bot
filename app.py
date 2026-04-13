@@ -152,37 +152,35 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "category": "digital",
         "name": "Canva Pro Edu",
         "full_name": "Canva Pro Edu Subscription",
-        "description": "🎨 Canva Pro Edu account delivery service.",
+        "description": "🎨 Canva Pro Edu invite delivery service.",
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
             "📧 <b>Canva Mail ပို့ပေးပါ</b>\n\n"
-            "👉 Mail ရှိရင် ထည့်ပေးပါ\n"
-            "👉 မရှိရင် <code>No</code> လို့ပို့ပါ\n\n"
+            "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
             "ဥပမာ:\n<code>example@gmail.com</code>"
         ),
         "plans": {
-            "edu_1y": {"label": "1 Year Account", "price": 3200},
+            "edu_1y": {"label": "1 Year Invite Access", "price": 3200},
         },
     },
-    
-"gemini_ai_pro": {
-    "category": "digital",
-    "name": "Gemini Ai Pro",
-    "full_name": "Gemini Ai Pro Subscription",
-    "description": "🤖 Gemini Ai Pro own-mail invite service.",
-    "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
-    "enabled": True,
-    "requires_detail_label": (
-        "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
-        "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
-        "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
-        "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
-    ),
-    "plans": {
-        "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
+    "gemini_ai_pro": {
+        "category": "digital",
+        "name": "Gemini Ai Pro",
+        "full_name": "Gemini Ai Pro Subscription",
+        "description": "🤖 Gemini Ai Pro own-mail invite service.",
+        "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
+        "enabled": True,
+        "requires_detail_label": (
+            "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
+            "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
+            "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
+            "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
+        ),
+        "plans": {
+            "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
+        },
     },
-},
     "grammarly_ai": {
         "category": "digital",
         "name": "Grammarly Ai",
@@ -260,37 +258,12 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
     "canva_pro_edu": {
-        "auto_delivery": True,
-        "accounts": [
-            {
-                "plan_key": "edu_1y",
-                "email": "crister272@atomicmail.io",
-                "password": "crister272@",
-                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
-                "used": False,
-            },
-            {
-                "plan_key": "edu_1y",
-                "email": "alam0404@atomicmail.io",
-                "password": "alam0404@",
-                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
-                "used": False,
-            },
-            {
-                "plan_key": "edu_1y",
-                "email": "basta205@atomicmail.io",
-                "password": "basta205@",
-                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
-                "used": False,
-            },
-            {
-                "plan_key": "edu_1y",
-                "email": "fatfs575@atomicmail.io",
-                "password": "fatfs575@",
-                "extra": "🎨 Canva Pro Edu | 1 Year | access via atomicmail.io",
-                "used": False,
-            },
-        ],
+        "auto_delivery": False,  # invite flow only
+        "accounts": [],
+    },
+    "gemini_ai_pro": {
+        "auto_delivery": False,  # invite flow only
+        "accounts": [],
     },
     "grammarly_ai": {
         "auto_delivery": True,
@@ -312,6 +285,8 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
 }
+
+INVITE_ONLY_PRODUCTS = {"canva_pro_edu", "gemini_ai_pro"}
 
 (
     MENU_STATE,
@@ -608,6 +583,9 @@ def get_pending_orders(limit: int = 20) -> List[dict]:
 
 
 def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
+    if product_key in INVITE_ONLY_PRODUCTS:
+        return 999  # invite-only product တွေကို inventory မတွက်တော့ဘူး
+
     conn = db_connect()
     cur = conn.cursor()
 
@@ -948,17 +926,22 @@ def order_summary_text(order: dict) -> str:
 
 def product_caption(product: dict, product_key: str) -> str:
     if product["category"] == "digital":
-        stock = get_digital_stock(product_key)
+        if product_key in INVITE_ONLY_PRODUCTS:
+            stock = "Unlimited"
+        else:
+            stock = get_digital_stock(product_key)
         cheapest = min(v["price"] for v in product["plans"].values())
         price_text = f"From {cheapest} Ks"
         enabled = product.get("enabled", True)
+        is_in_stock = enabled
     else:
         stock = get_game_stock(product_key)
         first_price = next(iter(product["plans"].values()))["price"]
         price_text = f"{first_price} Ks"
         enabled = is_game_enabled(product_key)
+        is_in_stock = stock > 0 and enabled
 
-    status = "🟢 In Stock" if stock > 0 and enabled else "🔴 Out of Stock"
+    status = "🟢 In Stock" if is_in_stock else "🔴 Out of Stock"
 
     return (
         f"{glam_title(product['full_name'])}\n"
@@ -1109,6 +1092,18 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             if not product.get("enabled", True):
                 continue
 
+            if key in INVITE_ONLY_PRODUCTS:
+                cheapest = min(v["price"] for v in product["plans"].values())
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🟢 {product['name']} • {cheapest} Ks",
+                            callback_data=f"product:{key}",
+                        )
+                    ]
+                )
+                continue
+
             total_stock = get_digital_stock(key)
             cheapest = min(v["price"] for v in product["plans"].values())
 
@@ -1172,6 +1167,17 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Disabled",
                             callback_data="out_of_stock",
+                        )
+                    ]
+                )
+                continue
+
+            if product_key in INVITE_ONLY_PRODUCTS:
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"✨ {plan['label']} • {plan['price']} Ks",
+                            callback_data=f"plan:{plan_key}",
                         )
                     ]
                 )
@@ -1284,9 +1290,10 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(buttons)
 
+
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
-        if product_key in ["canva_pro_edu", "gemini_ai_pro"]:
+        if product_key in INVITE_ONLY_PRODUCTS:
             return InlineKeyboardMarkup(
                 [
                     [
@@ -1315,7 +1322,6 @@ def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -
             ]
         ]
     )
-
 
 
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
@@ -1353,6 +1359,9 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
             return
 
         if product["category"] == "digital":
+            if product_key in INVITE_ONLY_PRODUCTS:
+                return
+
             current_stock = get_digital_stock(product_key, plan_key)
             if current_stock <= LOW_STOCK_THRESHOLD:
                 plan_label = "All Plans"
@@ -1551,7 +1560,11 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         plan = product["plans"][plan_key]
 
         if product["category"] == "digital":
-            if not product.get("enabled", True) or get_digital_stock(product_key, plan_key) <= 0:
+            if not product.get("enabled", True):
+                await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
+                return PLAN_STATE
+
+            if product_key not in INVITE_ONLY_PRODUCTS and get_digital_stock(product_key, plan_key) <= 0:
                 await query.answer("🔴 ဒီ plan က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
         else:
@@ -1579,7 +1592,13 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = update.message.text.strip()
     if not text:
-        await update.message.reply_text("❌ Detail / note ပို့pေးပါ။", reply_markup=detail_keyboard())
+        await update.message.reply_text("❌ Detail / note ပို့ပေးပါ။", reply_markup=detail_keyboard())
+        return DETAIL_STATE
+
+    product_key = context.user_data.get("product_key")
+
+    if product_key == "gemini_ai_pro" and text.lower() == "no":
+        await update.message.reply_text("❌ Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။")
         return DETAIL_STATE
 
     context.user_data["detail"] = text
@@ -1597,11 +1616,16 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     await query.answer()
     data = query.data
-if data == "detail_skip":
+
+    if data == "detail_skip":
         product_key = context.user_data.get("product_key")
 
         if product_key == "gemini_ai_pro":
             await query.answer("Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
+            return DETAIL_STATE
+
+        if product_key == "canva_pro_edu":
+            await query.answer("Canva အတွက် mail ပို့ပေးပါ။", show_alert=True)
             return DETAIL_STATE
 
         context.user_data["detail"] = "No"
@@ -1613,7 +1637,6 @@ if data == "detail_skip":
             reply_markup=payment_keyboard(),
         )
         return PAYMENT_STATE
-    
 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
@@ -1872,12 +1895,12 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if action == "approve":
-        if order["status"] != "pending_payment_review":
+        if order["status"] not in ["pending_payment_review", "waiting_manual_delivery", "code_requested"]:
             await query.answer("Already processed!", show_alert=True)
             return
 
-        if order["product_key"] in ["canva_pro_edu", "gemini_ai_pro"]:
-            product_label = "Canva Pro" if order["product_key"] == "canva_pro_edu" else "Gemini Ai Pro"
+        if order["product_key"] in INVITE_ONLY_PRODUCTS:
+            product_label = "Canva Pro Edu" if order["product_key"] == "canva_pro_edu" else "Gemini Ai Pro"
 
             order_update_status(order_id, "approved", "Invite completed")
             log_action(order_id, query.from_user.id, "invite_approved")
@@ -1942,7 +1965,8 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
-if action == "auto":
+
+    if action == "auto":
         if order["status"] != "pending_payment_review":
             await query.answer("Already processed!", show_alert=True)
             return
@@ -1950,8 +1974,8 @@ if action == "auto":
         if order["category"] != "digital":
             return
 
-        # Invite-only flow for Canva / Gemini
-        if order["product_key"] in ["canva_pro_edu", "gemini_ai_pro"]:
+        # Invite-only products (Canva / Gemini)
+        if order["product_key"] in INVITE_ONLY_PRODUCTS:
             user_mail = (order.get("detail") or "").strip()
 
             if not user_mail or user_mail.lower() == "no":
@@ -1989,44 +2013,6 @@ if action == "auto":
             return
 
         product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
-    
-
-            order_update_status(order_id, "delivered", "Auto delivered")
-            log_action(order_id, query.from_user.id, "auto_delivered")
-            await disable_query_buttons(query)
-
-            delivery_text = (
-                f"{glam_title('ACCOUNT READY')}\n"
-                f"✅ <b>Your {escape(order.get('product_name', '-'))} order is ready!</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-                f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
-            )
-
-            if account["extra"]:
-                delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
-
-            delivery_text += (
-                "\n🔐 Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။\n"
-                f"{glam_footer()}"
-            )
-
-            await context.bot.send_message(
-                chat_id=order["user_id"],
-                text=delivery_text,
-                parse_mode=ParseMode.HTML,
-            )
-
-            await query.message.reply_text(
-                f"{glam_title('AUTO DELIVERED')}\n"
-                f"🆔 <code>{escape(order_id)}</code>\n"
-                f"🛍️ {escape(order.get('product_name', '-'))}\n"
-                f"{glam_footer()}",
-                parse_mode=ParseMode.HTML,
-            )
-
-            await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
-            return
 
         if not bool(product_cfg.get("auto_delivery", False)):
             order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
@@ -2412,7 +2398,10 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lines = [f"{glam_title('STOCK LIST')}"]
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
-            lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_digital_stock(key)}")
+            if key in INVITE_ONLY_PRODUCTS:
+                lines.append(f"💻 <b>{escape(p['name'])}</b> → Invite Flow")
+            else:
+                lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_digital_stock(key)}")
         else:
             lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_game_stock(key)}")
     lines.append(glam_footer())
@@ -2428,6 +2417,8 @@ async def lowstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
+            if key in INVITE_ONLY_PRODUCTS:
+                continue
             total = get_digital_stock(key)
             if total <= LOW_STOCK_THRESHOLD:
                 found = True
@@ -2454,6 +2445,8 @@ async def outofstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
+            if key in INVITE_ONLY_PRODUCTS:
+                continue
             total = get_digital_stock(key)
             if total <= 0:
                 found = True
