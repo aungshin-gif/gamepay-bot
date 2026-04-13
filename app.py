@@ -292,6 +292,25 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "grammarly_ai": {
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "gram_1m",
+                "email": "grammarly1@example.com",
+                "password": "gram12345",
+                "extra": "✅ 2 devices\n✅ Full Warranty\n✅ Projects/Notes are private",
+                "used": False,
+            },
+            {
+                "plan_key": "gram_2m",
+                "email": "grammarly2@example.com",
+                "password": "gram67890",
+                "extra": "✅ 2 devices\n✅ Full Warranty\n✅ Projects/Notes are private",
+                "used": False,
+            },
+        ],
+    },
 }
 
 (
