@@ -164,12 +164,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "🎨 Canva Pro Edu account delivery service.",
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
-"requires_detail_label": (
-    "📧 <b>Canva Mail ပို့ပေးပါ</b>\n\n"
-    "👉 Mail ရှိရင် ထည့်ပေးပါ\n"
-    "👉 မရှိရင် <code>No</code> လို့ပို့ပါ\n\n"
-    "ဥပမာ:\n<code>example@gmail.com</code>\n"
-),
+        "requires_detail_label": (
+            "📧 <b>Canva Mail ပို့ပေးပါ</b>\n\n"
+            "👉 Mail ရှိရင် ထည့်ပေးပါ\n"
+            "👉 မရှိရင် <code>No</code> လို့ပို့ပါ\n\n"
+            "ဥပမာ:\n<code>example@gmail.com</code>"
+        ),
         "plans": {
             "edu_1y": {"label": "1 Year Account", "price": 3200},
         },
@@ -289,6 +289,7 @@ logger = logging.getLogger(__name__)
 # DATABASE
 # =========================================================
 
+
 def db_connect():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -311,61 +312,69 @@ def init_db():
     conn = db_connect()
     cur = conn.cursor()
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS orders (
-        order_id TEXT PRIMARY KEY,
-        user_id INTEGER NOT NULL,
-        username TEXT,
-        full_name TEXT,
-        product_key TEXT NOT NULL,
-        product_name TEXT NOT NULL,
-        plan_key TEXT NOT NULL,
-        plan_label TEXT NOT NULL,
-        category TEXT NOT NULL,
-        price INTEGER NOT NULL,
-        detail TEXT,
-        payment_key TEXT,
-        payment_name TEXT,
-        screenshot_file_id TEXT,
-        status TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        admin_note TEXT DEFAULT ''
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            username TEXT,
+            full_name TEXT,
+            product_key TEXT NOT NULL,
+            product_name TEXT NOT NULL,
+            plan_key TEXT NOT NULL,
+            plan_label TEXT NOT NULL,
+            category TEXT NOT NULL,
+            price INTEGER NOT NULL,
+            detail TEXT,
+            payment_key TEXT,
+            payment_name TEXT,
+            screenshot_file_id TEXT,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            admin_note TEXT DEFAULT ''
+        )
+        """
     )
-    """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS digital_accounts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        product_key TEXT NOT NULL,
-        plan_key TEXT NOT NULL,
-        email TEXT NOT NULL,
-        password TEXT NOT NULL,
-        extra TEXT,
-        used INTEGER NOT NULL DEFAULT 0,
-        order_id TEXT
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS digital_accounts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            product_key TEXT NOT NULL,
+            plan_key TEXT NOT NULL,
+            email TEXT NOT NULL,
+            password TEXT NOT NULL,
+            extra TEXT,
+            used INTEGER NOT NULL DEFAULT 0,
+            order_id TEXT
+        )
+        """
     )
-    """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS audit_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        order_id TEXT,
-        actor_id INTEGER,
-        action TEXT NOT NULL,
-        note TEXT,
-        created_at TEXT NOT NULL
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id TEXT,
+            actor_id INTEGER,
+            action TEXT NOT NULL,
+            note TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
     )
-    """)
 
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS game_products (
-        product_key TEXT PRIMARY KEY,
-        stock INTEGER NOT NULL DEFAULT 0,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        updated_at TEXT NOT NULL
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS game_products (
+            product_key TEXT PRIMARY KEY,
+            stock INTEGER NOT NULL DEFAULT 0,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT NOT NULL
+        )
+        """
     )
-    """)
 
     conn.commit()
     conn.close()
@@ -380,31 +389,37 @@ def sync_inventory_to_db():
 
     for product_key, cfg in DIGITAL_INVENTORY.items():
         for acc in cfg.get("accounts", []):
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT id FROM digital_accounts
                 WHERE product_key = ? AND plan_key = ? AND email = ? AND password = ?
-            """, (
-                product_key,
-                acc["plan_key"],
-                acc["email"],
-                acc["password"],
-            ))
-            exists = cur.fetchone()
-
-            if not exists:
-                cur.execute("""
-                    INSERT INTO digital_accounts (
-                        product_key, plan_key, email, password, extra, used, order_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, (
+                """,
+                (
                     product_key,
                     acc["plan_key"],
                     acc["email"],
                     acc["password"],
-                    acc.get("extra", ""),
-                    1 if acc.get("used", False) else 0,
-                    None,
-                ))
+                ),
+            )
+            exists = cur.fetchone()
+
+            if not exists:
+                cur.execute(
+                    """
+                    INSERT INTO digital_accounts (
+                        product_key, plan_key, email, password, extra, used, order_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        product_key,
+                        acc["plan_key"],
+                        acc["email"],
+                        acc["password"],
+                        acc.get("extra", ""),
+                        1 if acc.get("used", False) else 0,
+                        None,
+                    ),
+                )
 
     conn.commit()
     conn.close()
@@ -422,15 +437,18 @@ def sync_game_products_to_db():
         exists = cur.fetchone()
 
         if not exists:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO game_products (product_key, stock, enabled, updated_at)
                 VALUES (?, ?, ?, ?)
-            """, (
-                product_key,
-                int(product.get("stock", 0)),
-                1 if product.get("enabled", True) else 0,
-                now_str(),
-            ))
+                """,
+                (
+                    product_key,
+                    int(product.get("stock", 0)),
+                    1 if product.get("enabled", True) else 0,
+                    now_str(),
+                ),
+            )
 
     conn.commit()
     conn.close()
@@ -439,10 +457,13 @@ def sync_game_products_to_db():
 def log_action(order_id: Optional[str], actor_id: int, action: str, note: str = ""):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO audit_logs (order_id, actor_id, action, note, created_at)
         VALUES (?, ?, ?, ?, ?)
-    """, (order_id, actor_id, action, note, now_str()))
+        """,
+        (order_id, actor_id, action, note, now_str()),
+    )
     conn.commit()
     conn.close()
 
@@ -450,33 +471,36 @@ def log_action(order_id: Optional[str], actor_id: int, action: str, note: str = 
 def order_insert(data: dict):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO orders (
             order_id, user_id, username, full_name, product_key, product_name,
-            plan_key, plan_label, category, price, detail,
-            payment_key, payment_name, screenshot_file_id,
-            status, created_at, updated_at, admin_note
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        data["order_id"],
-        data["user_id"],
-        data["username"],
-        data["full_name"],
-        data["product_key"],
-        data["product_name"],
-        data["plan_key"],
-        data["plan_label"],
-        data["category"],
-        data["price"],
-        data["detail"],
-        data["payment_key"],
-        data["payment_name"],
-        data["screenshot_file_id"],
-        data["status"],
-        data["created_at"],
-        data["updated_at"],
-        data["admin_note"],
-    ))
+            plan_key, plan_label, category, price, detail, payment_key, payment_name,
+            screenshot_file_id, status, created_at, updated_at, admin_note
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            data["order_id"],
+            data["user_id"],
+            data["username"],
+            data["full_name"],
+            data["product_key"],
+            data["product_name"],
+            data["plan_key"],
+            data["plan_label"],
+            data["category"],
+            data["price"],
+            data["detail"],
+            data["payment_key"],
+            data["payment_name"],
+            data["screenshot_file_id"],
+            data["status"],
+            data["created_at"],
+            data["updated_at"],
+            data["admin_note"],
+        ),
+    )
     conn.commit()
     conn.close()
 
@@ -493,11 +517,14 @@ def order_get(order_id: str) -> Optional[dict]:
 def order_update_status(order_id: str, status: str, admin_note: str = ""):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE orders
         SET status = ?, updated_at = ?, admin_note = ?
         WHERE order_id = ?
-    """, (status, now_str(), admin_note, order_id))
+        """,
+        (status, now_str(), admin_note, order_id),
+    )
     conn.commit()
     conn.close()
 
@@ -505,12 +532,15 @@ def order_update_status(order_id: str, status: str, admin_note: str = ""):
 def get_user_orders(user_id: int, limit: int = 10) -> List[dict]:
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM orders
         WHERE user_id = ?
         ORDER BY created_at DESC
         LIMIT ?
-    """, (user_id, limit))
+        """,
+        (user_id, limit),
+    )
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -519,12 +549,15 @@ def get_user_orders(user_id: int, limit: int = 10) -> List[dict]:
 def get_pending_orders(limit: int = 20) -> List[dict]:
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM orders
         WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')
         ORDER BY created_at DESC
         LIMIT ?
-    """, (limit,))
+        """,
+        (limit,),
+    )
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -535,17 +568,23 @@ def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     cur = conn.cursor()
 
     if plan_key:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT COUNT(*) AS cnt
             FROM digital_accounts
             WHERE product_key = ? AND plan_key = ? AND used = 0
-        """, (product_key, plan_key))
+            """,
+            (product_key, plan_key),
+        )
     else:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT COUNT(*) AS cnt
             FROM digital_accounts
             WHERE product_key = ? AND used = 0
-        """, (product_key,))
+            """,
+            (product_key,),
+        )
 
     count = cur.fetchone()["cnt"]
     conn.close()
@@ -558,24 +597,30 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
 
     try:
         cur.execute("BEGIN IMMEDIATE")
-        cur.execute("""
+        cur.execute(
+            """
             SELECT id, email, password, extra
             FROM digital_accounts
             WHERE product_key = ? AND plan_key = ? AND used = 0
             ORDER BY id ASC
             LIMIT 1
-        """, (product_key, plan_key))
+            """,
+            (product_key, plan_key),
+        )
         row = cur.fetchone()
 
         if not row:
             conn.rollback()
             return None
 
-        cur.execute("""
+        cur.execute(
+            """
             UPDATE digital_accounts
             SET used = 1, order_id = ?
             WHERE id = ? AND used = 0
-        """, (order_id, row["id"]))
+            """,
+            (order_id, row["id"]),
+        )
 
         if cur.rowcount != 1:
             conn.rollback()
@@ -598,10 +643,13 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
 def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         INSERT INTO digital_accounts (product_key, plan_key, email, password, extra, used, order_id)
         VALUES (?, ?, ?, ?, ?, 0, NULL)
-    """, (product_key, plan_key, email, password, extra))
+        """,
+        (product_key, plan_key, email, password, extra),
+    )
     conn.commit()
     conn.close()
 
@@ -618,11 +666,14 @@ def get_game_stock(product_key: str) -> int:
 def set_game_stock(product_key: str, stock: int):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE game_products
         SET stock = ?, updated_at = ?
         WHERE product_key = ?
-    """, (stock, now_str(), product_key))
+        """,
+        (stock, now_str(), product_key),
+    )
     conn.commit()
     conn.close()
 
@@ -632,15 +683,20 @@ def adjust_game_stock(product_key: str, delta: int) -> int:
     cur = conn.cursor()
     cur.execute("SELECT stock FROM game_products WHERE product_key = ?", (product_key,))
     row = cur.fetchone()
+
     if not row:
         conn.close()
         return 0
+
     new_stock = max(0, int(row["stock"]) + delta)
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE game_products
         SET stock = ?, updated_at = ?
         WHERE product_key = ?
-    """, (new_stock, now_str(), product_key))
+        """,
+        (new_stock, now_str(), product_key),
+    )
     conn.commit()
     conn.close()
     return new_stock
@@ -658,11 +714,14 @@ def is_game_enabled(product_key: str) -> bool:
 def set_game_enabled(product_key: str, enabled: bool):
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         UPDATE game_products
         SET enabled = ?, updated_at = ?
         WHERE product_key = ?
-    """, (1 if enabled else 0, now_str(), product_key))
+        """,
+        (1 if enabled else 0, now_str(), product_key),
+    )
     conn.commit()
     conn.close()
 
@@ -678,22 +737,32 @@ def find_recent_duplicate_order(
     cur = conn.cursor()
     since = (now_dt() - timedelta(minutes=DUPLICATE_ORDER_WINDOW_MINUTES)).strftime("%Y-%m-%d %H:%M:%S")
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM orders
         WHERE user_id = ?
           AND created_at >= ?
           AND (
-              screenshot_file_id = ?
-              OR (
-                  product_key = ?
-                  AND plan_key = ?
-                  AND price = ?
-                  AND status IN ('pending_payment_review', 'waiting_manual_delivery', 'approved', 'delivered', 'code_requested', 'code_sent')
-              )
+                screenshot_file_id = ?
+                OR (
+                    product_key = ?
+                    AND plan_key = ?
+                    AND price = ?
+                    AND status IN (
+                        'pending_payment_review',
+                        'waiting_manual_delivery',
+                        'approved',
+                        'delivered',
+                        'code_requested',
+                        'code_sent'
+                    )
+                )
           )
         ORDER BY created_at DESC
         LIMIT 1
-    """, (user_id, since, screenshot_file_id, product_key, plan_key, price))
+        """,
+        (user_id, since, screenshot_file_id, product_key, plan_key, price),
+    )
 
     row = cur.fetchone()
     conn.close()
@@ -707,32 +776,40 @@ def get_stats_summary() -> dict:
     cur.execute("SELECT COUNT(*) AS total_orders FROM orders")
     total_orders = cur.fetchone()["total_orders"]
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(*) AS delivered_orders
         FROM orders
         WHERE status IN ('approved', 'delivered', 'code_sent')
-    """)
+        """
+    )
     delivered_orders = cur.fetchone()["delivered_orders"]
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(*) AS pending_orders
         FROM orders
         WHERE status IN ('pending_payment_review', 'waiting_manual_delivery', 'code_requested')
-    """)
+        """
+    )
     pending_orders = cur.fetchone()["pending_orders"]
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COUNT(*) AS rejected_orders
         FROM orders
         WHERE status = 'rejected'
-    """)
+        """
+    )
     rejected_orders = cur.fetchone()["rejected_orders"]
 
-    cur.execute("""
+    cur.execute(
+        """
         SELECT COALESCE(SUM(price), 0) AS total_sales
         FROM orders
         WHERE status IN ('approved', 'delivered', 'code_sent')
-    """)
+        """
+    )
     total_sales = cur.fetchone()["total_sales"]
 
     conn.close()
@@ -749,14 +826,16 @@ def get_stats_summary() -> dict:
 def get_sales_between(start_str: str, end_str: str) -> dict:
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
-        SELECT COUNT(*) AS total_orders,
-               COALESCE(SUM(price), 0) AS total_sales
+    cur.execute(
+        """
+        SELECT COUNT(*) AS total_orders, COALESCE(SUM(price), 0) AS total_sales
         FROM orders
         WHERE status IN ('approved', 'delivered', 'code_sent')
           AND created_at >= ?
           AND created_at <= ?
-    """, (start_str, end_str))
+        """,
+        (start_str, end_str),
+    )
     row = cur.fetchone()
     conn.close()
     return {
@@ -768,19 +847,24 @@ def get_sales_between(start_str: str, end_str: str) -> dict:
 def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM audit_logs
         WHERE order_id = ?
         ORDER BY created_at DESC
         LIMIT ?
-    """, (order_id, limit))
+        """,
+        (order_id, limit),
+    )
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
+
 # =========================================================
 # UI HELPERS
 # =========================================================
+
 
 def glam_title(title: str) -> str:
     return f"╭━❰ <b>{escape(title)}</b> ❱━╮"
@@ -893,8 +977,7 @@ def products_text(category_key: str) -> str:
 
 
 def plan_text(product_key: str) -> str:
-    product = PRODUCTS[product_key]
-    return product_caption(product, product_key) + "\n\n📋 <b>Please choose a plan</b>"
+    return product_caption(PRODUCTS[product_key], product_key) + "\n\n📋 <b>Please choose a plan</b>"
 
 
 def detail_text(product_key: str) -> str:
@@ -933,7 +1016,7 @@ async def disable_query_buttons(query):
 async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
     product = PRODUCTS[product_key]
     caption = plan_text(product_key)
-    photo = product.get("photo")
+    photo = product.get("photo", "")
 
     try:
         if photo and (photo.startswith("http://") or photo.startswith("https://")):
@@ -948,23 +1031,27 @@ async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
 
 
 def main_menu_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🛍️ Shop Now", callback_data="menu_shop")],
-        [InlineKeyboardButton("📢 Channel ဝင်ရန်", url=CHANNEL_URL)],
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
-            InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
-        ],
-        [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
-    ])
+            [InlineKeyboardButton("🛍️ Shop Now", callback_data="menu_shop")],
+            [InlineKeyboardButton("📢 Channel ဝင်ရန်", url=CHANNEL_URL)],
+            [
+                InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
+                InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
+            ],
+            [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
+        ]
+    )
 
 
 def category_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
-        [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
+            [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
+        ]
+    )
 
 
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
@@ -977,41 +1064,53 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
         if category_key == "digital":
             if not product.get("enabled", True):
                 continue
+
             total_stock = get_digital_stock(key)
             cheapest = min(v["price"] for v in product["plans"].values())
+
             if total_stock > 0:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🟢 {product['name']} • From {cheapest} Ks",
-                        callback_data=f"product:{key}",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🟢 {product['name']} • From {cheapest} Ks",
+                            callback_data=f"product:{key}",
+                        )
+                    ]
+                )
             else:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {product['name']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {product['name']} • Out of Stock",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
         else:
             if not is_game_enabled(key):
                 continue
+
             stock = get_game_stock(key)
             default_price = next(iter(product["plans"].values()))["price"]
+
             if stock > 0:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🟢 {product['name']} • {default_price} Ks",
-                        callback_data=f"product:{key}",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🟢 {product['name']} • {default_price} Ks",
+                            callback_data=f"product:{key}",
+                        )
+                    ]
+                )
             else:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {product['name']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {product['name']} • Out of Stock",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
 
     rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
@@ -1024,148 +1123,170 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     for plan_key, plan in product["plans"].items():
         if product["category"] == "digital":
             if not product.get("enabled", True):
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Disabled",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {plan['label']} • Disabled",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
                 continue
 
             stock = get_digital_stock(product_key, plan_key)
             if stock > 0:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"✨ {plan['label']} • {plan['price']} Ks",
-                        callback_data=f"plan:{plan_key}",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"✨ {plan['label']} • {plan['price']} Ks",
+                            callback_data=f"plan:{plan_key}",
+                        )
+                    ]
+                )
             else:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {plan['label']} • Out of Stock",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
         else:
             if not is_game_enabled(product_key):
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Disabled",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {plan['label']} • Disabled",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
                 continue
 
             stock = get_game_stock(product_key)
             if stock > 0:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"✨ {plan['label']} • {plan['price']} Ks",
-                        callback_data=f"plan:{plan_key}",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"✨ {plan['label']} • {plan['price']} Ks",
+                            callback_data=f"plan:{plan_key}",
+                        )
+                    ]
+                )
             else:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+                rows.append(
+                    [
+                        InlineKeyboardButton(
+                            f"🔴 {plan['label']} • Out of Stock",
+                            callback_data="out_of_stock",
+                        )
+                    ]
+                )
 
     rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
     return InlineKeyboardMarkup(rows)
 
 
 def detail_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("⏭️ Skip / No Note", callback_data="detail_skip")],
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("⬅️ Back to Plans", callback_data="detail_back_plan"),
-            InlineKeyboardButton("❌ Cancel", callback_data="detail_cancel"),
-        ],
-    ])
+            [InlineKeyboardButton("⏭️ Skip / No Note", callback_data="detail_skip")],
+            [
+                InlineKeyboardButton("⬅️ Back to Plans", callback_data="detail_back_plan"),
+                InlineKeyboardButton("❌ Cancel", callback_data="detail_cancel"),
+            ],
+        ]
+    )
 
 
 def payment_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💙 KPay", callback_data="pay:kpay")],
-        [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
-        [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
-        [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("💙 KPay", callback_data="pay:kpay")],
+            [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
+            [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
+            [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
+            [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
+        ]
+    )
 
 
 def payment_back_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("⬅️ Back to Payment", callback_data="back_payment_methods")],
-        [InlineKeyboardButton("⬅️ Back to Plans", callback_data="back_plan")],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("⬅️ Back to Payment", callback_data="back_payment_methods")],
+            [InlineKeyboardButton("⬅️ Back to Plans", callback_data="back_plan")],
+        ]
+    )
 
 
 def simple_back_main_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
-    ])
+    return InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="back_main")]])
 
 
 def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     buttons = []
     for o in rows:
-        buttons.append([
-            InlineKeyboardButton(
-                f"{o['plan_label']} | {human_status(o['status'])}",
-                callback_data=f"track:{o['order_id']}"
-            )
-        ])
-    buttons.append([
-        InlineKeyboardButton("🔄 Refresh", callback_data="menu_myorders")
-    ])
-    buttons.append([
-        InlineKeyboardButton("⬅️ Back", callback_data="back_main")
-    ])
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    f"{o['plan_label']} | {human_status(o['status'])}",
+                    callback_data=f"track:{o['order_id']}",
+                )
+            ]
+        )
+    buttons.append([InlineKeyboardButton("🔄 Refresh", callback_data="menu_myorders")])
+    buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(buttons)
 
 
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
         if product_key == "canva_pro_edu":
-            return InlineKeyboardMarkup([
+            return InlineKeyboardMarkup(
                 [
-                    InlineKeyboardButton("📧 Invite Check", callback_data=f"auto:{order_id}"),
-                    InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
-                ],
+                    [
+                        InlineKeyboardButton("📧 Invite Check", callback_data=f"auto:{order_id}"),
+                        InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
+                    ],
+                    [
+                        InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
+                    ],
+                    [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
+                ]
+            )
+
+        return InlineKeyboardMarkup(
+            [
                 [
+                    InlineKeyboardButton("⚡ Auto Deliver", callback_data=f"auto:{order_id}"),
                     InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
                 ],
                 [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
-            ])
+            ]
+        )
 
-        return InlineKeyboardMarkup([
-            [
-                InlineKeyboardButton("⚡ Auto Deliver", callback_data=f"auto:{order_id}"),
-                InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
-            ],
-            [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
-        ])
-
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
-            InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
+            [
+                InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
+                InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
+            ]
         ]
-    ])
+    )
 
 
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("💸 ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
-        [InlineKeyboardButton("🖼️ Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
-        [InlineKeyboardButton("🚫 Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
-        [InlineKeyboardButton("♻️ Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
-        [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other")],
-    ])
+    return InlineKeyboardMarkup(
+        [
+            [InlineKeyboardButton("💸 ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
+            [InlineKeyboardButton("🖼️ Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
+            [InlineKeyboardButton("🚫 Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
+            [InlineKeyboardButton("♻️ Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
+            [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other")],
+        ]
+    )
 
 
 async def send_optional_sticker(message_obj, sticker_id: str):
@@ -1224,9 +1345,11 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
     except Exception as e:
         logger.warning("Low stock alert failed: %s", e)
 
+
 # =========================================================
 # CUSTOMER FLOW
 # =========================================================
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
@@ -1246,11 +1369,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     if data == "menu_shop":
-        await safe_edit_message(
-            query,
-            category_text(),
-            reply_markup=category_keyboard(),
-        )
+        await safe_edit_message(query, category_text(), reply_markup=category_keyboard())
         return CATEGORY_STATE
 
     if data == "menu_myorders":
@@ -1278,11 +1397,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "menu_restart":
         context.user_data.clear()
-        await safe_edit_message(
-            query,
-            welcome_text(),
-            reply_markup=main_menu_keyboard(),
-        )
+        await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
         return MENU_STATE
 
     return MENU_STATE
@@ -1303,11 +1418,7 @@ async def track_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
         await query.answer("Not allowed", show_alert=True)
         return MENU_STATE
 
-    await safe_edit_message(
-        query,
-        order_summary_text(order),
-        reply_markup=simple_back_main_keyboard(),
-    )
+    await safe_edit_message(query, order_summary_text(order), reply_markup=simple_back_main_keyboard())
     return MENU_STATE
 
 
@@ -1318,11 +1429,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "back_main":
         context.user_data.clear()
-        await safe_edit_message(
-            query,
-            welcome_text(),
-            reply_markup=main_menu_keyboard(),
-        )
+        await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
         return MENU_STATE
 
     if data.startswith("cat:"):
@@ -1344,11 +1451,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     if data == "back_categories":
-        await safe_edit_message(
-            query,
-            category_text(),
-            reply_markup=category_keyboard(),
-        )
+        await safe_edit_message(query, category_text(), reply_markup=category_keyboard())
         return CATEGORY_STATE
 
     if data == "out_of_stock":
@@ -1366,11 +1469,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        await send_or_edit_product_card(
-            query,
-            product_key,
-            reply_markup=plans_keyboard(product_key),
-        )
+        await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     return PRODUCT_STATE
@@ -1439,7 +1538,7 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = update.message.text.strip()
     if not text:
-        await update.message.reply_text("❌ Detail / note ပို့ပေးပါ။", reply_markup=detail_keyboard())
+        await update.message.reply_text("❌ Detail / note ပို့pေးပါ။", reply_markup=detail_keyboard())
         return DETAIL_STATE
 
     context.user_data["detail"] = text
@@ -1476,11 +1575,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
             return MENU_STATE
 
-        await send_or_edit_product_card(
-            query,
-            product_key,
-            reply_markup=plans_keyboard(product_key),
-        )
+        await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     if data == "detail_cancel":
@@ -1508,11 +1603,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
             return ConversationHandler.END
 
-        await send_or_edit_product_card(
-            query,
-            product_key,
-            reply_markup=plans_keyboard(product_key),
-        )
+        await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     if data == "back_payment_methods":
@@ -1559,7 +1650,17 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
         return SCREENSHOT_STATE
 
-    required_keys = ["product_key", "product_name", "plan_key", "plan_label", "category", "price", "payment_key", "payment_name"]
+    required_keys = [
+        "product_key",
+        "product_name",
+        "plan_key",
+        "plan_label",
+        "category",
+        "price",
+        "payment_key",
+        "payment_name",
+    ]
+
     if any(k not in context.user_data for k in required_keys):
         await update.message.reply_text("❌ Session expired. /start နဲ့ပြန်စပါ။")
         context.user_data.clear()
@@ -1575,6 +1676,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         price=int(context.user_data["price"]),
         screenshot_file_id=photo_file_id,
     )
+
     if duplicate:
         await update.message.reply_text(
             f"{glam_title('DUPLICATE ORDER DETECTED')}\n"
@@ -1622,13 +1724,13 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
-   await context.bot.send_photo(
-    chat_id=ADMIN_ID,
-    photo=photo_file_id,
-    caption=admin_caption,
-    parse_mode=ParseMode.HTML,
-    reply_markup=admin_action_keyboard(order_id, data["category"], data["product_key"]),
-   ) 
+    await context.bot.send_photo(
+        chat_id=ADMIN_ID,
+        photo=photo_file_id,
+        caption=admin_caption,
+        parse_mode=ParseMode.HTML,
+        reply_markup=admin_action_keyboard(order_id, data["category"], data["product_key"]),
+    )
 
     await send_optional_bot_sticker(context.bot, user.id, SUCCESS_STICKER_ID)
 
@@ -1645,9 +1747,12 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data.clear()
     return MENU_STATE
 
+
 # =========================================================
 # ADMIN FLOW
 # =========================================================
+
+
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1724,7 +1829,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("Already processed!", show_alert=True)
             return
 
-        # Canva special approve after invite done
         if order["product_key"] == "canva_pro_edu":
             order_update_status(order_id, "approved", "Canva invite completed")
             log_action(order_id, query.from_user.id, "canva_approved")
@@ -1800,7 +1904,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
 
-        # Canva special flow
         if order["product_key"] == "canva_pro_edu":
             user_mail = (order.get("detail") or "").strip()
 
@@ -1829,7 +1932,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 )
                 return
 
-            # user said No -> fallback normal auto/manual
             account = reserve_account(order["product_key"], order["plan_key"], order_id)
             if not account:
                 order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
@@ -1982,6 +2084,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # COMMANDS
 # =========================================================
 
+
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
         return
@@ -1993,6 +2096,7 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     _, order_id, delivery_text = parts
     order = order_get(order_id)
+
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
@@ -2012,6 +2116,7 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ),
         parse_mode=ParseMode.HTML,
     )
+
     order_update_status(order_id, "delivered", "Manually delivered")
     log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text("✅ Delivered successfully.")
@@ -2028,6 +2133,7 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order_id = context.args[0]
     code_value = " ".join(context.args[1:])
     order = order_get(order_id)
+
     if not order:
         await update.message.reply_text("❌ Order not found.")
         return
@@ -2043,6 +2149,7 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ),
         parse_mode=ParseMode.HTML,
     )
+
     order_update_status(order_id, "code_sent", "Admin sent login code")
     log_action(order_id, update.effective_user.id, "code_sent", code_value)
     await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
@@ -2060,13 +2167,8 @@ async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_T
 
     conn = db_connect()
     cur = conn.cursor()
-
-    cur.execute(
-        "DELETE FROM digital_accounts WHERE email = ? AND used = 0",
-        (email,),
-    )
+    cur.execute("DELETE FROM digital_accounts WHERE email = ? AND used = 0", (email,))
     deleted = cur.rowcount
-
     conn.commit()
     conn.close()
 
@@ -2378,6 +2480,7 @@ async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     product_key, plan_key, email = parts[0], parts[1], parts[2]
     password = " ".join(parts[3:])
+
     add_digital_account(product_key, plan_key, email, password, extra)
     log_action(None, update.effective_user.id, "add_account", f"{product_key}/{plan_key}/{email}")
     await update.message.reply_text("✅ Digital account added.")
@@ -2386,6 +2489,7 @@ async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     if len(context.args) != 1:
         await update.message.reply_text("Usage:\n/disable_game PRODUCT_KEY")
         return
@@ -2403,6 +2507,7 @@ async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYP
 async def enable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
+
     if len(context.args) != 1:
         await update.message.reply_text("Usage:\n/enable_game PRODUCT_KEY")
         return
@@ -2467,21 +2572,26 @@ async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def customer_code_request_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
+
     if update.effective_user.id == ADMIN_ID:
         return
+
     if update.message.text.strip().lower() != "code":
         return
 
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT * FROM orders
         WHERE user_id = ?
           AND category = 'digital'
           AND status IN ('delivered', 'code_requested', 'code_sent')
         ORDER BY created_at DESC
         LIMIT 1
-    """, (update.effective_user.id,))
+        """,
+        (update.effective_user.id,),
+    )
     row = cur.fetchone()
     conn.close()
 
@@ -2492,6 +2602,7 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     order = dict(row)
     order_update_status(order["order_id"], "code_requested", "Customer requested login code")
     log_action(order["order_id"], update.effective_user.id, "customer_code_request")
+
     await update.message.reply_text("⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။")
     await context.bot.send_message(
         chat_id=ADMIN_ID,
@@ -2516,9 +2627,11 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     return ConversationHandler.END
 
+
 # =========================================================
 # MAIN
 # =========================================================
+
 
 def main():
     if not BOT_TOKEN:
@@ -2548,14 +2661,14 @@ def main():
             ],
             DETAIL_STATE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
-                CallbackQueryHandler(detail_callback_handler, pattern=r"^(detail_skip$|detail_back_plan$|detail_cancel$)")
+                CallbackQueryHandler(detail_callback_handler, pattern=r"^(detail_skip$|detail_back_plan$|detail_cancel$)"),
             ],
             PAYMENT_STATE: [
                 CallbackQueryHandler(payment_handler, pattern=r"^(pay:|back_plan$|back_payment_methods$)")
             ],
             SCREENSHOT_STATE: [
                 MessageHandler(filters.PHOTO, screenshot_handler),
-                CallbackQueryHandler(payment_handler, pattern=r"^(back_plan$|back_payment_methods$)")
+                CallbackQueryHandler(payment_handler, pattern=r"^(back_plan$|back_payment_methods$)"),
             ],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
@@ -2567,7 +2680,7 @@ def main():
     application.add_handler(
         CallbackQueryHandler(
             admin_action,
-            pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)"
+            pattern=r"^(approve:|auto:|manual:|rejectmenu:|reject:)",
         )
     )
 
@@ -2603,4 +2716,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
