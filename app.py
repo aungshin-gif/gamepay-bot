@@ -117,6 +117,24 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 12000},
         },
     },
+    "express_vpn": {
+    "category": "digital",
+    "name": "Express VPN",
+    "full_name": "Express VPN Subscription",
+    "description": "🌐 Express VPN email & password delivery service.",
+    "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+    ),
+    "plans": {
+        "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1200},
+        "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
+        "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
+        "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
+    },
+},
     "spotify_premium": {
         "category": "digital",
         "name": "Spotify Premium",
@@ -226,6 +244,39 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "express_vpn": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "mobile_share_1m",
+            "email": "expressmobile1@example.com",
+            "password": "pass1234",
+            "extra": "📱 Mobile Only",
+            "used": False,
+        },
+        {
+            "plan_key": "pc_share_1m",
+            "email": "expresspc1@example.com",
+            "password": "pass1234",
+            "extra": "💻 PC / Windows Only",
+            "used": False,
+        },
+        {
+            "plan_key": "mac_linux_share_1m",
+            "email": "expressmac1@example.com",
+            "password": "pass1234",
+            "extra": "🖥️ Mac / Linux Only",
+            "used": False,
+        },
+        {
+            "plan_key": "private_1m",
+            "email": "expressprivate1@example.com",
+            "password": "pass1234",
+            "extra": "✅ Private Account\n✅ All Devices Support",
+            "used": False,
+        },
+    ],
+},
     "spotify_premium": {
         "auto_delivery": True,
         "accounts": [
