@@ -1128,8 +1128,20 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def admin_action_keyboard(order_id: str, category: str) -> InlineKeyboardMarkup:
+def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
+        if product_key == "canva_pro_edu":
+            return InlineKeyboardMarkup([
+                [
+                    InlineKeyboardButton("📧 Invite Check", callback_data=f"auto:{order_id}"),
+                    InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
+                ],
+                [
+                    InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
+                ],
+                [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
+            ])
+
         return InlineKeyboardMarkup([
             [
                 InlineKeyboardButton("⚡ Auto Deliver", callback_data=f"auto:{order_id}"),
@@ -1610,13 +1622,13 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
-    await context.bot.send_photo(
-        chat_id=ADMIN_ID,
-        photo=photo_file_id,
-        caption=admin_caption,
-        parse_mode=ParseMode.HTML,
-        reply_markup=admin_action_keyboard(order_id, data["category"]),
-    )
+   await context.bot.send_photo(
+    chat_id=ADMIN_ID,
+    photo=photo_file_id,
+    caption=admin_caption,
+    parse_mode=ParseMode.HTML,
+    reply_markup=admin_action_keyboard(order_id, data["category"], data["product_key"]),
+   ) 
 
     await send_optional_bot_sticker(context.bot, user.id, SUCCESS_STICKER_ID)
 
@@ -1636,7 +1648,6 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # =========================================================
 # ADMIN FLOW
 # =========================================================
-
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -1708,99 +1719,193 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not order:
         return
 
-if action == "approve":
-    if order["status"] != "pending_payment_review":
-        await query.answer("Already processed!", show_alert=True)
-        return
+    if action == "approve":
+        if order["status"] != "pending_payment_review":
+            await query.answer("Already processed!", show_alert=True)
+            return
 
-    # Canva special approve
-    if order["product_key"] == "canva_pro_edu":
-        order_update_status(order_id, "approved", "Canva invite completed")
-        log_action(order_id, query.from_user.id, "canva_approved")
+        # Canva special approve after invite done
+        if order["product_key"] == "canva_pro_edu":
+            order_update_status(order_id, "approved", "Canva invite completed")
+            log_action(order_id, query.from_user.id, "canva_approved")
+            await disable_query_buttons(query)
+
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=(
+                    f"{glam_title('CANVA READY')}\n"
+                    f"✅ <b>Your Canva Pro access is ready!</b>\n\n"
+                    f"📧 Invite already sent to your email\n"
+                    f"👉 Mail check ပြုလုပ်ပါ\n"
+                    f"{glam_footer()}"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+
+            await query.message.reply_text(
+                f"{glam_title('CANVA APPROVED')}\n"
+                f"🆔 <code>{escape(order_id)}</code>\n"
+                f"✅ Invite completed\n"
+                f"{glam_footer()}",
+                parse_mode=ParseMode.HTML,
+            )
+            return
+
+        product = PRODUCTS.get(order["product_key"])
+        if not product or order["category"] != "game":
+            return
+
+        current_stock = get_game_stock(order["product_key"])
+        if current_stock <= 0:
+            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
+            return
+
+        new_stock = adjust_game_stock(order["product_key"], -1)
+        order_update_status(order_id, "approved", "Game order approved")
+        log_action(order_id, query.from_user.id, "approved_game")
         await disable_query_buttons(query)
 
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=(
-                f"{glam_title('CANVA READY')}\n"
-                f"✅ <b>Your Canva Pro access is ready!</b>\n\n"
-                f"📧 Invite already sent to your email\n"
-                f"👉 Mail check ပြုလုပ်ပါ\n"
+                f"{glam_title('ORDER APPROVED')}\n"
+                f"✅ <b>Your order is approved!</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+                f"💖 Thanks for using Gamepay Hub\n"
                 f"{glam_footer()}"
             ),
             parse_mode=ParseMode.HTML,
         )
 
-        await query.message.reply_text("✅ Canva Invite Done")
+        await query.message.reply_text(
+            f"{glam_title('APPROVED')}\n"
+            f"🆔 <code>{escape(order_id)}</code>\n"
+            f"🛍️ {escape(order.get('product_name', '-'))}\n"
+            f"📦 Remaining Stock: {new_stock}\n"
+            f"{glam_footer()}",
+            parse_mode=ParseMode.HTML,
+        )
+
+        await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
 
-    product = PRODUCTS.get(order["product_key"])
-    if not product or order["category"] != "game":
-        return
+    if action == "auto":
+        if order["status"] != "pending_payment_review":
+            await query.answer("Already processed!", show_alert=True)
+            return
 
-    current_stock = get_game_stock(order["product_key"])
-    if current_stock <= 0:
-        await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-        return
+        if order["category"] != "digital":
+            return
 
-    new_stock = adjust_game_stock(order["product_key"], -1)
-    order_update_status(order_id, "approved", "Game order approved")
-    log_action(order_id, query.from_user.id, "approved_game")
-    await disable_query_buttons(query)
+        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
 
-    await context.bot.send_message(
-        chat_id=order["user_id"],
-        text=(
-            f"{glam_title('ORDER APPROVED')}\n"
-            f"✅ <b>Your order is approved!</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
-            f"💖 Thanks for using Gamepay Hub\n"
-            f"{glam_footer()}"
-        ),
-        parse_mode=ParseMode.HTML,
-    )
+        # Canva special flow
+        if order["product_key"] == "canva_pro_edu":
+            user_mail = (order.get("detail") or "").strip()
 
-    await query.message.reply_text(
-        f"{glam_title('APPROVED')}\n"
-        f"🆔 <code>{escape(order_id)}</code>\n"
-        f"🛍️ {escape(order.get('product_name', '-'))}\n"
-        f"📦 Remaining Stock: {new_stock}\n"
-        f"{glam_footer()}",
-        parse_mode=ParseMode.HTML,
-    )
+            if user_mail and user_mail.lower() != "no":
+                await disable_query_buttons(query)
 
-    await maybe_send_low_stock_alert(context.bot, order["product_key"])
-    return
+                await context.bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=(
+                        f"{glam_title('CANVA INVITE REQUIRED')}\n"
+                        f"🆔 <code>{escape(order_id)}</code>\n"
+                        f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
+                        f"👉 Canva Invite ပို့ပြီးရင် original order message က Approve ကိုနှိပ်ပါ\n"
+                        f"{glam_footer()}"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                )
 
-    # Canva special flow
-if order["product_key"] == "canva_pro_edu":
-    user_mail = (order.get("detail") or "").strip()
+                await query.message.reply_text(
+                    f"{glam_title('INVITE REQUIRED')}\n"
+                    f"🆔 <code>{escape(order_id)}</code>\n"
+                    f"📧 User mail received\n"
+                    f"👉 Invite ပို့ပြီးမှ Approve နှိပ်ပါ\n"
+                    f"{glam_footer()}",
+                    parse_mode=ParseMode.HTML,
+                )
+                return
 
-    # User provided mail
-    if user_mail.lower() != "no":
-        order_update_status(order_id, "approved", f"Invite sent to {user_mail}")
-        log_action(order_id, query.from_user.id, "canva_invite_required", user_mail)
-        await disable_query_buttons(query)
+            # user said No -> fallback normal auto/manual
+            account = reserve_account(order["product_key"], order["plan_key"], order_id)
+            if not account:
+                order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
+                log_action(order_id, query.from_user.id, "auto_stock_not_found")
+                await disable_query_buttons(query)
 
-        await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=(
-                f"{glam_title('CANVA INVITE REQUIRED')}\n"
+                await context.bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=(
+                        f"{glam_title('AUTO STOCK NOT FOUND')}\n"
+                        f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
+                        f"{glam_footer()}"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                )
+                return
+
+            order_update_status(order_id, "delivered", "Auto delivered")
+            log_action(order_id, query.from_user.id, "auto_delivered")
+            await disable_query_buttons(query)
+
+            delivery_text = (
+                f"{glam_title('ACCOUNT READY')}\n"
+                f"✅ <b>Your {escape(order.get('product_name', '-'))} order is ready!</b>\n\n"
+                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
+                f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
+            )
+
+            if account["extra"]:
+                delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
+
+            delivery_text += (
+                "\n🔐 Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။\n"
+                f"{glam_footer()}"
+            )
+
+            await context.bot.send_message(
+                chat_id=order["user_id"],
+                text=delivery_text,
+                parse_mode=ParseMode.HTML,
+            )
+
+            await query.message.reply_text(
+                f"{glam_title('AUTO DELIVERED')}\n"
                 f"🆔 <code>{escape(order_id)}</code>\n"
-                f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
-                f"👉 Canva Invite ပို့ပြီးရင် Approve နှိပ်ပါ\n"
-                f"{glam_footer()}"
-            ),
-            parse_mode=ParseMode.HTML,
-        )
-        return
+                f"🛍️ {escape(order.get('product_name', '-'))}\n"
+                f"{glam_footer()}",
+                parse_mode=ParseMode.HTML,
+            )
+
+            await maybe_send_low_stock_alert(context.bot, order["product_key"], order["plan_key"])
+            return
+
+        if not bool(product_cfg.get("auto_delivery", False)):
+            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
+            log_action(order_id, query.from_user.id, "manual_required", "Manual only product")
+            await disable_query_buttons(query)
+
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"{glam_title('MANUAL DELIVERY REQUIRED')}\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
+                    f"{glam_footer()}"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
+            return
 
         account = reserve_account(order["product_key"], order["plan_key"], order_id)
         if not account:
             order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
             log_action(order_id, query.from_user.id, "auto_stock_not_found")
             await disable_query_buttons(query)
+
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
@@ -1871,6 +1976,7 @@ if order["product_key"] == "canva_pro_edu":
             parse_mode=ParseMode.HTML,
         )
         return
+
 
 # =========================================================
 # COMMANDS
