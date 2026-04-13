@@ -114,8 +114,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
             "private_1m": {"label": "Private Plan - 1 Month", "price": 8000},
             "private_3m": {"label": "Private Plan - 3 Months", "price": 25000},
-            "private_6m": {"label": "Private Plan - 6 Months", "price": 45000},
-            "private_12m": {"label": "Private Plan - 12 Months", "price": 90000},
             "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 12000},
         },
     },
@@ -147,14 +145,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "share_1m": {"label": "Share Plan - 1 Month", "price": 8000},
-            "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
-            "share_6m": {"label": "Share Plan - 6 Months", "price": 45000},
-            "share_1y": {"label": "Share Plan - 1 Year", "price": 90000},
             "private_1m": {"label": "Private Plan - 1 Month", "price": 13000},
-            "private_3m": {"label": "Private Plan - 3 Months", "price": 28000},
-            "private_6m": {"label": "Private Plan - 6 Months", "price": 50000},
-            "private_1y": {"label": "Private Plan - 1 Year", "price": 100000},
-            "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 50000},
         },
     },
     "canva_pro_edu": {
