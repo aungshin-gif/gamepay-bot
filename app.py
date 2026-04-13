@@ -164,10 +164,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "description": "🎨 Canva Pro Edu account delivery service.",
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
-        "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-        ),
+"requires_detail_label": (
+    "📧 <b>Canva Mail ပို့ပေးပါ</b>\n\n"
+    "👉 Mail ရှိရင် ထည့်ပေးပါ\n"
+    "👉 မရှိရင် <code>No</code> လို့ပို့ပါ\n\n"
+    "ဥပမာ:\n<code>example@gmail.com</code>\n"
+),
         "plans": {
             "edu_1y": {"label": "1 Year Account", "price": 3200},
         },
@@ -1706,74 +1708,93 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not order:
         return
 
-    if action == "approve":
-        if order["status"] != "pending_payment_review":
-            await query.answer("Already processed!", show_alert=True)
-            return
+if action == "approve":
+    if order["status"] != "pending_payment_review":
+        await query.answer("Already processed!", show_alert=True)
+        return
 
-        product = PRODUCTS.get(order["product_key"])
-        if not product or order["category"] != "game":
-            return
-
-        current_stock = get_game_stock(order["product_key"])
-        if current_stock <= 0:
-            await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
-            return
-
-        new_stock = adjust_game_stock(order["product_key"], -1)
-        order_update_status(order_id, "approved", "Game order approved")
-        log_action(order_id, query.from_user.id, "approved_game")
+    # Canva special approve
+    if order["product_key"] == "canva_pro_edu":
+        order_update_status(order_id, "approved", "Canva invite completed")
+        log_action(order_id, query.from_user.id, "canva_approved")
         await disable_query_buttons(query)
 
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=(
-                f"{glam_title('ORDER APPROVED')}\n"
-                f"✅ <b>Your order is approved!</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
-                f"💖 Thanks for using Gamepay Hub\n"
+                f"{glam_title('CANVA READY')}\n"
+                f"✅ <b>Your Canva Pro access is ready!</b>\n\n"
+                f"📧 Invite already sent to your email\n"
+                f"👉 Mail check ပြုလုပ်ပါ\n"
                 f"{glam_footer()}"
             ),
             parse_mode=ParseMode.HTML,
         )
 
-        await query.message.reply_text(
-            f"{glam_title('APPROVED')}\n"
-            f"🆔 <code>{escape(order_id)}</code>\n"
-            f"🛍️ {escape(order.get('product_name', '-'))}\n"
-            f"📦 Remaining Stock: {new_stock}\n"
-            f"{glam_footer()}",
-            parse_mode=ParseMode.HTML,
-        )
-
-        await maybe_send_low_stock_alert(context.bot, order["product_key"])
+        await query.message.reply_text("✅ Canva Invite Done")
         return
 
-    if action == "auto":
-        if order["status"] != "pending_payment_review":
-            await query.answer("Already processed!", show_alert=True)
-            return
+    product = PRODUCTS.get(order["product_key"])
+    if not product or order["category"] != "game":
+        return
 
-        if order["category"] != "digital":
-            return
+    current_stock = get_game_stock(order["product_key"])
+    if current_stock <= 0:
+        await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
+        return
 
-        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+    new_stock = adjust_game_stock(order["product_key"], -1)
+    order_update_status(order_id, "approved", "Game order approved")
+    log_action(order_id, query.from_user.id, "approved_game")
+    await disable_query_buttons(query)
 
-        if not bool(product_cfg.get("auto_delivery", False)):
-            order_update_status(order_id, "waiting_manual_delivery", "Manual only product")
-            log_action(order_id, query.from_user.id, "manual_required", "Manual only product")
-            await disable_query_buttons(query)
-            await context.bot.send_message(
-                chat_id=ADMIN_ID,
-                text=(
-                    f"{glam_title('MANUAL DELIVERY REQUIRED')}\n"
-                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
-                    f"{glam_footer()}"
-                ),
-                parse_mode=ParseMode.HTML,
-            )
-            return
+    await context.bot.send_message(
+        chat_id=order["user_id"],
+        text=(
+            f"{glam_title('ORDER APPROVED')}\n"
+            f"✅ <b>Your order is approved!</b>\n\n"
+            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+            f"💖 Thanks for using Gamepay Hub\n"
+            f"{glam_footer()}"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
+
+    await query.message.reply_text(
+        f"{glam_title('APPROVED')}\n"
+        f"🆔 <code>{escape(order_id)}</code>\n"
+        f"🛍️ {escape(order.get('product_name', '-'))}\n"
+        f"📦 Remaining Stock: {new_stock}\n"
+        f"{glam_footer()}",
+        parse_mode=ParseMode.HTML,
+    )
+
+    await maybe_send_low_stock_alert(context.bot, order["product_key"])
+    return
+
+    # Canva special flow
+if order["product_key"] == "canva_pro_edu":
+    user_mail = (order.get("detail") or "").strip()
+
+    # User provided mail
+    if user_mail.lower() != "no":
+        order_update_status(order_id, "approved", f"Invite sent to {user_mail}")
+        log_action(order_id, query.from_user.id, "canva_invite_required", user_mail)
+        await disable_query_buttons(query)
+
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=(
+                f"{glam_title('CANVA INVITE REQUIRED')}\n"
+                f"🆔 <code>{escape(order_id)}</code>\n"
+                f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
+                f"👉 Canva Invite ပို့ပြီးရင် Approve နှိပ်ပါ\n"
+                f"{glam_footer()}"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+        return
 
         account = reserve_account(order["product_key"], order["plan_key"], order_id)
         if not account:
