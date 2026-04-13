@@ -165,6 +165,40 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "edu_1y": {"label": "1 Year Account", "price": 3200},
         },
     },
+    
+"gemini_ai_pro": {
+    "category": "digital",
+    "name": "Gemini Ai Pro",
+    "full_name": "Gemini Ai Pro Subscription",
+    "description": "🤖 Gemini Ai Pro own-mail invite service.",
+    "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "requires_detail_label": (
+        "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
+        "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
+        "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
+        "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
+    ),
+    "plans": {
+        "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
+    },
+},
+    "grammarly_ai": {
+        "category": "digital",
+        "name": "Grammarly Ai",
+        "full_name": "Grammarly Ai Subscription",
+        "description": "💳 Grammarly Ai account delivery service.",
+        "photo": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1200&q=80",
+        "enabled": True,
+        "requires_detail_label": (
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+        ),
+        "plans": {
+            "gram_1m": {"label": "1 Month", "price": 9000},
+            "gram_2m": {"label": "2 Months", "price": 13500},
+        },
+    },
 }
 
 DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
@@ -1231,18 +1265,14 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(buttons)
 
-
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
-        if product_key == "canva_pro_edu":
+        if product_key in ["canva_pro_edu", "gemini_ai_pro"]:
             return InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton("📧 Invite Check", callback_data=f"auto:{order_id}"),
                         InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
-                    ],
-                    [
-                        InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
                     ],
                     [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
                 ]
@@ -1266,6 +1296,7 @@ def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -
             ]
         ]
     )
+
 
 
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
@@ -1547,8 +1578,13 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     await query.answer()
     data = query.data
+if data == "detail_skip":
+        product_key = context.user_data.get("product_key")
 
-    if data == "detail_skip":
+        if product_key == "gemini_ai_pro":
+            await query.answer("Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
+            return DETAIL_STATE
+
         context.user_data["detail"] = "No"
         await safe_edit_message(
             query,
@@ -1558,6 +1594,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             reply_markup=payment_keyboard(),
         )
         return PAYMENT_STATE
+    
 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
@@ -1820,16 +1857,18 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("Already processed!", show_alert=True)
             return
 
-        if order["product_key"] == "canva_pro_edu":
-            order_update_status(order_id, "approved", "Canva invite completed")
-            log_action(order_id, query.from_user.id, "canva_approved")
+        if order["product_key"] in ["canva_pro_edu", "gemini_ai_pro"]:
+            product_label = "Canva Pro" if order["product_key"] == "canva_pro_edu" else "Gemini Ai Pro"
+
+            order_update_status(order_id, "approved", "Invite completed")
+            log_action(order_id, query.from_user.id, "invite_approved")
             await disable_query_buttons(query)
 
             await context.bot.send_message(
                 chat_id=order["user_id"],
                 text=(
-                    f"{glam_title('CANVA READY')}\n"
-                    f"✅ <b>Your Canva Pro access is ready!</b>\n\n"
+                    f"{glam_title('INVITE READY')}\n"
+                    f"✅ <b>Your {escape(product_label)} access is ready!</b>\n\n"
                     f"📧 Invite already sent to your email\n"
                     f"👉 Mail check ပြုလုပ်ပါ\n"
                     f"{glam_footer()}"
@@ -1838,7 +1877,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
             await query.message.reply_text(
-                f"{glam_title('CANVA APPROVED')}\n"
+                f"{glam_title('INVITE APPROVED')}\n"
                 f"🆔 <code>{escape(order_id)}</code>\n"
                 f"✅ Invite completed\n"
                 f"{glam_footer()}",
@@ -1884,8 +1923,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await maybe_send_low_stock_alert(context.bot, order["product_key"])
         return
-
-    if action == "auto":
+if action == "auto":
         if order["status"] != "pending_payment_review":
             await query.answer("Already processed!", show_alert=True)
             return
@@ -1893,52 +1931,46 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if order["category"] != "digital":
             return
 
-        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
-
-        if order["product_key"] == "canva_pro_edu":
+        # Invite-only flow for Canva / Gemini
+        if order["product_key"] in ["canva_pro_edu", "gemini_ai_pro"]:
             user_mail = (order.get("detail") or "").strip()
 
-            if user_mail and user_mail.lower() != "no":
-                await disable_query_buttons(query)
-
-                await context.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=(
-                        f"{glam_title('CANVA INVITE REQUIRED')}\n"
-                        f"🆔 <code>{escape(order_id)}</code>\n"
-                        f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
-                        f"👉 Canva Invite ပို့ပြီးရင် original order message က Approve ကိုနှိပ်ပါ\n"
-                        f"{glam_footer()}"
-                    ),
+            if not user_mail or user_mail.lower() == "no":
+                await query.message.reply_text(
+                    "❌ User mail မရှိသေးပါ။ Customer ဆီက mail တောင်းပေးပါ။",
                     parse_mode=ParseMode.HTML,
                 )
+                return
 
-                await query.message.reply_text(
+            await disable_query_buttons(query)
+
+            product_label = "Canva Pro Edu" if order["product_key"] == "canva_pro_edu" else "Gemini Ai Pro"
+
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
                     f"{glam_title('INVITE REQUIRED')}\n"
                     f"🆔 <code>{escape(order_id)}</code>\n"
-                    f"📧 User mail received\n"
-                    f"👉 Invite ပို့ပြီးမှ Approve နှိပ်ပါ\n"
-                    f"{glam_footer()}",
-                    parse_mode=ParseMode.HTML,
-                )
-                return
+                    f"🛍️ <b>Product:</b> {escape(product_label)}\n"
+                    f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
+                    f"👉 Invite ပို့ပြီးရင် original order message က Approve ကိုနှိပ်ပါ\n"
+                    f"{glam_footer()}"
+                ),
+                parse_mode=ParseMode.HTML,
+            )
 
-            account = reserve_account(order["product_key"], order["plan_key"], order_id)
-            if not account:
-                order_update_status(order_id, "waiting_manual_delivery", "Auto stock not found")
-                log_action(order_id, query.from_user.id, "auto_stock_not_found")
-                await disable_query_buttons(query)
+            await query.message.reply_text(
+                f"{glam_title('INVITE REQUIRED')}\n"
+                f"🆔 <code>{escape(order_id)}</code>\n"
+                f"📧 User mail received\n"
+                f"👉 Invite ပို့ပြီးမှ Approve နှိပ်ပါ\n"
+                f"{glam_footer()}",
+                parse_mode=ParseMode.HTML,
+            )
+            return
 
-                await context.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=(
-                        f"{glam_title('AUTO STOCK NOT FOUND')}\n"
-                        f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>\n"
-                        f"{glam_footer()}"
-                    ),
-                    parse_mode=ParseMode.HTML,
-                )
-                return
+        product_cfg = DIGITAL_INVENTORY.get(order["product_key"], {})
+    
 
             order_update_status(order_id, "delivered", "Auto delivered")
             log_action(order_id, query.from_user.id, "auto_delivered")
