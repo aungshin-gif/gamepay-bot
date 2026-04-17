@@ -5,7 +5,11 @@ from html import escape
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -118,23 +122,23 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         },
     },
     "express_vpn": {
-    "category": "digital",
-    "name": "Express VPN",
-    "full_name": "Express VPN Subscription",
-    "description": "🌐 Express VPN email & password delivery service.",
-    "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
-    "enabled": True,
-    "requires_detail_label": (
-        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-    ),
-    "plans": {
-        "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1200},
-        "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
-        "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
-        "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
+        "category": "digital",
+        "name": "Express VPN",
+        "full_name": "Express VPN Subscription",
+        "description": "🌐 Express VPN email & password delivery service.",
+        "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+        "enabled": True,
+        "requires_detail_label": (
+            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+        ),
+        "plans": {
+            "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1200},
+            "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
+            "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
+            "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
+        },
     },
-},
     "spotify_premium": {
         "category": "digital",
         "name": "Spotify Premium",
@@ -245,38 +249,38 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
     "express_vpn": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "mobile_share_1m",
-            "email": "expressmobile1@example.com",
-            "password": "pass1234",
-            "extra": "📱 Mobile Only",
-            "used": False,
-        },
-        {
-            "plan_key": "pc_share_1m",
-            "email": "expresspc1@example.com",
-            "password": "pass1234",
-            "extra": "💻 PC / Windows Only",
-            "used": False,
-        },
-        {
-            "plan_key": "mac_linux_share_1m",
-            "email": "expressmac1@example.com",
-            "password": "pass1234",
-            "extra": "🖥️ Mac / Linux Only",
-            "used": False,
-        },
-        {
-            "plan_key": "private_1m",
-            "email": "expressprivate1@example.com",
-            "password": "pass1234",
-            "extra": "✅ Private Account\n✅ All Devices Support",
-            "used": False,
-        },
-    ],
-},
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "mobile_share_1m",
+                "email": "expressmobile1@example.com",
+                "password": "pass1234",
+                "extra": "📱 Mobile Only",
+                "used": False,
+            },
+            {
+                "plan_key": "pc_share_1m",
+                "email": "expresspc1@example.com",
+                "password": "pass1234",
+                "extra": "💻 PC / Windows Only",
+                "used": False,
+            },
+            {
+                "plan_key": "mac_linux_share_1m",
+                "email": "expressmac1@example.com",
+                "password": "pass1234",
+                "extra": "🖥️ Mac / Linux Only",
+                "used": False,
+            },
+            {
+                "plan_key": "private_1m",
+                "email": "expressprivate1@example.com",
+                "password": "pass1234",
+                "extra": "✅ Private Account\n✅ All Devices Support",
+                "used": False,
+            },
+        ],
+    },
     "spotify_premium": {
         "auto_delivery": True,
         "accounts": [
@@ -309,11 +313,11 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
     "canva_pro_edu": {
-        "auto_delivery": False,  # invite flow only
+        "auto_delivery": False,
         "accounts": [],
     },
     "gemini_ai_pro": {
-        "auto_delivery": False,  # invite flow only
+        "auto_delivery": False,
         "accounts": [],
     },
     "grammarly_ai": {
@@ -358,7 +362,6 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # DATABASE
 # =========================================================
-
 
 def db_connect():
     conn = sqlite3.connect(DB_PATH)
@@ -544,8 +547,9 @@ def order_insert(data: dict):
     cur.execute(
         """
         INSERT INTO orders (
-            order_id, user_id, username, full_name, product_key, product_name,
-            plan_key, plan_label, category, price, detail, payment_key, payment_name,
+            order_id, user_id, username, full_name,
+            product_key, product_name, plan_key, plan_label,
+            category, price, detail, payment_key, payment_name,
             screenshot_file_id, status, created_at, updated_at, admin_note
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -635,7 +639,7 @@ def get_pending_orders(limit: int = 20) -> List[dict]:
 
 def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     if product_key in INVITE_ONLY_PRODUCTS:
-        return 999  # invite-only product တွေကို inventory မတွက်တော့ဘူး
+        return 999
 
     conn = db_connect()
     cur = conn.cursor()
@@ -667,7 +671,6 @@ def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
 def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[dict]:
     conn = db_connect()
     cur = conn.cursor()
-
     try:
         cur.execute("BEGIN IMMEDIATE")
         cur.execute(
@@ -938,13 +941,12 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
 # UI HELPERS
 # =========================================================
 
-
 def glam_title(title: str) -> str:
-    return f"╭━❰ <b>{escape(title)}</b> ❱━╮"
+    return f"╔════『 <b>{escape(title)}</b> 』════╗"
 
 
 def glam_footer() -> str:
-    return "╰━━━━━━━━━━━━━━━━━━╯"
+    return "╚════════════════════╝"
 
 
 def human_status(status: str) -> str:
@@ -979,20 +981,20 @@ def product_caption(product: dict, product_key: str) -> str:
     if product["category"] == "digital":
         if product_key in INVITE_ONLY_PRODUCTS:
             stock = "Unlimited"
+            is_in_stock = True
         else:
             stock = get_digital_stock(product_key)
+            is_in_stock = stock > 0 and product.get("enabled", True)
+
         cheapest = min(v["price"] for v in product["plans"].values())
         price_text = f"From {cheapest} Ks"
-        enabled = product.get("enabled", True)
-        is_in_stock = enabled
     else:
         stock = get_game_stock(product_key)
         first_price = next(iter(product["plans"].values()))["price"]
         price_text = f"{first_price} Ks"
-        enabled = is_game_enabled(product_key)
-        is_in_stock = stock > 0 and enabled
+        is_in_stock = stock > 0 and is_game_enabled(product_key)
 
-    status = "🟢 In Stock" if is_in_stock else "🔴 Out of Stock"
+    status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
 
     return (
         f"{glam_title(product['full_name'])}\n"
@@ -1002,8 +1004,8 @@ def product_caption(product: dict, product_key: str) -> str:
         f"📝 <b>Description</b>\n"
         f"{escape(product['description'])}\n\n"
         f"⚡ Fast Service\n"
-        f"🔒 Safe Payment\n"
-        f"💖 Trusted Shop\n"
+        f"🔐 Secure Payment\n"
+        f"💎 Trusted Market Style\n"
         f"{glam_footer()}"
     )
 
@@ -1025,13 +1027,13 @@ def payment_text(payment_name: str, account: str, amount: int) -> str:
 def welcome_text() -> str:
     return (
         f"{glam_title(SHOP_NAME)}\n"
-        f"🌈 <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
+        f"🌟 <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
         f"🎮 Game Top Up\n"
         f"💻 Digital Products\n"
         f"⚡ Fast Delivery\n"
         f"🔒 Safe Payment\n"
-        f"💎 Premium Service\n\n"
-        f"👇 <b>Please choose from the menu below</b>\n"
+        f"💎 Real Market Experience\n\n"
+        f"👇 <b>Choose from the menu below</b>\n"
         f"{glam_footer()}"
     )
 
@@ -1075,13 +1077,18 @@ async def safe_edit_message(query, text: str, reply_markup=None):
             text=text,
             reply_markup=reply_markup,
             parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
         )
     except Exception:
-        await query.message.reply_text(
-            text=text,
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.HTML,
-        )
+        try:
+            await query.message.reply_text(
+                text=text,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+        except Exception as e:
+            logger.warning("safe_edit_message failed: %s", e)
 
 
 async def disable_query_buttons(query):
@@ -1092,32 +1099,21 @@ async def disable_query_buttons(query):
 
 
 async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
-    product = PRODUCTS[product_key]
+    # Fast UI: text-based view to reduce back-button lag
     caption = plan_text(product_key)
-    photo = product.get("photo", "")
-
-    try:
-        if photo and (photo.startswith("http://") or photo.startswith("https://")):
-            await query.edit_message_media(
-                media=InputMediaPhoto(media=photo, caption=caption, parse_mode=ParseMode.HTML),
-                reply_markup=reply_markup,
-            )
-        else:
-            await safe_edit_message(query, caption, reply_markup=reply_markup)
-    except Exception:
-        await safe_edit_message(query, caption, reply_markup=reply_markup)
+    await safe_edit_message(query, caption, reply_markup=reply_markup)
 
 
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("🛍️ Shop Now", callback_data="menu_shop")],
-            [InlineKeyboardButton("📢 Channel ဝင်ရန်", url=CHANNEL_URL)],
+            [InlineKeyboardButton("🛒 Shop Now", callback_data="menu_shop")],
+            [InlineKeyboardButton("📢 Join Channel", url=CHANNEL_URL)],
             [
                 InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
                 InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
             ],
-            [InlineKeyboardButton("🔄 Restart", callback_data="menu_restart")],
+            [InlineKeyboardButton("🔄 Refresh", callback_data="menu_restart")],
         ]
     )
 
@@ -1143,12 +1139,13 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             if not product.get("enabled", True):
                 continue
 
+            cheapest = min(v["price"] for v in product["plans"].values())
+
             if key in INVITE_ONLY_PRODUCTS:
-                cheapest = min(v["price"] for v in product["plans"].values())
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"🟢 {product['name']} • {cheapest} Ks",
+                            f"✨ {product['name']} • {cheapest} Ks",
                             callback_data=f"product:{key}",
                         )
                     ]
@@ -1156,8 +1153,6 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 continue
 
             total_stock = get_digital_stock(key)
-            cheapest = min(v["price"] for v in product["plans"].values())
-
             if total_stock > 0:
                 rows.append(
                     [
@@ -1337,6 +1332,7 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
                 )
             ]
         )
+
     buttons.append([InlineKeyboardButton("🔄 Refresh", callback_data="menu_myorders")])
     buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(buttons)
@@ -1451,7 +1447,6 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
 # CUSTOMER FLOW
 # =========================================================
 
-
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
@@ -1460,6 +1455,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             welcome_text(),
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
         )
     return MENU_STATE
 
@@ -1476,12 +1472,20 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_myorders":
         rows = get_user_orders(query.from_user.id, limit=10)
         if not rows:
-            await query.answer("📦 သင့် order history မရှိသေးပါ။", show_alert=True)
+            await safe_edit_message(
+                query,
+                f"{glam_title('YOUR ORDERS')}\n"
+                f"📦 သင့် order history မရှိသေးပါ။\n"
+                f"{glam_footer()}",
+                reply_markup=simple_back_main_keyboard(),
+            )
             return MENU_STATE
 
         await safe_edit_message(
             query,
-            f"{glam_title('YOUR ORDERS')}\nSelect order 👇\n{glam_footer()}",
+            f"{glam_title('YOUR ORDERS')}\n"
+            f"📋 ကိုယ်ဝယ်ထားတဲ့ order တွေပြန်ကြည့်နိုင်ပါတယ်\n"
+            f"{glam_footer()}",
             reply_markup=my_orders_keyboard(rows),
         )
         return MENU_STATE
@@ -1494,7 +1498,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"{glam_footer()}",
             reply_markup=simple_back_main_keyboard(),
         )
-        return CATEGORY_STATE
+        return MENU_STATE
 
     if data == "menu_restart":
         context.user_data.clear()
@@ -1631,6 +1635,7 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             detail_text(product_key),
             parse_mode=ParseMode.HTML,
             reply_markup=detail_keyboard(),
+            disable_web_page_preview=True,
         )
         return DETAIL_STATE
 
@@ -1648,11 +1653,12 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     product_key = context.user_data.get("product_key")
 
-    if product_key == "gemini_ai_pro" and text.lower() == "no":
-        await update.message.reply_text("❌ Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။")
+    if product_key in {"gemini_ai_pro", "canva_pro_edu"} and text.lower() == "no":
+        await update.message.reply_text("❌ ဒီ product အတွက် mail မဖြစ်မနေလိုပါတယ်။")
         return DETAIL_STATE
 
     context.user_data["detail"] = text
+
     await update.message.reply_text(
         f"{glam_title('PAYMENT METHOD')}\n"
         f"💳 <b>Please choose a payment method</b>\n"
@@ -1873,7 +1879,6 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # ADMIN FLOW
 # =========================================================
 
-
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -2025,7 +2030,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if order["category"] != "digital":
             return
 
-        # Invite-only products (Canva / Gemini)
         if order["product_key"] in INVITE_ONLY_PRODUCTS:
             user_mail = (order.get("detail") or "").strip()
 
@@ -2162,7 +2166,6 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 # COMMANDS
 # =========================================================
-
 
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
@@ -2634,6 +2637,7 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"📌 {human_status(o['status'])}\n"
             f"━━━━━━━━━━━━━━"
         )
+
     lines.append(glam_footer())
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
@@ -2718,7 +2722,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # MAIN
 # =========================================================
 
-
 def main():
     if not BOT_TOKEN:
         raise ValueError("BOT_TOKEN environment variable is missing.")
@@ -2792,7 +2795,6 @@ def main():
     application.add_handler(CommandHandler("disable_game", disable_game_command))
     application.add_handler(CommandHandler("enable_game", enable_game_command))
     application.add_handler(CommandHandler("code", code_command))
-
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
     )
