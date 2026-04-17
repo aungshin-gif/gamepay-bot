@@ -95,7 +95,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
         ),
         "plans": {
-            "default": {"label": "Blessing", "price": 14800},
+            "default": {"label": "Blessing", "price": 14000},
         },
     },
     "capcut_pro": {
@@ -110,11 +110,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
-            "share_1m": {"label": "Share Plan - 1 Month", "price": 5500},
-            "share_3m": {"label": "Share Plan - 3 Months", "price": 15000},
-            "private_1m": {"label": "Private Plan - 1 Month", "price": 8000},
-            "private_3m": {"label": "Private Plan - 3 Months", "price": 25000},
-            "ownmail_1m": {"label": "Own Mail Plan - 1 Month", "price": 12000},
+            "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
+            "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
+            "private_1m": {"label": "Private Plan - 1 Month", "price": 7000},
         },
     },
     "express_vpn": {
@@ -129,7 +127,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
-            "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1200},
+            "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1400},
             "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
             "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
             "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
@@ -148,6 +146,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
+            "individual_1m": {"label": "Individual Plan - 1 Month", "price": 12000},
         },
     },
     "netflix_premium": {
@@ -179,7 +178,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ဥပမာ:\n<code>example@gmail.com</code>"
         ),
         "plans": {
-            "edu_1y": {"label": "1 Year Invite Access", "price": 3200},
+            "edu_1y": {"label": "1 Year Invite Access", "price": 3500},
         },
     },
     "gemini_ai_pro": {
