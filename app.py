@@ -199,6 +199,39 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
         },
     },
+    "picsart_pro": {
+    "category": "digital",
+    "name": "PicsArt Pro",
+    "full_name": "PicsArt Pro Subscription",
+    "description": "🖊️✒️ PicsArt Pro premium editing account service.",
+    "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+        "မလိုအပ်ရင် `No` ရိုက်ပို့ပါ"
+    ),
+    "plans": {
+        "share_1m": {"label": "1 Month (Share)", "price": 4000},
+        "private_1m": {"label": "1 Month (Private)", "price": 5700},
+    },
+},
+
+"alight_motion": {
+    "category": "digital",
+    "name": "Alight Motion",
+    "full_name": "Alight Motion Premium",
+    "description": "🟦 Alight Motion premium account service.",
+    "photo": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+        "မလိုအပ်ရင် `No` ရိုက်ပို့ပါ"
+    ),
+    "plans": {
+        "share_1y_basic": {"label": "1 Year (Share)", "price": 3000},
+        "share_1y_pro": {"label": "1 Year (Share) Premium", "price": 5000},
+    },
+},
     "grammarly_ai": {
         "category": "digital",
         "name": "Grammarly Ai",
@@ -316,6 +349,45 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "auto_delivery": False,
         "accounts": [],
     },
+    "picsart_pro": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "share_1m",
+            "email": "picsart1@example.com",
+            "password": "pass1234",
+            "extra": "⚠️ Password မပြောင်းပါနဲ့",
+            "used": False,
+        },
+        {
+            "plan_key": "private_1m",
+            "email": "picsartprivate@example.com",
+            "password": "pass5678",
+            "extra": "✅ Private Account",
+            "used": False,
+        },
+    ],
+},
+
+"alight_motion": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "share_1y_basic",
+            "email": "alight1@example.com",
+            "password": "pass1111",
+            "extra": "🟦 Basic Share",
+            "used": False,
+        },
+        {
+            "plan_key": "share_1y_pro",
+            "email": "alight2@example.com",
+            "password": "pass2222",
+            "extra": "🟦 Premium Share",
+            "used": False,
+        },
+    ],
+},
     "grammarly_ai": {
         "auto_delivery": True,
         "accounts": [
