@@ -132,6 +132,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
             "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
             "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
+            "private_3m": {"label": "3 Month Private - All Devices Support", "price": 9500},
         },
     },
     "spotify_premium": {
@@ -261,6 +262,20 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "used": False,
             },
             {
+                "plan_key": "share_1m",
+                "email": "capcutshare2@example.com",
+                "password": "pass1234",
+                "extra": "⚠️ Password မပြောင်းပါနဲ့။",
+                "used": False,
+            },
+            {
+                "plan_key": "share_1m",
+                "email": "capcutshare3@example.com",
+                "password": "pass1234",
+                "extra": "⚠️ Password မပြောင်းပါနဲ့။",
+                "used": False,
+            },
+            {
                 "plan_key": "share_3m",
                 "email": "capcutshare2@example.com",
                 "password": "pass2234",
@@ -268,8 +283,22 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "used": False,
             },
             {
+                "plan_key": "share_3m",
+                "email": "capcutshare3@example.com",
+                "password": "pass2234",
+                "extra": "⚠️ Password မပြောင်းပါနဲ့။",
+                "used": False,
+            },
+            {
                 "plan_key": "private_1m",
                 "email": "capcutprivate1@example.com",
+                "password": "pass5678",
+                "extra": "✅ Private account",
+                "used": False,
+            },
+            {
+                "plan_key": "private_1m",
+                "email": "capcutprivate2@example.com",
                 "password": "pass5678",
                 "extra": "✅ Private account",
                 "used": False,
@@ -282,6 +311,13 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             {
                 "plan_key": "mobile_share_1m",
                 "email": "expressmobile1@example.com",
+                "password": "pass1234",
+                "extra": "📱 Mobile Only",
+                "used": False,
+            },
+            {
+                "plan_key": "mobile_share_1m",
+                "email": "expressmobile2@example.com",
                 "password": "pass1234",
                 "extra": "📱 Mobile Only",
                 "used": False,
@@ -307,6 +343,20 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "extra": "✅ Private Account\n✅ All Devices Support",
                 "used": False,
             },
+            {
+                "plan_key": "private_3m",
+                "email": "expressprivate1@example.com",
+                "password": "pass1234",
+                "extra": "✅ Private Account\n✅ All Devices Support",
+                "used": False,
+            },
+            {
+                "plan_key": "private_3m",
+                "email": "expressprivate2@example.com",
+                "password": "pass1234",
+                "extra": "✅ Private Account\n✅ All Devices Support",
+                "used": False,
+            },
         ],
     },
     "spotify_premium": {
@@ -314,9 +364,23 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "accounts": [
             {
                 "plan_key": "family_1m",
-                "email": "2iws8@24hournons.top",
-                "password": "masuk12345",
+                "email": "spotifyfamily1@example.com  ",
+                "password": "12345",
                 "extra": "🎵 Family 1 Month",
+                "used": False,
+            },
+            {
+                "plan_key": "individual_1m",
+                "email": "spotifyindividual1@example.com",
+                "password": "12345",
+                "extra": "🎵 Individual 1 Month",
+                "used": False,
+            },
+            {
+                "plan_key": "individual_1m",
+                "email": "spotifyindividua2@example.com",
+                "password": "12345",
+                "extra": "🎵 Individual 1 Month",
                 "used": False,
             },
         ],
