@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import logging
+import asyncio
 from html import escape
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
@@ -199,38 +200,37 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         },
     },
     "picsart_pro": {
-    "category": "digital",
-    "name": "PicsArt Pro",
-    "full_name": "PicsArt Pro Subscription",
-    "description": "🖊️✒️ PicsArt Pro premium editing account service.",
-    "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
-    "enabled": True,
-    "requires_detail_label": (
-        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
-        "မလိုအပ်ရင် `No` ရိုက်ပို့ပါ"
-    ),
-    "plans": {
-        "share_1m": {"label": "1 Month (Share)", "price": 4000},
-        "private_1m": {"label": "1 Month (Private)", "price": 5700},
+        "category": "digital",
+        "name": "PicsArt Pro",
+        "full_name": "PicsArt Pro Subscription",
+        "description": "🖊️✒️ PicsArt Pro premium editing account service.",
+        "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
+        "enabled": True,
+        "requires_detail_label": (
+            "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
+        ),
+        "plans": {
+            "share_1m": {"label": "1 Month (Share)", "price": 4000},
+            "private_1m": {"label": "1 Month (Private)", "price": 5700},
+        },
     },
-},
-
-"alight_motion": {
-    "category": "digital",
-    "name": "Alight Motion",
-    "full_name": "Alight Motion Premium",
-    "description": "🟦 Alight Motion premium account service.",
-    "photo": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
-    "enabled": True,
-    "requires_detail_label": (
-        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
-        "မလိုအပ်ရင် `No` ရိုက်ပို့ပါ"
-    ),
-    "plans": {
-        "share_1y_basic": {"label": "1 Year (Share)", "price": 3000},
-        "share_1y_pro": {"label": "1 Year (Share) Premium", "price": 5000},
+    "alight_motion": {
+        "category": "digital",
+        "name": "Alight Motion",
+        "full_name": "Alight Motion Premium",
+        "description": "🟦 Alight Motion premium account service.",
+        "photo": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
+        "enabled": True,
+        "requires_detail_label": (
+            "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
+        ),
+        "plans": {
+            "share_1y_basic": {"label": "1 Year (Share)", "price": 3000},
+            "share_1y_pro": {"label": "1 Year (Share) Premium", "price": 5000},
+        },
     },
-},
     "grammarly_ai": {
         "category": "digital",
         "name": "Grammarly Ai",
@@ -349,44 +349,43 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "accounts": [],
     },
     "picsart_pro": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "share_1m",
-            "email": "picsart1@example.com",
-            "password": "pass1234",
-            "extra": "⚠️ Password မပြောင်းပါနဲ့",
-            "used": False,
-        },
-        {
-            "plan_key": "private_1m",
-            "email": "picsartprivate@example.com",
-            "password": "pass5678",
-            "extra": "✅ Private Account",
-            "used": False,
-        },
-    ],
-},
-
-"alight_motion": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "share_1y_basic",
-            "email": "alight1@example.com",
-            "password": "pass1111",
-            "extra": "🟦 Basic Share",
-            "used": False,
-        },
-        {
-            "plan_key": "share_1y_pro",
-            "email": "alight2@example.com",
-            "password": "pass2222",
-            "extra": "🟦 Premium Share",
-            "used": False,
-        },
-    ],
-},
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "share_1m",
+                "email": "picsart1@example.com",
+                "password": "pass1234",
+                "extra": "⚠️ Password မပြောင်းပါနဲ့",
+                "used": False,
+            },
+            {
+                "plan_key": "private_1m",
+                "email": "picsartprivate@example.com",
+                "password": "pass5678",
+                "extra": "✅ Private Account",
+                "used": False,
+            },
+        ],
+    },
+    "alight_motion": {
+        "auto_delivery": True,
+        "accounts": [
+            {
+                "plan_key": "share_1y_basic",
+                "email": "alight1@example.com",
+                "password": "pass1111",
+                "extra": "🟦 Basic Share",
+                "used": False,
+            },
+            {
+                "plan_key": "share_1y_pro",
+                "email": "alight2@example.com",
+                "password": "pass2222",
+                "extra": "🟦 Premium Share",
+                "used": False,
+            },
+        ],
+    },
     "grammarly_ai": {
         "auto_delivery": True,
         "accounts": [
@@ -425,6 +424,19 @@ logging.basicConfig(
     level=logging.INFO,
 )
 logger = logging.getLogger(__name__)
+
+# =========================================================
+# PERFORMANCE CACHE
+# =========================================================
+
+CACHE = {
+    "digital_stock": {},
+    "game_stock": {},
+}
+
+def clear_cache():
+    CACHE["digital_stock"].clear()
+    CACHE["game_stock"].clear()
 
 # =========================================================
 # DATABASE
@@ -563,6 +575,7 @@ def sync_inventory_to_db():
 
     conn.commit()
     conn.close()
+    clear_cache()
 
 
 def sync_game_products_to_db():
@@ -592,6 +605,7 @@ def sync_game_products_to_db():
 
     conn.commit()
     conn.close()
+    clear_cache()
 
 
 def log_action(order_id: Optional[str], actor_id: int, action: str, note: str = ""):
@@ -735,6 +749,17 @@ def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     return int(count)
 
 
+def get_cached_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
+    if product_key in INVITE_ONLY_PRODUCTS:
+        return 999
+    cache_key = f"{product_key}:{plan_key or 'all'}"
+    if cache_key in CACHE["digital_stock"]:
+        return CACHE["digital_stock"][cache_key]
+    value = get_digital_stock(product_key, plan_key)
+    CACHE["digital_stock"][cache_key] = value
+    return value
+
+
 def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[dict]:
     conn = db_connect()
     cur = conn.cursor()
@@ -770,6 +795,7 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
             return None
 
         conn.commit()
+        clear_cache()
         return {
             "id": row["id"],
             "email": row["email"],
@@ -795,6 +821,7 @@ def add_digital_account(product_key: str, plan_key: str, email: str, password: s
     )
     conn.commit()
     conn.close()
+    clear_cache()
 
 
 def get_game_stock(product_key: str) -> int:
@@ -804,6 +831,14 @@ def get_game_stock(product_key: str) -> int:
     row = cur.fetchone()
     conn.close()
     return int(row["stock"]) if row else 0
+
+
+def get_cached_game_stock(product_key: str) -> int:
+    if product_key in CACHE["game_stock"]:
+        return CACHE["game_stock"][product_key]
+    value = get_game_stock(product_key)
+    CACHE["game_stock"][product_key] = value
+    return value
 
 
 def set_game_stock(product_key: str, stock: int):
@@ -819,6 +854,7 @@ def set_game_stock(product_key: str, stock: int):
     )
     conn.commit()
     conn.close()
+    clear_cache()
 
 
 def adjust_game_stock(product_key: str, delta: int) -> int:
@@ -842,6 +878,7 @@ def adjust_game_stock(product_key: str, delta: int) -> int:
     )
     conn.commit()
     conn.close()
+    clear_cache()
     return new_stock
 
 
@@ -867,6 +904,7 @@ def set_game_enabled(product_key: str, enabled: bool):
     )
     conn.commit()
     conn.close()
+    clear_cache()
 
 
 def find_recent_duplicate_order(
@@ -1003,10 +1041,17 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
     conn.close()
     return [dict(r) for r in rows]
 
-
 # =========================================================
 # UI HELPERS
 # =========================================================
+
+async def fake_loading(query, text: str = "⏳ Loading..."):
+    try:
+        await query.edit_message_text(text)
+        await asyncio.sleep(0.18)
+    except Exception:
+        pass
+
 
 def glam_title(title: str) -> str:
     return f"<b>{escape(title)}</b>"
@@ -1052,13 +1097,13 @@ def product_caption(product: dict, product_key: str) -> str:
             enabled = product.get("enabled", True)
             is_in_stock = enabled
         else:
-            stock = get_digital_stock(product_key)
+            stock = get_cached_digital_stock(product_key)
             cheapest = min(v["price"] for v in product["plans"].values())
             price_text = f"From {cheapest} Ks"
             enabled = product.get("enabled", True)
             is_in_stock = stock > 0 and enabled
     else:
-        stock = get_game_stock(product_key)
+        stock = get_cached_game_stock(product_key)
         first_price = next(iter(product["plans"].values()))["price"]
         price_text = f"{first_price} Ks"
         enabled = is_game_enabled(product_key)
@@ -1143,16 +1188,8 @@ async def safe_edit_message(query, text: str, reply_markup=None):
             parse_mode=ParseMode.HTML,
             disable_web_page_preview=True,
         )
-    except Exception:
-        try:
-            await query.message.reply_text(
-                text=text,
-                reply_markup=reply_markup,
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-            )
-        except Exception as e:
-            logger.warning("safe_edit_message failed: %s", e)
+    except Exception as e:
+        logger.debug("safe_edit_message skipped: %s", e)
 
 
 async def disable_query_buttons(query):
@@ -1215,7 +1252,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 )
                 continue
 
-            total_stock = get_digital_stock(key)
+            total_stock = get_cached_digital_stock(key)
 
             if total_stock > 0:
                 rows.append(
@@ -1239,7 +1276,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             if not is_game_enabled(key):
                 continue
 
-            stock = get_game_stock(key)
+            stock = get_cached_game_stock(key)
             default_price = next(iter(product["plans"].values()))["price"]
 
             if stock > 0:
@@ -1293,7 +1330,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 )
                 continue
 
-            stock = get_digital_stock(product_key, plan_key)
+            stock = get_cached_digital_stock(product_key, plan_key)
             if stock > 0:
                 rows.append(
                     [
@@ -1324,7 +1361,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 )
                 continue
 
-            stock = get_game_stock(product_key)
+            stock = get_cached_game_stock(product_key)
             if stock > 0:
                 rows.append(
                     [
@@ -1449,6 +1486,22 @@ def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     )
 
 
+def admin_panel_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("📊 Stats", callback_data="admin_gui:stats"),
+                InlineKeyboardButton("📦 Stock", callback_data="admin_gui:stock"),
+            ],
+            [
+                InlineKeyboardButton("📋 Pending", callback_data="admin_gui:pending"),
+                InlineKeyboardButton("⚠️ Low Stock", callback_data="admin_gui:lowstock"),
+            ],
+            [InlineKeyboardButton("🔙 Close", callback_data="admin_gui:close")],
+        ]
+    )
+
+
 async def send_optional_sticker(message_obj, sticker_id: str):
     if sticker_id:
         try:
@@ -1475,7 +1528,7 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
             if product_key in INVITE_ONLY_PRODUCTS:
                 return
 
-            current_stock = get_digital_stock(product_key, plan_key)
+            current_stock = get_cached_digital_stock(product_key, plan_key)
             if current_stock <= LOW_STOCK_THRESHOLD:
                 plan_label = "All Plans"
                 if plan_key and plan_key in product["plans"]:
@@ -1492,7 +1545,7 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                     parse_mode=ParseMode.HTML,
                 )
         else:
-            current_stock = get_game_stock(product_key)
+            current_stock = get_cached_game_stock(product_key)
             if current_stock <= LOW_STOCK_THRESHOLD:
                 await bot.send_message(
                     chat_id=ADMIN_ID,
@@ -1505,7 +1558,6 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                 )
     except Exception as e:
         logger.warning("Low stock alert failed: %s", e)
-
 
 # =========================================================
 # CUSTOMER FLOW
@@ -1526,7 +1578,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "menu_shop":
@@ -1568,7 +1620,7 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def track_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
 
     order_id = query.data.split(":", 1)[1]
     order = order_get(order_id)
@@ -1587,7 +1639,7 @@ async def track_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
 
 async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "back_main":
@@ -1610,7 +1662,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "back_categories":
@@ -1632,6 +1684,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
+        await fake_loading(query, "⏳ Opening product...")
         await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
@@ -1640,7 +1693,7 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "back_products":
@@ -1677,11 +1730,11 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
                 return PLAN_STATE
 
-            if product_key not in INVITE_ONLY_PRODUCTS and get_digital_stock(product_key, plan_key) <= 0:
+            if product_key not in INVITE_ONLY_PRODUCTS and get_cached_digital_stock(product_key, plan_key) <= 0:
                 await query.answer("🔴 ဒီ plan က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
         else:
-            if not is_game_enabled(product_key) or get_game_stock(product_key) <= 0:
+            if not is_game_enabled(product_key) or get_cached_game_stock(product_key) <= 0:
                 await query.answer("🔴 ဒီ item က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
 
@@ -1727,7 +1780,7 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "detail_skip":
@@ -1756,7 +1809,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
             return MENU_STATE
 
-        await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
+        await safe_edit_message(query, plan_text(product_key), reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     if data == "detail_cancel":
@@ -1773,7 +1826,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
 
 async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
     data = query.data
 
     if data == "back_plan":
@@ -1782,7 +1835,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.message.reply_text("❌ Session error. /start နဲ့ပြန်စပါ။")
             return ConversationHandler.END
 
-        await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
+        await safe_edit_message(query, plan_text(product_key), reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     if data == "back_payment_methods":
@@ -1804,6 +1857,7 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["payment_key"] = payment_key
     context.user_data["payment_name"] = PAYMENT_ACCOUNTS[payment_key]["label"]
 
+    await fake_loading(query, "⏳ Preparing payment...")
     await safe_edit_message(
         query,
         payment_text(
@@ -1918,14 +1972,13 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data.clear()
     return MENU_STATE
 
-
 # =========================================================
 # ADMIN FLOW
 # =========================================================
 
 async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
+    await query.answer(cache_time=1)
 
     if query.from_user.id != ADMIN_ID:
         await query.answer("ဒီ button ကို admin ပဲသုံးလို့ရပါတယ်။", show_alert=True)
@@ -2018,7 +2071,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not product or order["category"] != "game":
             return
 
-        current_stock = get_game_stock(order["product_key"])
+        current_stock = get_cached_game_stock(order["product_key"])
         if current_stock <= 0:
             await query.message.reply_text("❌ Stock မရှိတော့ပါ။")
             return
@@ -2160,6 +2213,130 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+# =========================================================
+# ADMIN GUI PANEL
+# =========================================================
+
+async def admin_panel_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    await update.message.reply_text(
+        "🛠 <b>Admin Panel</b>\n\nQuick control buttons",
+        parse_mode=ParseMode.HTML,
+        reply_markup=admin_panel_keyboard(),
+    )
+
+
+async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer(cache_time=1)
+
+    if query.from_user.id != ADMIN_ID:
+        return
+
+    data = query.data
+
+    if data == "admin_gui:close":
+        await safe_edit_message(
+            query,
+            "✅ <b>Admin Panel Closed</b>",
+            reply_markup=None,
+        )
+        return
+
+    if data == "admin_gui:stats":
+        await fake_loading(query, "⏳ Loading stats...")
+        stats = get_stats_summary()
+        await safe_edit_message(
+            query,
+            (
+                f"📊 <b>Bot Statistics</b>\n\n"
+                f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
+                f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+                f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
+                f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
+                f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks"
+            ),
+            reply_markup=admin_panel_keyboard(),
+        )
+        return
+
+    if data == "admin_gui:stock":
+        await fake_loading(query, "⏳ Loading stock...")
+        lines = ["📦 <b>Stock List</b>"]
+        for key, p in PRODUCTS.items():
+            if p["category"] == "digital":
+                if key in INVITE_ONLY_PRODUCTS:
+                    lines.append(f"💻 <b>{escape(p['name'])}</b> → Invite Flow")
+                else:
+                    lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
+            else:
+                lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
+
+        await safe_edit_message(
+            query,
+            "\n".join(lines),
+            reply_markup=admin_panel_keyboard(),
+        )
+        return
+
+    if data == "admin_gui:pending":
+        await fake_loading(query, "⏳ Loading pending orders...")
+        rows = get_pending_orders(limit=20)
+        if not rows:
+            await safe_edit_message(
+                query,
+                "✅ <b>Pending orders မရှိပါ။</b>",
+                reply_markup=admin_panel_keyboard(),
+            )
+            return
+
+        lines = ["📋 <b>Pending Orders</b>"]
+        for o in rows:
+            lines.append(
+                f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
+                f"🛍️ {escape(o['product_name'])}\n"
+                f"📦 {escape(o['plan_label'])}\n"
+                f"👤 {escape(o['full_name'])}\n"
+                f"📌 {human_status(o['status'])}"
+            )
+
+        await safe_edit_message(
+            query,
+            "\n".join(lines),
+            reply_markup=admin_panel_keyboard(),
+        )
+        return
+
+    if data == "admin_gui:lowstock":
+        await fake_loading(query, "⏳ Loading low stock...")
+        lines = ["⚠️ <b>Low Stock Items</b>"]
+        found = False
+
+        for key, p in PRODUCTS.items():
+            if p["category"] == "digital":
+                if key in INVITE_ONLY_PRODUCTS:
+                    continue
+                total = get_cached_digital_stock(key)
+                if total <= LOW_STOCK_THRESHOLD:
+                    found = True
+                    lines.append(f"💻 <b>{escape(p['name'])}</b> → {total}")
+            else:
+                total = get_cached_game_stock(key)
+                if total <= LOW_STOCK_THRESHOLD:
+                    found = True
+                    lines.append(f"🎮 <b>{escape(p['name'])}</b> → {total}")
+
+        if not found:
+            lines.append("✅ Low stock item မရှိပါ။")
+
+        await safe_edit_message(
+            query,
+            "\n".join(lines),
+            reply_markup=admin_panel_keyboard(),
+        )
+        return
 
 # =========================================================
 # COMMANDS
@@ -2247,6 +2424,7 @@ async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_T
     deleted = cur.rowcount
     conn.commit()
     conn.close()
+    clear_cache()
 
     if deleted:
         await update.message.reply_text(f"✅ Deleted: {email}")
@@ -2283,7 +2461,7 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
         await update.message.reply_text("❌ QTY must be greater than 0.")
         return
 
-    current_stock = get_game_stock(product_key)
+    current_stock = get_cached_game_stock(product_key)
     if qty > current_stock:
         await update.message.reply_text(f"❌ Current stock = {current_stock} only.")
         return
@@ -2438,9 +2616,9 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if key in INVITE_ONLY_PRODUCTS:
                 lines.append(f"💻 <b>{escape(p['name'])}</b> → Invite Flow")
             else:
-                lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_digital_stock(key)}")
+                lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
         else:
-            lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_game_stock(key)}")
+            lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -2455,12 +2633,12 @@ async def lowstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if p["category"] == "digital":
             if key in INVITE_ONLY_PRODUCTS:
                 continue
-            total = get_digital_stock(key)
+            total = get_cached_digital_stock(key)
             if total <= LOW_STOCK_THRESHOLD:
                 found = True
                 lines.append(f"💻 <b>{escape(p['name'])}</b> → {total}")
         else:
-            total = get_game_stock(key)
+            total = get_cached_game_stock(key)
             if total <= LOW_STOCK_THRESHOLD:
                 found = True
                 lines.append(f"🎮 <b>{escape(p['name'])}</b> → {total}")
@@ -2482,12 +2660,12 @@ async def outofstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if p["category"] == "digital":
             if key in INVITE_ONLY_PRODUCTS:
                 continue
-            total = get_digital_stock(key)
+            total = get_cached_digital_stock(key)
             if total <= 0:
                 found = True
                 lines.append(f"💻 <b>{escape(p['name'])}</b> → 0")
         else:
-            total = get_game_stock(key)
+            total = get_cached_game_stock(key)
             if total <= 0:
                 found = True
                 lines.append(f"🎮 <b>{escape(p['name'])}</b> → 0")
@@ -2597,7 +2775,8 @@ async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "/remove_game_stock PRODUCT_KEY QTY\n"
             "/add_account PRODUCT_KEY PLAN_KEY EMAIL PASSWORD | EXTRA\n"
             "/disable_game PRODUCT_KEY\n"
-            "/enable_game PRODUCT_KEY"
+            "/enable_game PRODUCT_KEY\n"
+            "/admin"
         )
 
 
@@ -2688,7 +2867,6 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     return ConversationHandler.END
 
-
 # =========================================================
 # MAIN
 # =========================================================
@@ -2744,6 +2922,10 @@ def main():
         )
     )
 
+    application.add_handler(
+        CallbackQueryHandler(admin_gui_handler, pattern=r"^admin_gui:")
+    )
+
     application.add_handler(CommandHandler("menu", start))
     application.add_handler(CommandHandler("myorders", myorders_command))
     application.add_handler(CommandHandler("track", track_command))
@@ -2766,6 +2948,7 @@ def main():
     application.add_handler(CommandHandler("disable_game", disable_game_command))
     application.add_handler(CommandHandler("enable_game", enable_game_command))
     application.add_handler(CommandHandler("code", code_command))
+    application.add_handler(CommandHandler("admin", admin_panel_command))
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
     )
