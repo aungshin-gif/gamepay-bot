@@ -26,6 +26,39 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_ID_RAW = os.getenv("ADMIN_ID", "0").strip()
 ADMIN_ID = int(ADMIN_ID_RAW) if ADMIN_ID_RAW.isdigit() else 0
 
+CUSTOM_EMOJI = {
+    # Product title icons
+    "mlbb": os.getenv("EMOJI_MLBB", "").strip(),
+    "genshin": os.getenv("EMOJI_GENSHIN", "").strip(),
+    "capcut": os.getenv("EMOJI_CAPCUT", "").strip(),
+    "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
+    "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
+    "netflix": os.getenv("EMOJI_NETFLIX", "").strip(),
+    "canva": os.getenv("EMOJI_CANVA", "").strip(),
+    "gemini": os.getenv("EMOJI_GEMINI", "").strip(),
+    "picsart": os.getenv("EMOJI_PICSART", "").strip(),
+    "alight": os.getenv("EMOJI_ALIGHT", "").strip(),
+    "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
+
+    # Text/card icons
+    "price": os.getenv("EMOJI_PRICE", "").strip(),
+    "stock": os.getenv("EMOJI_STOCK", "").strip(),
+    "status": os.getenv("EMOJI_STATUS", "").strip(),
+    "description": os.getenv("EMOJI_DESCRIPTION", "").strip(),
+    "fast": os.getenv("EMOJI_FAST", "").strip(),
+    "secure": os.getenv("EMOJI_SECURE", "").strip(),
+    "trusted": os.getenv("EMOJI_TRUSTED", "").strip(),
+    "cart": os.getenv("EMOJI_CART", "").strip(),
+
+    # General icons
+    "shop": os.getenv("EMOJI_SHOP", "").strip(),
+    "game": os.getenv("EMOJI_GAME", "").strip(),
+    "digital": os.getenv("EMOJI_DIGITAL", "").strip(),
+    "payment": os.getenv("EMOJI_PAYMENT", "").strip(),
+    "success": os.getenv("EMOJI_SUCCESS", "").strip(),
+    "default": os.getenv("EMOJI_DEFAULT", "").strip(),
+}
+
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
 CHANNEL_URL = "https://t.me/gamepaydyet"
@@ -67,6 +100,7 @@ REJECT_REASONS = {
 PRODUCTS: Dict[str, Dict[str, Any]] = {
     "mlbb_weekly": {
         "category": "game",
+        "emoji_key": "mlbb",
         "name": "Weekly Pass",
         "full_name": "MLBB Weekly Pass",
         "description": "⚡ Fast and trusted MLBB Weekly Pass top up service.",
@@ -84,6 +118,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "genshin_blessing": {
         "category": "game",
+     "emoji_key": "genshin",
         "name": "Blessing",
         "full_name": "Genshin Impact Blessing",
         "description": "✨ Safe and quick Genshin Blessing top up service.",
@@ -101,6 +136,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "capcut_pro": {
         "category": "digital",
+        "emoji_key": "capcut",
         "name": "CapCut Pro",
         "full_name": "CapCut Pro Subscription",
         "description": "📱 CapCut Pro account delivery service.",
@@ -118,6 +154,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "express_vpn": {
         "category": "digital",
+        "emoji_key": "expressvpn",
         "name": "Express VPN",
         "full_name": "Express VPN Subscription",
         "description": "🌐 Express VPN email & password delivery service.",
@@ -137,6 +174,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "spotify_premium": {
         "category": "digital",
+        "emoji_key": "spotify",
         "name": "Spotify Premium",
         "full_name": "Spotify Premium Subscription",
         "description": "🎵 Spotify Premium account delivery service.",
@@ -153,6 +191,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "netflix_premium": {
         "category": "digital",
+        "emoji_key": "netflix",
         "name": "Netflix Premium",
         "full_name": "Netflix Premium Subscription",
         "description": "📺 Netflix Premium account delivery service.",
@@ -169,6 +208,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "canva_pro_edu": {
         "category": "digital",
+         "emoji_key": "canva",
         "name": "Canva Pro Edu",
         "full_name": "Canva Pro Edu Subscription",
         "description": "🎨 Canva Pro Edu invite delivery service.",
@@ -185,6 +225,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "gemini_ai_pro": {
         "category": "digital",
+           "emoji_key": "gemini",
         "name": "Gemini Ai Pro",
         "full_name": "Gemini Ai Pro Subscription",
         "description": "🤖 Gemini Ai Pro own-mail invite service.",
@@ -202,6 +243,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "picsart_pro": {
         "category": "digital",
+          "emoji_key": "picsart",
         "name": "PicsArt Pro",
         "full_name": "PicsArt Pro Subscription",
         "description": "🖊️✒️ PicsArt Pro premium editing account service.",
@@ -218,6 +260,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "alight_motion": {
         "category": "digital",
+           "emoji_key": "alight",
         "name": "Alight Motion",
         "full_name": "Alight Motion Premium",
         "description": "🟦 Alight Motion premium account service.",
@@ -234,6 +277,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
     "grammarly_ai": {
         "category": "digital",
+           "emoji_key": "grammarly",
         "name": "Grammarly Ai",
         "full_name": "Grammarly Ai Subscription",
         "description": "💳 Grammarly Ai account delivery service.",
@@ -1109,6 +1153,23 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
 # UI HELPERS
 # =========================================================
 
+def tg_emoji(key: str, fallback: str = "✨") -> str:
+    emoji_id = CUSTOM_EMOJI.get(key, "") or CUSTOM_EMOJI.get("default", "")
+
+    if emoji_id:
+        return f'<tg-emoji emoji-id="{escape(emoji_id)}">{escape(fallback)}</tg-emoji>'
+
+    return fallback
+
+
+def button_kwargs(key: str) -> dict:
+    emoji_id = CUSTOM_EMOJI.get(key, "") or CUSTOM_EMOJI.get("default", "")
+
+    if not emoji_id:
+        return {}
+
+return {"api_kwargs": {"icon_custom_emoji_id": str(emoji_id)}}
+
 async def fake_loading(query, text: str = "⏳ Loading..."):
     try:
         await query.edit_message_text(text)
@@ -1151,7 +1212,6 @@ def order_summary_text(order: dict) -> str:
         f"🕒 <b>Created:</b> {escape(order['created_at'])}"
     )
 
-
 def product_caption(product: dict, product_key: str) -> str:
     if product["category"] == "digital":
         if product_key in INVITE_ONLY_PRODUCTS:
@@ -1173,42 +1233,61 @@ def product_caption(product: dict, product_key: str) -> str:
         enabled = is_game_enabled(product_key)
         is_in_stock = stock > 0 and enabled
 
+    product_icon = tg_emoji(product.get("emoji_key", "default"), "🔥")
+    price_icon = tg_emoji("price", "💰")
+    stock_icon = tg_emoji("stock", "📦")
+    status_icon = tg_emoji("status", "📌")
+    description_icon = tg_emoji("description", "📝")
+    fast_icon = tg_emoji("fast", "⚡")
+    secure_icon = tg_emoji("secure", "🔐")
+    trusted_icon = tg_emoji("trusted", "💎")
+
     status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
 
     return (
-        f"🔥 <b>{escape(product['full_name'])}</b>\n\n"
-        f"💰 <b>Price:</b> {escape(price_text)}\n"
-        f"📦 <b>Stock:</b> {stock}\n"
-        f"📌 <b>Status:</b> {status}\n\n"
-        f"📝 <b>Description</b>\n"
+        f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
+        f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
+        f"{stock_icon} <b>Stock:</b> {stock}\n"
+        f"{status_icon} <b>Status:</b> {status}\n\n"
+        f"{description_icon} <b>Description</b>\n"
         f"{escape(product['description'])}\n\n"
-        f"⚡ Fast Service\n"
-        f"🔐 Secure Payment\n"
-        f"💎 Trusted Seller"
+        f"{fast_icon} Fast Service\n"
+        f"{secure_icon} Secure Payment\n"
+        f"{trusted_icon} Trusted Seller"
     )
 
 
 def payment_text(payment_name: str, account: str, amount: int) -> str:
+    payment_icon = tg_emoji("payment", "💳")
+    price_icon = tg_emoji("price", "💸")
+
     return (
-        f"💳 <b>Payment Info</b>\n\n"
+        f"{payment_icon} <b>Payment Info</b>\n\n"
         f"🏦 <b>Method:</b> {escape(payment_name)}\n\n"
         f"<pre>{escape(account)}</pre>\n"
-        f"💸 <b>Amount:</b> {amount} Ks\n\n"
+        f"{price_icon} <b>Amount:</b> {amount} Ks\n\n"
         f"📷 ငွေလွှဲပြီး payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ\n"
         f"✅ ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
     )
 
 
 def welcome_text() -> str:
+    shop_icon = tg_emoji("shop", "🎉")
+    game_icon = tg_emoji("game", "🎮")
+    digital_icon = tg_emoji("digital", "💻")
+    secure_icon = tg_emoji("secure", "🔐")
+    trusted_icon = tg_emoji("trusted", "💎")
+
     return (
-        f"🎉 <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
-        f"🎮 Game Top Up\n"
-        f"💻 Digital Products\n"
+        f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
+        f"{game_icon} Game Top Up\n"
+        f"{digital_icon} Digital Products\n"
         f"⚡ Fast Delivery\n"
-        f"🔐 Safe Payment\n"
-        f"💎 Premium Service\n\n"
+        f"{secure_icon} Safe Payment\n"
+        f"{trusted_icon} Premium Service\n\n"
         f"👇 <b>Please choose from the menu below</b>"
     )
+
 
 
 def category_text() -> str:
@@ -1217,21 +1296,24 @@ def category_text() -> str:
         f"စိတ်ကြိုက် category ကိုရွေးပေးပါ 👇"
     )
 
-
 def products_text(category_key: str) -> str:
     if category_key == "game":
+        game_icon = tg_emoji("game", "🎮")
         return (
-            f"🎮 <b>Game Products</b>\n\n"
+            f"{game_icon} <b>Game Products</b>\n\n"
             f"ဝယ်ယူချင်တဲ့ game item ကိုရွေးပေးပါ 👇"
         )
+
+    digital_icon = tg_emoji("digital", "💻")
     return (
-        f"💻 <b>Digital Products</b>\n\n"
+        f"{digital_icon} <b>Digital Products</b>\n\n"
         f"ဝယ်ယူချင်တဲ့ product ကိုရွေးပေးပါ 👇"
     )
 
 
 def plan_text(product_key: str) -> str:
-    return product_caption(PRODUCTS[product_key], product_key) + "\n\n🛒 <b>Please choose a plan</b>"
+    cart_icon = tg_emoji("cart", "🛒")
+    return product_caption(PRODUCTS[product_key], product_key) + f"\n\n{cart_icon} <b>Please choose a plan</b>"
 
 
 def detail_text(product_key: str) -> str:
@@ -1271,26 +1353,46 @@ async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("🛍 Shop Now", callback_data="menu_shop")],
+            [
+                InlineKeyboardButton(
+                    "Shop Now",
+                    callback_data="menu_shop",
+                    **button_kwargs("shop"),
+                )
+            ],
             [InlineKeyboardButton("📢 Join Channel", url=CHANNEL_URL)],
             [
-                InlineKeyboardButton("📦 My Orders", callback_data="menu_myorders"),
+                InlineKeyboardButton(
+                    "My Orders",
+                    callback_data="menu_myorders",
+                    **button_kwargs("digital"),
+                ),
                 InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
             ],
             [InlineKeyboardButton("🔄 Refresh", callback_data="menu_restart")],
         ]
     )
 
-
 def category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("🎮 Game Top Up", callback_data="cat:game")],
-            [InlineKeyboardButton("💻 Digital Products", callback_data="cat:digital")],
+            [
+                InlineKeyboardButton(
+                    "Game Top Up",
+                    callback_data="cat:game",
+                    **button_kwargs("game"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Digital Products",
+                    callback_data="cat:digital",
+                    **button_kwargs("digital"),
+                )
+            ],
             [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
         ]
     )
-
 
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
@@ -1298,6 +1400,8 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     for key, product in PRODUCTS.items():
         if product["category"] != category_key:
             continue
+
+        emoji_key = product.get("emoji_key", "default")
 
         if category_key == "digital":
             if not product.get("enabled", True):
@@ -1309,8 +1413,9 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"✨ {product['name']} • {cheapest} Ks",
+                            f"{product['name']} • {cheapest} Ks",
                             callback_data=f"product:{key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1324,6 +1429,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🟢 {product['name']} • From {cheapest} Ks",
                             callback_data=f"product:{key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1333,6 +1439,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {product['name']} • Out of Stock",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1349,6 +1456,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🟢 {product['name']} • {default_price} Ks",
                             callback_data=f"product:{key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1358,6 +1466,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {product['name']} • Out of Stock",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1369,6 +1478,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
 def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     rows = []
     product = PRODUCTS[product_key]
+    emoji_key = product.get("emoji_key", "default")
 
     for plan_key, plan in product["plans"].items():
         if product["category"] == "digital":
@@ -1378,6 +1488,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Disabled",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1387,8 +1498,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"✨ {plan['label']} • {plan['price']} Ks",
+                            f"{plan['label']} • {plan['price']} Ks",
                             callback_data=f"plan:{plan_key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1399,8 +1511,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"💠 {plan['label']} • {plan['price']} Ks",
+                            f"{plan['label']} • {plan['price']} Ks",
                             callback_data=f"plan:{plan_key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1410,6 +1523,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Out of Stock",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1420,6 +1534,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Disabled",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1430,8 +1545,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"💠 {plan['label']} • {plan['price']} Ks",
+                            f"{plan['label']} • {plan['price']} Ks",
                             callback_data=f"plan:{plan_key}",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -1441,6 +1557,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Out of Stock",
                             callback_data="out_of_stock",
+                            **button_kwargs(emoji_key),
                         )
                     ]
                 )
@@ -2405,6 +2522,58 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 # COMMANDS
 # =========================================================
+def extract_custom_emoji_ids_from_message(message) -> List[str]:
+    entities = message.entities or []
+    caption_entities = message.caption_entities or []
+    found = []
+
+    for ent in list(entities) + list(caption_entities):
+        if ent.type == "custom_emoji" and ent.custom_emoji_id:
+            found.append(ent.custom_emoji_id)
+
+    return found
+
+
+async def emoji_id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    context.user_data["waiting_emoji_id"] = True
+
+    await update.message.reply_text(
+        "✅ Premium emoji ID ဖမ်းဖို့ အသင့်ဖြစ်ပါပြီ။\n\n"
+        "အခု သုံးချင်တဲ့ Premium custom emoji တစ်လုံးကို ဒီ bot ဆီပို့ပါ။\n\n"
+        "ဥပမာ CapCut icon သုံးချင်ရင် CapCut အတွက်ထားချင်တဲ့ Premium emoji ကိုပို့ပါ။"
+    )
+
+
+async def emoji_id_message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if not update.message:
+        return
+
+    found = extract_custom_emoji_ids_from_message(update.message)
+
+    if not found:
+        if context.user_data.get("waiting_emoji_id"):
+            await update.message.reply_text(
+                "Premium custom emoji မတွေ့ပါ။\n\n"
+                "Normal emoji မဟုတ်ဘဲ Telegram Premium custom emoji ကိုပို့ပါ။"
+            )
+        return
+
+    context.user_data["waiting_emoji_id"] = False
+
+    await update.message.reply_text(
+        "✅ Custom Emoji ID တွေ့ပါပြီ:\n\n"
+        + "\n".join([f"<code>{escape(x)}</code>" for x in found])
+        + "\n\nRailway Variables ထဲမှာ ဒီ ID ကိုထည့်ပါ။\n\n"
+        "ဥပမာ:\n"
+        "<code>EMOJI_CAPCUT=ဒီ_ID</code>",
+        parse_mode=ParseMode.HTML,
+    )
 
 async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
@@ -3013,6 +3182,8 @@ def main():
     application.add_handler(CommandHandler("enable_game", enable_game_command))
     application.add_handler(CommandHandler("code", code_command))
     application.add_handler(CommandHandler("admin", admin_panel_command))
+    application.add_handler(CommandHandler("emojiid", emoji_id_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, emoji_id_message_handler))
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, customer_code_request_handler)
     )
