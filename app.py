@@ -1439,23 +1439,13 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 continue
 
             cheapest = min(v["price"] for v in product["plans"].values())
-
-            if key in INVITE_ONLY_PRODUCTS:
-                rows.append([
-                    InlineKeyboardButton(
-                        f"{product['name']} • {cheapest} Ks",
-                        callback_data=f"product:{key}",
-                        **button_kwargs(emoji_key),
-                    )
-                ])
-                continue
-
-            total_stock = get_cached_digital_stock(key)
+            total_stock = 999 if key in INVITE_ONLY_PRODUCTS else get_cached_digital_stock(key)
 
             if total_stock > 0:
+                price_text = f"{cheapest} Ks" if key in INVITE_ONLY_PRODUCTS else f"From {cheapest} Ks"
                 rows.append([
                     InlineKeyboardButton(
-                        f"{product['name']} • From {cheapest} Ks",
+                        f"{product['name']} • {price_text}",
                         callback_data=f"product:{key}",
                         **button_kwargs(emoji_key),
                     )
@@ -1491,16 +1481,15 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-rows.append([
+    rows.append([
         InlineKeyboardButton(
-            "Back to Products",
-            callback_data="back_products",
+            "Back to Categories",
+            callback_data="back_categories",
             **button_kwargs("back"),
         )
     ])
 
     return InlineKeyboardMarkup(rows)
-
 def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     rows = []
     product = PRODUCTS[product_key]
