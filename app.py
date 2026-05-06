@@ -1278,8 +1278,8 @@ def welcome_text() -> str:
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
     choose_icon = tg_emoji("cart", "👇")
-    join_icon = tg_emoji("join", "📢")
-    contact_icon = tg_emoji("contact", "📞")
+   join_icon = tg_emoji("join", "📋")
+contact_icon = tg_emoji("contact", "✉️") 
 
     return (
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
