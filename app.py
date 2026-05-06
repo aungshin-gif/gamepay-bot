@@ -1161,14 +1161,9 @@ def tg_emoji(key: str, fallback: str = "✨") -> str:
 
     return fallback
 
-    def button_kwargs(key: str) -> dict:
+
+def button_kwargs(key: str) -> dict:
     return {}
-    emoji_id = CUSTOM_EMOJI.get(key, "") or CUSTOM_EMOJI.get("default", "")
-
-    if not emoji_id:
-        return {}
-
-    return {"api_kwargs": {"icon_custom_emoji_id": str(emoji_id)}}
 
 
 async def fake_loading(query, text: str = "⏳ Loading..."):
