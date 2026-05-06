@@ -1449,7 +1449,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"🟢 {product['name']} • From {cheapest} Ks",
+                            emoji = tg_emoji(emoji_key, "✨")
                             callback_data=f"product:{key}",
                             **button_kwargs(emoji_key),
                         )
@@ -1476,7 +1476,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 rows.append(
                     [
                         InlineKeyboardButton(
-                            f"🟢 {product['name']} • {default_price} Ks",
+                            emoji = tg_emoji(emoji_key, "✨")
                             callback_data=f"product:{key}",
                             **button_kwargs(emoji_key),
                         )
