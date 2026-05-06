@@ -1273,6 +1273,7 @@ def welcome_text() -> str:
     digital_icon = tg_emoji("digital", "💻")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
+    choose_icon = tg_emoji("cart", "👇")
 
     return (
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
@@ -1281,7 +1282,7 @@ def welcome_text() -> str:
         f"⚡ Fast Delivery\n"
         f"{secure_icon} Safe Payment\n"
         f"{trusted_icon} Premium Service\n\n"
-        f"👇 <b>Please choose from the menu below</b>"
+        f"{choose_icon} <b>Please choose from the menu below</b>"
     )
 
 
