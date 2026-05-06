@@ -1286,8 +1286,7 @@ def welcome_text() -> str:
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
     choose_icon = tg_emoji("cart", "👇")
-    join_icon = tg_emoji("join", "📋")
-    contact_icon = tg_emoji("contact", "✉️")
+    
 
     return (
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
@@ -1296,8 +1295,6 @@ def welcome_text() -> str:
         f"{fast_icon} Fast Delivery\n"
         f"{secure_icon} Safe Payment\n"
         f"{trusted_icon} Premium Service\n"
-        f"{join_icon} Join Channel\n"
-        f"{contact_icon} Contact Admin\n\n"
         f"{choose_icon} <b>Please choose from the menu below</b>"
     )
 
@@ -1498,91 +1495,51 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     for plan_key, plan in product["plans"].items():
         if product["category"] == "digital":
             if not product.get("enabled", True):
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔴 {plan['label']} • Disabled",
-                            callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {plan['label']} • Disabled",
+                        callback_data="out_of_stock",
+                    )
+                ])
                 continue
 
-            if product_key in INVITE_ONLY_PRODUCTS:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"{plan['label']} • {plan['price']} Ks",
-                            callback_data=f"plan:{plan_key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
-                continue
-
-            stock = get_cached_digital_stock(product_key, plan_key)
-            if stock > 0:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"{plan['label']} • {plan['price']} Ks",
-                            callback_data=f"plan:{plan_key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
-            else:
-                rows.append(
-                    [
+            if product_key not in INVITE_ONLY_PRODUCTS:
+                stock = get_cached_digital_stock(product_key, plan_key)
+                if stock <= 0:
+                    rows.append([
                         InlineKeyboardButton(
                             f"🔴 {plan['label']} • Out of Stock",
                             callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
                         )
-                    ]
-                )
+                    ])
+                    continue
+
         else:
-            if not is_game_enabled(product_key):
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔴 {plan['label']} • Disabled",
-                            callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+            if not is_game_enabled(product_key) or get_cached_game_stock(product_key) <= 0:
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {plan['label']} • Out of Stock",
+                        callback_data="out_of_stock",
+                    )
+                ])
                 continue
 
-            stock = get_cached_game_stock(product_key)
-            if stock > 0:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"{plan['label']} • {plan['price']} Ks",
-                            callback_data=f"plan:{plan_key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
-            else:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔴 {plan['label']} • Out of Stock",
-                            callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
-rows.append([
-    InlineKeyboardButton(
-        "Back to Products",
-        callback_data="back_products",
-        **button_kwargs("back"),
-    )
-])
+        rows.append([
+            InlineKeyboardButton(
+                f"{plan['label']} • {plan['price']} Ks",
+                callback_data=f"plan:{plan_key}",
+                **button_kwargs(emoji_key),
+            )
+        ])
+
+    rows.append([
+        InlineKeyboardButton(
+            "Back to Products",
+            callback_data="back_products",
+            **button_kwargs("back"),
+        )
+    ])
+
     return InlineKeyboardMarkup(rows)
 
 
