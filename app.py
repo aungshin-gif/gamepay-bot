@@ -1491,11 +1491,11 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
 
-    rows.append([
+rows.append([
         InlineKeyboardButton(
-    "Back to Categories",
-    callback_data="back_categories",
-    **button_kwargs("back"),
+            "Back to Products",
+            callback_data="back_products",
+            **button_kwargs("back"),
         )
     ])
 
