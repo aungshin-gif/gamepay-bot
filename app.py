@@ -1415,15 +1415,29 @@ def category_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
         ]
     )
-
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
+
+    NORMAL_EMOJI = {
+        "capcut": "✂️",
+        "expressvpn": "🛡️",
+        "spotify": "🎵",
+        "netflix": "🎬",
+        "canva": "🎨",
+        "gemini": "🤖",
+        "picsart": "🖼️",
+        "alight": "🟦",
+        "grammarly": "📝",
+        "mlbb": "🎮",
+        "genshin": "✨",
+    }
 
     for key, product in PRODUCTS.items():
         if product["category"] != category_key:
             continue
 
         emoji_key = product.get("emoji_key", "default")
+        emoji = NORMAL_EMOJI.get(emoji_key, "✨")
 
         if category_key == "digital":
             if not product.get("enabled", True):
@@ -1432,39 +1446,31 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             cheapest = min(v["price"] for v in product["plans"].values())
 
             if key in INVITE_ONLY_PRODUCTS:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"{product['name']} • {cheapest} Ks",
-                            callback_data=f"product:{key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"{emoji} {product['name']} • {cheapest} Ks",
+                        callback_data=f"product:{key}",
+                    )
+                ])
                 continue
 
             total_stock = get_cached_digital_stock(key)
 
             if total_stock > 0:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            emoji = tg_emoji(emoji_key, "✨")
-                            callback_data=f"product:{key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"{emoji} {product['name']} • From {cheapest} Ks",
+                        callback_data=f"product:{key}",
+                    )
+                ])
             else:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔴 {product['name']} • Out of Stock",
-                            callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {product['name']} • Out of Stock",
+                        callback_data="out_of_stock",
+                    )
+                ])
+
         else:
             if not is_game_enabled(key):
                 continue
@@ -1473,25 +1479,19 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             default_price = next(iter(product["plans"].values()))["price"]
 
             if stock > 0:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            emoji = tg_emoji(emoji_key, "✨")
-                            callback_data=f"product:{key}",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"{emoji} {product['name']} • {default_price} Ks",
+                        callback_data=f"product:{key}",
+                    )
+                ])
             else:
-                rows.append(
-                    [
-                        InlineKeyboardButton(
-                            f"🔴 {product['name']} • Out of Stock",
-                            callback_data="out_of_stock",
-                            **button_kwargs(emoji_key),
-                        )
-                    ]
-                )
+                rows.append([
+                    InlineKeyboardButton(
+                        f"🔴 {product['name']} • Out of Stock",
+                        callback_data="out_of_stock",
+                    )
+                ])
 
     rows.append([InlineKeyboardButton("⬅️ Back to Categories", callback_data="back_categories")])
     return InlineKeyboardMarkup(rows)
