@@ -1269,7 +1269,6 @@ def payment_text(payment_name: str, account: str, amount: int) -> str:
         f"📷 ငွေလွှဲပြီး payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ\n"
         f"✅ ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
     )
-
 def welcome_text() -> str:
     shop_icon = tg_emoji("shop", "🎉")
     game_icon = tg_emoji("game", "🎮")
@@ -1278,8 +1277,8 @@ def welcome_text() -> str:
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
     choose_icon = tg_emoji("cart", "👇")
-   join_icon = tg_emoji("join", "📋")
-contact_icon = tg_emoji("contact", "✉️") 
+    join_icon = tg_emoji("join", "📋")
+    contact_icon = tg_emoji("contact", "✉️")
 
     return (
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
@@ -1292,6 +1291,7 @@ contact_icon = tg_emoji("contact", "✉️")
         f"{contact_icon} Contact Admin\n\n"
         f"{choose_icon} <b>Please choose from the menu below</b>"
     )
+
 
 
 def category_text() -> str:
