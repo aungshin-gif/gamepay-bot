@@ -56,8 +56,8 @@ CUSTOM_EMOJI = {
     "digital": os.getenv("EMOJI_DIGITAL", "").strip(),
     "payment": os.getenv("EMOJI_PAYMENT", "").strip(),
     "success": os.getenv("EMOJI_SUCCESS", "").strip(),
-    "default": os.getenv("EMOJI_DEFAULT", "").strip(),
-      "join": os.getenv("EMOJI_JOIN", "").strip(),
+"default": os.getenv("EMOJI_DEFAULT", "").strip(),
+    "join": os.getenv("EMOJI_JOIN", "").strip(),
     "contact": os.getenv("EMOJI_CONTACT", "").strip(),
     "category": os.getenv("EMOJI_CATEGORY", "").strip(),
     "back": os.getenv("EMOJI_BACK", "").strip(),
@@ -1270,11 +1270,11 @@ def payment_text(payment_name: str, account: str, amount: int) -> str:
         f"✅ ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
     )
 
-
 def welcome_text() -> str:
     shop_icon = tg_emoji("shop", "🎉")
     game_icon = tg_emoji("game", "🎮")
     digital_icon = tg_emoji("digital", "💻")
+    fast_icon = tg_emoji("fast", "⚡")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
     choose_icon = tg_emoji("cart", "👇")
@@ -1285,13 +1285,14 @@ def welcome_text() -> str:
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
         f"{game_icon} Game Top Up\n"
         f"{digital_icon} Digital Products\n"
-        f"⚡ Fast Delivery\n"
+        f"{fast_icon} Fast Delivery\n"
         f"{secure_icon} Safe Payment\n"
         f"{trusted_icon} Premium Service\n"
         f"{join_icon} Join Channel\n"
         f"{contact_icon} Contact Admin\n\n"
         f"{choose_icon} <b>Please choose from the menu below</b>"
     )
+
 
 def category_text() -> str:
     category_icon = tg_emoji("category", "🗂")
