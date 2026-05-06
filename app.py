@@ -49,6 +49,8 @@ CUSTOM_EMOJI = {
     "secure": os.getenv("EMOJI_SECURE", "").strip(),
     "trusted": os.getenv("EMOJI_TRUSTED", "").strip(),
     "cart": os.getenv("EMOJI_CART", "").strip(),
+    "refresh": os.getenv("EMOJI_REFRESH", "").strip(),
+"orders": os.getenv("EMOJI_ORDERS", "").strip(),
 
     # General icons
     "shop": os.getenv("EMOJI_SHOP", "").strip(),
@@ -1383,7 +1385,7 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     "My Orders",
                     callback_data="menu_myorders",
-                    **button_kwargs("stock"),
+                    **button_kwargs("orders"),
                 ),
                 InlineKeyboardButton(
                     "Contact Admin",
@@ -1395,7 +1397,7 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     "Refresh",
                     callback_data="menu_restart",
-                    **button_kwargs("cart"),
+                    **button_kwargs("refresh"),
                 )
             ],
         ]
