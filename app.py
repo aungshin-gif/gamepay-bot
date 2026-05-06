@@ -1803,7 +1803,8 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=my_orders_keyboard(rows),
         )
         return MENU_STATE
-if data == "menu_contact":
+
+    if data == "menu_contact":
         contact_icon = tg_emoji("contact", "📞")
         await safe_edit_message(
             query,
@@ -1818,7 +1819,6 @@ if data == "menu_contact":
         return MENU_STATE
 
     return MENU_STATE
-
 
 async def track_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
