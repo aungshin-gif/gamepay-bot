@@ -1803,15 +1803,14 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=my_orders_keyboard(rows),
         )
         return MENU_STATE
-
 if data == "menu_contact":
-    contact_icon = tg_emoji("contact", "📞")
-    await safe_edit_message(
-        query,
-        f"{contact_icon} <b>Contact Admin</b>\n\n👤 Telegram: {escape(CONTACT_USERNAME)}",
-        reply_markup=simple_back_main_keyboard(),
-    )
-    return MENU_STATE
+        contact_icon = tg_emoji("contact", "📞")
+        await safe_edit_message(
+            query,
+            f"{contact_icon} <b>Contact Admin</b>\n\n👤 Telegram: {escape(CONTACT_USERNAME)}",
+            reply_markup=simple_back_main_keyboard(),
+        )
+        return MENU_STATE
 
     if data == "menu_restart":
         context.user_data.clear()
