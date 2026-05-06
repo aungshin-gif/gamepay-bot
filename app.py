@@ -1358,9 +1358,19 @@ async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("🛒 Shop Now", callback_data="menu_shop")],
+            [
+                InlineKeyboardButton(
+                    "🛒 Shop Now",
+                    callback_data="menu_shop"
+                )
+            ],
 
-            [InlineKeyboardButton("📢 Join Channel", url=CHANNEL_URL)],
+            [
+                InlineKeyboardButton(
+                    "📢 Join Channel",
+                    url=CHANNEL_URL
+                )
+            ],
 
             [
                 InlineKeyboardButton(
@@ -1374,7 +1384,12 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 ),
             ],
 
-            [InlineKeyboardButton("🔄 Refresh", callback_data="menu_restart")],
+            [
+                InlineKeyboardButton(
+                    "♻️ Refresh",
+                    callback_data="menu_restart"
+                )
+            ],
         ]
     )
 
