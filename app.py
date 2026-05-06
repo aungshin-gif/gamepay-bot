@@ -57,6 +57,10 @@ CUSTOM_EMOJI = {
     "payment": os.getenv("EMOJI_PAYMENT", "").strip(),
     "success": os.getenv("EMOJI_SUCCESS", "").strip(),
     "default": os.getenv("EMOJI_DEFAULT", "").strip(),
+      "join": os.getenv("EMOJI_JOIN", "").strip(),
+    "contact": os.getenv("EMOJI_CONTACT", "").strip(),
+    "category": os.getenv("EMOJI_CATEGORY", "").strip(),
+    "back": os.getenv("EMOJI_BACK", "").strip(),
 }
 
 SHOP_NAME = "GAMEPAY HUB"
@@ -1274,6 +1278,8 @@ def welcome_text() -> str:
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
     choose_icon = tg_emoji("cart", "👇")
+    join_icon = tg_emoji("join", "📢")
+    contact_icon = tg_emoji("contact", "📞")
 
     return (
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
@@ -1281,16 +1287,19 @@ def welcome_text() -> str:
         f"{digital_icon} Digital Products\n"
         f"⚡ Fast Delivery\n"
         f"{secure_icon} Safe Payment\n"
-        f"{trusted_icon} Premium Service\n\n"
+        f"{trusted_icon} Premium Service\n"
+        f"{join_icon} Join Channel\n"
+        f"{contact_icon} Contact Admin\n\n"
         f"{choose_icon} <b>Please choose from the menu below</b>"
     )
 
-
-
 def category_text() -> str:
+    category_icon = tg_emoji("category", "🗂")
+    choose_icon = tg_emoji("cart", "👇")
+
     return (
-        f"🗂 <b>Shop Categories</b>\n\n"
-        f"စိတ်ကြိုက် category ကိုရွေးပေးပါ 👇"
+        f"{category_icon} <b>Shop Categories</b>\n\n"
+        f"စိတ်ကြိုက် category ကိုရွေးပေးပါ {choose_icon}"
     )
 
 def products_text(category_key: str) -> str:
@@ -1346,29 +1355,29 @@ async def send_or_edit_product_card(query, product_key: str, reply_markup=None):
     caption = plan_text(product_key)
     await safe_edit_message(query, caption, reply_markup=reply_markup)
 
-
 def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [
-                InlineKeyboardButton(
-                    "Shop Now",
-                    callback_data="menu_shop",
-                    **button_kwargs("shop"),
-                )
-            ],
+            [InlineKeyboardButton("🛒 Shop Now", callback_data="menu_shop")],
+
             [InlineKeyboardButton("📢 Join Channel", url=CHANNEL_URL)],
+
             [
                 InlineKeyboardButton(
-                    "My Orders",
-                    callback_data="menu_myorders",
-                    **button_kwargs("digital"),
+                    "📦 My Orders",
+                    callback_data="menu_myorders"
                 ),
-                InlineKeyboardButton("📞 Contact Admin", callback_data="menu_contact"),
+
+                InlineKeyboardButton(
+                    "📞 Contact Admin",
+                    callback_data="menu_contact"
+                ),
             ],
+
             [InlineKeyboardButton("🔄 Refresh", callback_data="menu_restart")],
         ]
     )
+
 
 def category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -1780,13 +1789,14 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return MENU_STATE
 
-    if data == "menu_contact":
-        await safe_edit_message(
-            query,
-            f"📞 <b>Contact Admin</b>\n\n👤 Telegram: {escape(CONTACT_USERNAME)}",
-            reply_markup=simple_back_main_keyboard(),
-        )
-        return MENU_STATE
+if data == "menu_contact":
+    contact_icon = tg_emoji("contact", "📞")
+    await safe_edit_message(
+        query,
+        f"{contact_icon} <b>Contact Admin</b>\n\n👤 Telegram: {escape(CONTACT_USERNAME)}",
+        reply_markup=simple_back_main_keyboard(),
+    )
+    return MENU_STATE
 
     if data == "menu_restart":
         context.user_data.clear()
