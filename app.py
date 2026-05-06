@@ -1370,39 +1370,39 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
         [
             [
                 InlineKeyboardButton(
-                    "🛒 Shop Now",
-                    callback_data="menu_shop"
+                    "Shop Now",
+                    callback_data="menu_shop",
+                    **button_kwargs("shop"),
                 )
             ],
-
             [
                 InlineKeyboardButton(
-                    "📢 Join Channel",
-                    url=CHANNEL_URL
+                    "Join Channel",
+                    url=CHANNEL_URL,
+                    **button_kwargs("join"),
                 )
             ],
-
             [
                 InlineKeyboardButton(
-                    "📦 My Orders",
-                    callback_data="menu_myorders"
+                    "My Orders",
+                    callback_data="menu_myorders",
+                    **button_kwargs("stock"),
                 ),
-
                 InlineKeyboardButton(
-                    "📞 Contact Admin",
-                    callback_data="menu_contact"
+                    "Contact Admin",
+                    callback_data="menu_contact",
+                    **button_kwargs("contact"),
                 ),
             ],
-
             [
                 InlineKeyboardButton(
-                    "♻️ Refresh",
-                    callback_data="menu_restart"
+                    "Refresh",
+                    callback_data="menu_restart",
+                    **button_kwargs("cart"),
                 )
             ],
         ]
     )
-
 
 def category_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -1493,8 +1493,9 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
 
     rows.append([
         InlineKeyboardButton(
-            "⬅️ Back to Categories",
-            callback_data="back_categories"
+    "Back to Categories",
+    callback_data="back_categories",
+    **button_kwargs("back"),
         )
     ])
 
@@ -1586,8 +1587,13 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                         )
                     ]
                 )
-
-    rows.append([InlineKeyboardButton("⬅️ Back to Products", callback_data="back_products")])
+rows.append([
+    InlineKeyboardButton(
+        "Back to Products",
+        callback_data="back_products",
+        **button_kwargs("back"),
+    )
+])
     return InlineKeyboardMarkup(rows)
 
 
