@@ -43,6 +43,7 @@ CUSTOM_EMOJI = {
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
     "alight": "6244275874447760070",
     "gemini": "6244416981303303108",
+    "hiddify": "5940644462832127906",
     "outline": "6244413064293127754",
     "skip": "5416117059207572332",
 "back": "6319056439096644016",
