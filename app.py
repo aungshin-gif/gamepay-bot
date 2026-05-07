@@ -57,7 +57,6 @@ CUSTOM_EMOJI = {
 "uab": "6145670035286268472",
 
     # Text/card icons
-    "price": os.getenv("EMOJI_PRICE", "").strip(),
     "stock": os.getenv("EMOJI_STOCK", "").strip(),
     "status": os.getenv("EMOJI_STATUS", "").strip(),
     "description": os.getenv("EMOJI_DESCRIPTION", "").strip(),
@@ -72,8 +71,6 @@ CUSTOM_EMOJI = {
     "shop": os.getenv("EMOJI_SHOP", "").strip(),
     "game": os.getenv("EMOJI_GAME", "").strip(),
     "digital": os.getenv("EMOJI_DIGITAL", "").strip(),
-    "payment": os.getenv("EMOJI_PAYMENT", "").strip(),
-    "success": os.getenv("EMOJI_SUCCESS", "").strip(),
 "default": os.getenv("EMOJI_DEFAULT", "").strip(),
     "join": os.getenv("EMOJI_JOIN", "").strip(),
     "contact": os.getenv("EMOJI_CONTACT", "").strip(),
@@ -2127,12 +2124,11 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await fake_loading(query, "⏳ Preparing payment...")
     await safe_edit_message(
         query,
-       payment_text(
-    PAYMENT_ACCOUNTS[payment_key]["label"],
-    PAYMENT_ACCOUNTS[payment_key]["text"],
-    int(context.user_data["price"]),
-    payment_key,
-       ) 
+        payment_text(
+            PAYMENT_ACCOUNTS[payment_key]["label"],
+            PAYMENT_ACCOUNTS[payment_key]["text"],
+            int(context.user_data["price"]),
+            payment_key,
         ),
         reply_markup=payment_back_keyboard(),
     )
