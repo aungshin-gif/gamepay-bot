@@ -142,6 +142,24 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "plans": {
             "default": {"label": "Blessing", "price": 14000},
         },
+        "honkai_starrail_supply": {
+    "category": "game",
+    "emoji_key": "hsr",
+    "name": "Express Supply",
+    "full_name": "Honkai Express Supply",
+    "description": "🚄 Fast and trusted Honkai Express Supply top up service.",
+    "photo": "hsr.jpg",
+    "stock": 10,
+    "enabled": True,
+    "requires_detail_label": (
+        "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
+        "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
+        "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+    ),
+    "plans": {
+        "default": {"label": "Express Supply", "price": 18000},
+    },
+},
     },
     "capcut_pro": {
         "category": "digital",
