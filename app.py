@@ -1664,21 +1664,40 @@ def payment_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-
-
 def payment_back_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("⬅️ Back to Payment", callback_data="back_payment_methods")],
-            [InlineKeyboardButton("⬅️ Back to Plans", callback_data="back_plan")],
+            [
+                InlineKeyboardButton(
+                    "Back to Payment",
+                    callback_data="back_payment_methods",
+                    **button_kwargs("payment_method"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Back to Plans",
+                    callback_data="back_plan",
+                    **button_kwargs("back"),
+                )
+            ],
         ]
     )
 
 
 def simple_back_main_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
-        [[InlineKeyboardButton("⬅️ Back", callback_data="back_main")]]
+        [
+            [
+                InlineKeyboardButton(
+                    "Back",
+                    callback_data="back_main",
+                    **button_kwargs("back"),
+                )
+            ]
+        ]
     )
+
 
 
 def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
