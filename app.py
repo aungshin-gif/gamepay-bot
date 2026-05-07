@@ -2012,13 +2012,12 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["detail"] = text
 
     payment_method_icon = tg_emoji("payment_method", "💳")
-payment_method_icon = tg_emoji("payment_method", "💳")
 
-await update.message.reply_text(
-    f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
-    reply_markup=payment_keyboard(),
-    parse_mode=ParseMode.HTML,
-)
+    await update.message.reply_text(
+        f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
+        reply_markup=payment_keyboard(),
+        parse_mode=ParseMode.HTML,
+    )
 
     return PAYMENT_STATE
 
@@ -2038,15 +2037,18 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         if product_key == "canva_pro_edu":
             await query.answer("Canva အတွက် mail ပို့ပေးပါ။", show_alert=True)
             return DETAIL_STATE
+context.user_data["detail"] = "No"
 
-        context.user_data["detail"] = "No"
         payment_method_icon = tg_emoji("payment_method", "💳")
 
-await safe_edit_message(
-    query,
-    f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
-    reply_markup=payment_keyboard(),
-)
+        await safe_edit_message(
+            query,
+            f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
+            reply_markup=payment_keyboard(),
+        )
+
+        return PAYMENT_STATE
+        
 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
