@@ -2881,8 +2881,6 @@ async def admin_panel_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         parse_mode=ParseMode.HTML,
         reply_markup=admin_panel_keyboard(),
     )
-
-
 async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer(cache_time=1)
@@ -2895,51 +2893,51 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "admin_gui:close":
         await safe_edit_message(
             query,
-            "✅ <b>Admin Panel Closed</b>",
+            f"{tg_emoji('success', '✅')} <b>Admin Panel Closed</b>",
             reply_markup=None,
         )
         return
 
     if data == "admin_gui:stats":
-    await fake_loading(query)
-    stats = get_stats_summary()
+        await fake_loading(query)
+        stats = get_stats_summary()
 
-    stats_icon = tg_emoji("status", "📊")
-    orders_icon = tg_emoji("orders", "📦")
-    success_icon = tg_emoji("success", "✅")
-    pending_icon = tg_emoji("pending", "⏳")
-    reject_icon = tg_emoji("reject", "❌")
-    price_icon = tg_emoji("price", "💰")
+        stats_icon = tg_emoji("status", "📊")
+        orders_icon = tg_emoji("orders", "📦")
+        success_icon = tg_emoji("success", "✅")
+        pending_icon = tg_emoji("pending", "⏳")
+        reject_icon = tg_emoji("reject", "❌")
+        price_icon = tg_emoji("price", "💰")
 
-    await safe_edit_message(
-        query,
-        (
-            f"{stats_icon} <b>Bot Statistics</b>\n\n"
-            f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
-            f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
-            f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
-            f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
-            f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks"
-        ),
-        reply_markup=admin_panel_keyboard(),
-    )
-    return
+        await safe_edit_message(
+            query,
+            (
+                f"{stats_icon} <b>Bot Statistics</b>\n\n"
+                f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
+                f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+                f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
+                f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
+                f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks"
+            ),
+            reply_markup=admin_panel_keyboard(),
+        )
+        return
 
     if data == "admin_gui:stock":
-        await fake_loading(query, "⏳ Loading stock...")
+        await fake_loading(query)
+
         lines = [f"{tg_emoji('stock', '📦')} <b>Stock List</b>"]
+
         for key, p in PRODUCTS.items():
+            icon = tg_emoji(p.get("emoji_key", "default"), "✨")
+
             if p["category"] == "digital":
                 if key in INVITE_ONLY_PRODUCTS:
-                    icon = tg_emoji(p.get("emoji_key", "default"), "✨")
-
-if p["category"] == "digital":
-    if key in INVITE_ONLY_PRODUCTS:
-        lines.append(f"{icon} <b>{escape(p['name'])}</b> → Invite Flow")
-    else:
-        lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
-else:
-    lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
+                    lines.append(f"{icon} <b>{escape(p['name'])}</b> → Invite Flow")
+                else:
+                    lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
+            else:
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
 
         await safe_edit_message(
             query,
@@ -2949,24 +2947,26 @@ else:
         return
 
     if data == "admin_gui:pending":
-        await fake_loading(query, "⏳ Loading pending orders...")
+        await fake_loading(query)
         rows = get_pending_orders(limit=20)
+
         if not rows:
             await safe_edit_message(
                 query,
-                f"{tg_emoji('success', '✅')} <b>Pending orders မရှိပါ။</b>"
+                f"{tg_emoji('success', '✅')} <b>Pending orders မရှိပါ။</b>",
                 reply_markup=admin_panel_keyboard(),
             )
             return
 
-        lines = ["📋 <b>Pending Orders</b>"]
+        lines = [f"{tg_emoji('pending', '📋')} <b>Pending Orders</b>"]
+
         for o in rows:
             lines.append(
-                f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
-                f"🛍️ {escape(o['product_name'])}\n"
-                f"📦 {escape(o['plan_label'])}\n"
-                f"👤 {escape(o['full_name'])}\n"
-                f"📌 {human_status(o['status'])}"
+                f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+                f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+                f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+                f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
+                f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
             )
 
         await safe_edit_message(
@@ -2977,26 +2977,30 @@ else:
         return
 
     if data == "admin_gui:lowstock":
-        await fake_loading(query, "⏳ Loading low stock...")
+        await fake_loading(query)
+
         lines = [f"{tg_emoji('pending', '⚠️')} <b>Low Stock Items</b>"]
         found = False
 
         for key, p in PRODUCTS.items():
+            icon = tg_emoji(p.get("emoji_key", "default"), "✨")
+
             if p["category"] == "digital":
                 if key in INVITE_ONLY_PRODUCTS:
                     continue
+
                 total = get_cached_digital_stock(key)
                 if total <= LOW_STOCK_THRESHOLD:
                     found = True
-                    lines.append(f"💻 <b>{escape(p['name'])}</b> → {total}")
+                    lines.append(f"{icon} <b>{escape(p['name'])}</b> → {total}")
             else:
                 total = get_cached_game_stock(key)
                 if total <= LOW_STOCK_THRESHOLD:
                     found = True
-                    lines.append(f"🎮 <b>{escape(p['name'])}</b> → {total}")
+                    lines.append(f"{icon} <b>{escape(p['name'])}</b> → {total}")
 
         if not found:
-            lines.append("✅ Low stock item မရှိပါ။")
+            lines.append(f"{tg_emoji('success', '✅')} Low stock item မရှိပါ။")
 
         await safe_edit_message(
             query,
