@@ -906,8 +906,8 @@ def get_pending_orders(limit: int = 20) -> List[dict]:
 
 def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     if product_key in INVITE_ONLY_PRODUCTS or product_key in MANUAL_UNLIMITED_PRODUCTS:
-    return 999
-    
+        return 999
+
     conn = db_connect()
     cur = conn.cursor()
 
@@ -937,7 +937,8 @@ def get_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
 
 def get_cached_digital_stock(product_key: str, plan_key: Optional[str] = None) -> int:
     if product_key in INVITE_ONLY_PRODUCTS or product_key in MANUAL_UNLIMITED_PRODUCTS:
-    return 999
+        return 999
+
     cache_key = f"{product_key}:{plan_key or 'all'}"
     if cache_key in CACHE["digital_stock"]:
         return CACHE["digital_stock"][cache_key]
@@ -1597,7 +1598,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 ])
                 continue
 
-                if product_key not in INVITE_ONLY_PRODUCTS and product_key not in MANUAL_UNLIMITED_PRODUCTS:
+            if product_key not in INVITE_ONLY_PRODUCTS and product_key not in MANUAL_UNLIMITED_PRODUCTS:
                 stock = get_cached_digital_stock(product_key, plan_key)
                 if stock <= 0:
                     rows.append([
@@ -2045,7 +2046,7 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
                 return PLAN_STATE
 
-            if product_key not in INVITE_ONLY_PRODUCTS and get_cached_digital_stock(product_key, plan_key) <= 0:
+            if product_key not in INVITE_ONLY_PRODUCTS and product_key not in MANUAL_UNLIMITED_PRODUCTS and get_cached_digital_stock(product_key, plan_key) <= 0:
                 await query.answer("🔴 ဒီ plan က stock မရှိတော့ပါ။", show_alert=True)
                 return PLAN_STATE
         else:
