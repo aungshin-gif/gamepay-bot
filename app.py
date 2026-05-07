@@ -126,30 +126,31 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "default": {"label": "Weekly Pass", "price": 6400},
         },
     },
-    "genshin_blessing": {
-        "category": "game",
-     "emoji_key": "genshin",
-        "name": "Blessing",
-        "full_name": "Genshin Impact Blessing",
-        "description": "✨ Safe and quick Genshin Blessing top up service.",
-        "photo": "Buy-Welkin-Moon-In-Game.png",
-        "stock": 10,
-        "enabled": True,
-        "requires_detail_label": (
-            "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
-            "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
-            "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
-        ),
-        "plans": {
-            "default": {"label": "Blessing", "price": 14000},
-        },
-        },
-        "honkai_starrail_supply": {
+"genshin_blessing": {
+    "category": "game",
+    "emoji_key": "genshin",
+    "name": "Blessing",
+    "full_name": "Genshin Impact Blessing",
+    "description": "✨ Safe and quick Genshin Blessing top up service.",
+    "photo": "Buy-Welkin-Moon-In-Game.png",
+    "stock": 10,
+    "enabled": True,
+    "requires_detail_label": (
+        "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
+        "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
+        "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+    ),
+    "plans": {
+        "default": {"label": "Blessing", "price": 20300},
+    },
+},
+
+"honkai_starrail_supply": {
     "category": "game",
     "emoji_key": "hsr",
     "name": "Express Supply",
-    "full_name": "Honkai Express Supply",
-    "description": "🚄 Fast and trusted Honkai Express Supply top up service.",
+    "full_name": "Honkai Star Rail Express Supply",
+    "description": "🚄 Fast and trusted Honkai Star Rail Express Supply top up service.",
     "photo": "hsr.jpg",
     "stock": 10,
     "enabled": True,
@@ -162,7 +163,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "default": {"label": "Express Supply", "price": 18000},
     },
 },
-    },
     "capcut_pro": {
         "category": "digital",
         "emoji_key": "capcut",
