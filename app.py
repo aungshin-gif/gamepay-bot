@@ -484,7 +484,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "full_name": "PicsArt Pro Subscription",
         "description": "PicsArt Pro premium editing account service.",
         "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
-        "enabled": True,
+        "enabled": False,
         "requires_detail_label": (
             "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
@@ -524,8 +524,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
-            "gram_1m": {"label": "1 Month", "price": 9000},
-            "gram_2m": {"label": "2 Months", "price": 13500},
+            "gram_1m": {"label": "1 Month", "price": 13000},
+            "gram_2m": {"label": "2 Months", "price": 23500},
         },
     },
 }
