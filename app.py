@@ -36,13 +36,15 @@ CUSTOM_EMOJI = {
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
     "netflix": os.getenv("EMOJI_NETFLIX", "").strip(),
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
-    "gemini": os.getenv("EMOJI_GEMINI", "").strip(),
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
-    "alight": os.getenv("EMOJI_ALIGHT", "").strip(),
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
+    "alight": "6244275874447760070",
+    "gemini": "6244416981303303108",
+    "outline": "6244413064293127754",
     "skip": "5416117059207572332",
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
+    "outofstock": "5210952531676504517",
 "detail": "5395444784611480792",
     "payment": "5472250091332993630",
     "phone": "5348125953090403204",
@@ -212,9 +214,30 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
             "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
             "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
-            "private_3m": {"label": "3 Month Private - All Devices Support", "price": 9500},
+            "private_3m": {"label": "3 Month Share - All Devices Support", "price": 9000},
+            "private_6m": {"label": "3 Month Private - All Devices Support", "price": 11500},
         },
     },
+"outline_vpn": {
+    "category": "digital",
+    "emoji_key": "outline",
+    "name": "Outline Key",
+    "full_name": "Outline VPN Key",
+    "description": "🔐 Outline VPN key delivery service.",
+    "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+    ),
+    "plans": {
+        "50gb_1m": {"label": "50GB Plan - 1 Month", "price": 3000},
+        "100gb_1m": {"label": "100GB Plan - 1 Month", "price": 4500},
+        "150gb_1m": {"label": "150GB Plan - 1 Month", "price": 6500},
+        "200gb_1m": {"label": "200GB Plan - 1 Month", "price": 8000},
+    },
+},
+    
     "spotify_premium": {
         "category": "digital",
         "emoji_key": "spotify",
@@ -264,6 +287,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "edu_1y": {"label": "1 Year Invite Access", "price": 3500},
+            "pro_1m": {"label": "Canva Pro - 1 Month", "price": 8000},
         },
     },
     "gemini_ai_pro": {
@@ -441,11 +465,22 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "plan_key": "private_3m",
                 "email": "expressprivate2@example.com",
                 "password": "pass1234",
-                "extra": "✅ Private Account\n✅ All Devices Support",
+                "extra": "✅ Share Account\n✅ All Devices Support",
+                "used": False,
+            },
+            {
+                "plan_key": "private_6m",
+                "email": "expressprivate2@example.com",
+                "password": "pass1234",
+                "extra": "✅ Share Account\n✅ All Devices Support",
                 "used": False,
             },
         ],
     },
+    "outline_vpn": {
+    "auto_delivery": False,
+    "accounts": [],
+},
     "spotify_premium": {
         "auto_delivery": True,
         "accounts": [
@@ -480,14 +515,14 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "email": "netflixshare1@example.com",
                 "password": "nf123456",
                 "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
-                "used": False,
+                "used": True,
             },
             {
                 "plan_key": "private_1m",
                 "email": "netflixshare2@example.com",
                 "password": "nf223456",
                 "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
-                "used": False,
+                "used": True,
             },
         ],
     },
@@ -1505,7 +1540,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             else:
                 rows.append([
                     InlineKeyboardButton(
-                        f"🔴 {product['name']} • Out of Stock",
+                        f"{tg_emoji(emoji_key, '🔴')} {product['name']} • Out of Stock",
                         callback_data="out_of_stock",
                     )
                 ])
@@ -1528,7 +1563,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
             else:
                 rows.append([
                     InlineKeyboardButton(
-                        f"🔴 {product['name']} • Out of Stock",
+                        f"{tg_emoji(emoji_key, '🔴')} {product['name']} • Out of Stock",
                         callback_data="out_of_stock",
                     )
                 ])
