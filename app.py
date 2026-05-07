@@ -35,6 +35,7 @@ CUSTOM_EMOJI = {
     "capcut": os.getenv("EMOJI_CAPCUT", "").strip(),
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
+    "netflix": "5318911503938634641",
     "netflix": os.getenv("EMOJI_NETFLIX", "").strip(),
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
@@ -178,10 +179,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
-        "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
-        "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
-    ),
+    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+),
+    
     "plans": {
         "default": {"label": "Blessing", "price": 20300},
     },
@@ -197,10 +199,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
-        "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
-        " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
-    ),
+    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+),
+    
     "plans": {
         "default": {"label": "Express Supply", "price": 18000},
     },
@@ -214,11 +217,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "photo": "arena.jpg",
     "stock": 10,
     "enabled": True,
-    "requires_detail_label": (
-        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
-        "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
-        " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
-    ),
+        "requires_detail_label": (
+    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+),
+
     "plans": {
         "beginner_select": {
             "label": "Beginner Select",
