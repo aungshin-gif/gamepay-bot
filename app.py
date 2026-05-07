@@ -62,6 +62,7 @@ CUSTOM_EMOJI = {
     "join": os.getenv("EMOJI_JOIN", "").strip(),
     "contact": os.getenv("EMOJI_CONTACT", "").strip(),
     "category": os.getenv("EMOJI_CATEGORY", "").strip(),
+      "cart": os.getenv("EMOJI_CART", "").strip(),
     "back": os.getenv("EMOJI_BACK", "").strip(),
 }
 
@@ -1161,10 +1162,8 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
 
 def tg_emoji(key: str, fallback: str = "✨") -> str:
     emoji_id = CUSTOM_EMOJI.get(key, "") or CUSTOM_EMOJI.get("default", "")
-
     if emoji_id:
         return f'<tg-emoji emoji-id="{escape(emoji_id)}">{escape(fallback)}</tg-emoji>'
-
     return fallback
 
 def button_kwargs(key: str) -> dict:
@@ -1371,7 +1370,7 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     "Shop Now",
                     callback_data="menu_shop",
-                    **button_kwargs("shop"),
+                    **button_kwargs("cart"),
                 )
             ],
             [
