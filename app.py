@@ -2867,7 +2867,7 @@ async def admin_panel_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     await update.message.reply_text(
-        "🛠 <b>Admin Panel</b>\n\nQuick control buttons",
+        f"{tg_emoji('status', '🛠')} <b>Admin Panel</b>\n\nQuick control buttons", 
         parse_mode=ParseMode.HTML,
         reply_markup=admin_panel_keyboard(),
     )
@@ -2891,33 +2891,45 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if data == "admin_gui:stats":
-        await fake_loading(query, "⏳ Loading stats...")
-        stats = get_stats_summary()
-        await safe_edit_message(
-            query,
-            (
-                f"📊 <b>Bot Statistics</b>\n\n"
-                f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
-                f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
-                f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
-                f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
-                f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks"
-            ),
-            reply_markup=admin_panel_keyboard(),
-        )
-        return
+    await fake_loading(query)
+    stats = get_stats_summary()
+
+    stats_icon = tg_emoji("status", "📊")
+    orders_icon = tg_emoji("orders", "📦")
+    success_icon = tg_emoji("success", "✅")
+    pending_icon = tg_emoji("pending", "⏳")
+    reject_icon = tg_emoji("reject", "❌")
+    price_icon = tg_emoji("price", "💰")
+
+    await safe_edit_message(
+        query,
+        (
+            f"{stats_icon} <b>Bot Statistics</b>\n\n"
+            f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
+            f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+            f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
+            f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
+            f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks"
+        ),
+        reply_markup=admin_panel_keyboard(),
+    )
+    return
 
     if data == "admin_gui:stock":
         await fake_loading(query, "⏳ Loading stock...")
-        lines = ["📦 <b>Stock List</b>"]
+        lines = [f"{tg_emoji('stock', '📦')} <b>Stock List</b>"]
         for key, p in PRODUCTS.items():
             if p["category"] == "digital":
                 if key in INVITE_ONLY_PRODUCTS:
-                    lines.append(f"💻 <b>{escape(p['name'])}</b> → Invite Flow")
-                else:
-                    lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
-            else:
-                lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
+                    icon = tg_emoji(p.get("emoji_key", "default"), "✨")
+
+if p["category"] == "digital":
+    if key in INVITE_ONLY_PRODUCTS:
+        lines.append(f"{icon} <b>{escape(p['name'])}</b> → Invite Flow")
+    else:
+        lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
+else:
+    lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
 
         await safe_edit_message(
             query,
@@ -2932,7 +2944,7 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not rows:
             await safe_edit_message(
                 query,
-                "✅ <b>Pending orders မရှိပါ။</b>",
+                f"{tg_emoji('success', '✅')} <b>Pending orders မရှိပါ။</b>"
                 reply_markup=admin_panel_keyboard(),
             )
             return
@@ -2956,7 +2968,7 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "admin_gui:lowstock":
         await fake_loading(query, "⏳ Loading low stock...")
-        lines = ["⚠️ <b>Low Stock Items</b>"]
+        lines = [f"{tg_emoji('pending', '⚠️')} <b>Low Stock Items</b>"]
         found = False
 
         for key, p in PRODUCTS.items():
