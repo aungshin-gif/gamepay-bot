@@ -44,6 +44,11 @@ CUSTOM_EMOJI = {
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
 "detail": "5395444784611480792",
+    "payment_method": "6179409279729012467",
+"kpay": "6172325371124389041",
+"wave": "6172676549125346152",
+"aya": "6145467330009767114",
+"uab": "6145670035286268472",
 
     # Text/card icons
     "price": os.getenv("EMOJI_PRICE", "").strip(),
@@ -85,20 +90,23 @@ DUPLICATE_ORDER_WINDOW_MINUTES = 5
 
 PAYMENT_ACCOUNTS = {
     "kpay": {
-        "label": "💙 KPay",
-        "text": "💙 KPay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+        "label": "KPay",
+        "text": "KPay\n📱 09795687480\n👤 Aung Shin Thant Htun",
     },
+
     "wave": {
-        "label": "💛 Wave Pay",
-        "text": "💛 Wave Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+        "label": "Wave Pay",
+        "text": "Wave Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
     },
+
     "uab": {
-        "label": "💚 UAB Pay",
-        "text": "💚 UAB Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+        "label": "UAB Pay",
+        "text": "UAB Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
     },
+
     "aya": {
-        "label": "❤️ AYA Pay",
-        "text": "❤️ AYA Pay\n📲 09795687480\n👤 Aung Shin Thant Htun",
+        "label": "AYA Pay",
+        "text": "AYA Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
     },
 }
 
@@ -1599,17 +1607,17 @@ def detail_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("💙 KPay", callback_data="pay:kpay")],
-            [InlineKeyboardButton("💛 Wave Pay", callback_data="pay:wave")],
-            [InlineKeyboardButton("❤️ AYA Pay", callback_data="pay:aya")],
-            [InlineKeyboardButton("💚 UAB Pay", callback_data="pay:uab")],
-            [InlineKeyboardButton("⬅️ Back", callback_data="back_plan")],
+            [InlineKeyboardButton("KPay", callback_data="pay:kpay", **button_kwargs("kpay"))],
+            [InlineKeyboardButton("Wave Pay", callback_data="pay:wave", **button_kwargs("wave"))],
+            [InlineKeyboardButton("AYA Pay", callback_data="pay:aya", **button_kwargs("aya"))],
+            [InlineKeyboardButton("UAB Pay", callback_data="pay:uab", **button_kwargs("uab"))],
+            [InlineKeyboardButton("Back", callback_data="back_plan", **button_kwargs("back"))],
         ]
     )
+
 
 
 def payment_back_keyboard() -> InlineKeyboardMarkup:
@@ -1973,11 +1981,13 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["detail"] = text
 
-    await update.message.reply_text(
-        "💳 <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
-        reply_markup=payment_keyboard(),
-        parse_mode=ParseMode.HTML,
-    )
+    payment_method_icon = tg_emoji("payment_method", "💳")
+
+await query.message.reply_text(
+    f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
+    reply_markup=payment_keyboard(),
+    parse_mode=ParseMode.HTML,
+)
     return PAYMENT_STATE
 
 
