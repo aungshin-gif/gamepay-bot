@@ -890,6 +890,7 @@ MANUAL_UNLIMITED_PRODUCTS = {
     "wink_app",
     "meitu_vip",
     "canva_pro_edu",
+    "youtube_premium",
 }
 
 (
