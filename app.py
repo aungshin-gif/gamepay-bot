@@ -1301,7 +1301,7 @@ def product_caption(product: dict, product_key: str) -> str:
 
 
 def payment_text(payment_name: str, account: str, amount: int) -> str:
-    payment_icon = tg_emoji("payment", "💳")
+    payment_icon = tg_emoji("payment_method", "💳")
     price_icon = tg_emoji("price", "💸")
 
     return (
