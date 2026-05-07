@@ -58,6 +58,8 @@ CUSTOM_EMOJI = {
 "pending": "5386367538735104399",
 "reject": "5240241223632954241",
 "reason": "5440660757194744323",
+    "new_order": "5424818078833715060",
+"contact": "5271604874419647061",
     "payment_method": "6179409279729012467",    
 "kpay": "6172325371124389041",
 "wave": "6172676549125346152",
@@ -2458,11 +2460,11 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
     admin_caption = (
-        f"🆕 <b>New Order Received</b>\n\n"
-        f"{order_summary_text(data)}\n\n"
-        f"👤 <b>Customer:</b> {escape(data['full_name'])}\n"
-        f"🔗 <b>Username:</b> {escape(data['username'] or '-')}\n"
-        f"🪪 <b>User ID:</b> <code>{data['user_id']}</code>"
+    f"{tg_emoji('success', '🆕')} <b>New Order Received</b>\n\n"
+    f"{order_summary_text(data)}\n\n"
+    f"{tg_emoji('user', '👤')} <b>Customer:</b> {escape(data['full_name'])}\n"
+    f"{tg_emoji('contact', '🔗')} <b>Username:</b> {escape(data['username'] or '-')}\n"
+    f"{tg_emoji('id', '🪪')} <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
     await context.bot.send_photo(
