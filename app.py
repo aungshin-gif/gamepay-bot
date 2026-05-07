@@ -63,6 +63,8 @@ CUSTOM_EMOJI = {
     "contact": os.getenv("EMOJI_CONTACT", "").strip(),
     "category": os.getenv("EMOJI_CATEGORY", "").strip(),
       "cart": os.getenv("EMOJI_CART", "").strip(),
+    "shop_now": os.getenv("EMOJI_SHOP_NOW", "").strip(),
+    "choose": os.getenv("EMOJI_CHOOSE", "").strip(),
     "back": os.getenv("EMOJI_BACK", "").strip(),
 }
 
@@ -1367,10 +1369,12 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
+                
                 InlineKeyboardButton(
                     "Shop Now",
                     callback_data="menu_shop",
-                    **button_kwargs("cart"),
+                    **button_kwargs("shop_now"),
+                    
                 )
             ],
             [
