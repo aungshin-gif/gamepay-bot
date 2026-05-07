@@ -2335,7 +2335,11 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        await fake_loading(query, "⏳ Opening product...")
+        
+        await fake_loading(
+    query,
+    f"{tg_emoji('loading', '⏳')} <b>Opening product...</b>"
+)
         await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
@@ -2509,8 +2513,11 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["payment_key"] = payment_key
     context.user_data["payment_name"] = PAYMENT_ACCOUNTS[payment_key]["label"]
-
-    await fake_loading(query, "⏳ Preparing payment...")
+    
+    await fake_loading(
+    query,
+    f"{tg_emoji('payment', '💳')} <b>Preparing payment...</b>"
+)
     await safe_edit_message(
         query,
         payment_text(
@@ -3199,8 +3206,10 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     order_update_status(order_id, "delivered", "Manually delivered")
     log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
-    await update.message.reply_text("✅ Delivered successfully.")
-
+    await update.message.reply_text(
+    f"{tg_emoji('success', '✅')} <b>Delivered successfully.</b>",
+    parse_mode=ParseMode.HTML,
+)
 
 async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
