@@ -2369,27 +2369,30 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_myorders":
         rows = get_user_orders(query.from_user.id, limit=10)
         if not rows:
-            await safe_edit_message(
-                query,
-                "📦 <b>Your Orders</b>\n\nသင့် order history မရှိသေးပါ။",
-                reply_markup=simple_back_main_keyboard(),
+           await safe_edit_message(
+    query,
+    f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
+    "သင့် order history မရှိသေးပါ။",
+    reply_markup=simple_back_main_keyboard(),
+) 
             )
             return MENU_STATE
-
         await safe_edit_message(
-            query,
-            "📦 <b>Your Orders</b>\n\nကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
-            reply_markup=my_orders_keyboard(rows),
-        )
+    query,
+    f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
+    "ကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
+    reply_markup=my_orders_keyboard(rows),
+)
         return MENU_STATE
 
     if data == "menu_contact":
         contact_icon = tg_emoji("contact", "📞")
         await safe_edit_message(
-            query,
-            f"{contact_icon} <b>Contact Admin</b>\n\n👤 Telegram: {escape(CONTACT_USERNAME)}",
-            reply_markup=simple_back_main_keyboard(),
-        )
+    query,
+    f"{contact_icon} <b>Contact Admin</b>\n\n"
+    f"{tg_emoji('user', '👤')} Telegram: {escape(CONTACT_USERNAME)}",
+    reply_markup=simple_back_main_keyboard(),
+)
         return MENU_STATE
 
     if data == "menu_restart":
