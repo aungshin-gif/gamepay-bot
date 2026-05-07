@@ -1552,6 +1552,8 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 continue
 
             stock = get_cached_game_stock(key)
+            if key == "outline_vpn":
+    stock = 999
             default_price = next(iter(product["plans"].values()))["price"]
 
             if stock > 0:
