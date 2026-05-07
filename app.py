@@ -44,6 +44,12 @@ CUSTOM_EMOJI = {
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
 "detail": "5395444784611480792",
+    "payment": "5472250091332993630",
+    "phone": "5348125953090403204",
+    "user": "5409109841538994759",
+    "price": "6039495948353146588",
+    "camera": "5231012545799666522",
+    "success": "5206607081334906820",
     "payment_method": "6179409279729012467",
 "kpay": "6172325371124389041",
 "wave": "6172676549125346152",
@@ -1299,18 +1305,31 @@ def product_caption(product: dict, product_key: str) -> str:
         f"{trusted_icon} Trusted Seller"
     )
 
+def payment_text(payment_name: str, account: str, amount: int, payment_key: str) -> str:
 
-def payment_text(payment_name: str, account: str, amount: int) -> str:
-    payment_icon = tg_emoji("payment_method", "💳")
+    payment_icon = tg_emoji("payment", "💳")
+    pay_emoji = tg_emoji(payment_key, "💰")
+
+    phone_emoji = tg_emoji("phone", "📱")
+    user_emoji = tg_emoji("user", "👤")
     price_icon = tg_emoji("price", "💸")
+    camera_emoji = tg_emoji("camera", "📷")
+    success_emoji = tg_emoji("success", "✅")
 
     return (
         f"{payment_icon} <b>Payment Info</b>\n\n"
-        f"🏦 <b>Method:</b> {escape(payment_name)}\n\n"
-        f"<pre>{escape(account)}</pre>\n"
+
+        f"{pay_emoji} <b>Method:</b> {escape(payment_name)}\n\n"
+
+        f"{pay_emoji} KPay\n"
+        f"{phone_emoji} 09795687480\n"
+        f"{user_emoji} Aung Shin Thant Htun\n\n"
+
         f"{price_icon} <b>Amount:</b> {amount} Ks\n\n"
-        f"📷 ငွေလွှဲပြီး payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ\n"
-        f"✅ ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
+
+        f"{camera_emoji} ငွေလွှဲပြီး payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ\n"
+
+        f"{success_emoji} ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
     )
 def welcome_text() -> str:
     shop_icon = tg_emoji("shop", "🎉")
@@ -2108,10 +2127,12 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await fake_loading(query, "⏳ Preparing payment...")
     await safe_edit_message(
         query,
-        payment_text(
-            PAYMENT_ACCOUNTS[payment_key]["label"],
-            PAYMENT_ACCOUNTS[payment_key]["text"],
-            int(context.user_data["price"]),
+       payment_text(
+    PAYMENT_ACCOUNTS[payment_key]["label"],
+    PAYMENT_ACCOUNTS[payment_key]["text"],
+    int(context.user_data["price"]),
+    payment_key,
+       ) 
         ),
         reply_markup=payment_back_keyboard(),
     )
