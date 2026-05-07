@@ -3322,15 +3322,22 @@ async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     stats = get_stats_summary()
     await update.message.reply_text(
-        f"📊 <b>Bot Statistics</b>\n\n"
-        f"📦 <b>Total Orders:</b> {stats['total_orders']}\n"
-        f"✅ <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
-        f"⏳ <b>Pending:</b> {stats['pending_orders']}\n"
-        f"❌ <b>Rejected:</b> {stats['rejected_orders']}\n"
-        f"💰 <b>Total Sales:</b> {stats['total_sales']} Ks",
-        parse_mode=ParseMode.HTML,
-    )
+        stats_icon = tg_emoji("status", "📊")
+orders_icon = tg_emoji("orders", "📦")
+success_icon = tg_emoji("success", "✅")
+pending_icon = tg_emoji("pending", "⏳")
+reject_icon = tg_emoji("reject", "❌")
+price_icon = tg_emoji("price", "💰")
 
+await update.message.reply_text(
+    f"{stats_icon} <b>Bot Statistics</b>\n\n"
+    f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
+    f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+    f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
+    f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
+    f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks",
+    parse_mode=ParseMode.HTML,
+)
 
 async def sales_today_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -3340,10 +3347,14 @@ async def sales_today_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     end = now_dt().replace(hour=23, minute=59, second=59, microsecond=0)
     result = get_sales_between(start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
 
+    time_icon = tg_emoji("time", "📅")
+    orders_icon = tg_emoji("orders", "📦")
+    price_icon = tg_emoji("price", "💰")
+
     await update.message.reply_text(
-        f"📅 <b>Sales Today</b>\n\n"
-        f"📦 <b>Orders:</b> {result['total_orders']}\n"
-        f"💰 <b>Total Sales:</b> {result['total_sales']} Ks",
+        f"{time_icon} <b>Sales Today</b>\n\n"
+        f"{orders_icon} <b>Orders:</b> {result['total_orders']}\n"
+        f"{price_icon} <b>Total Sales:</b> {result['total_sales']} Ks",
         parse_mode=ParseMode.HTML,
     )
 
@@ -3356,10 +3367,14 @@ async def sales_week_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     end = now_dt()
     result = get_sales_between(start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
 
+    time_icon = tg_emoji("time", "📆")
+    orders_icon = tg_emoji("orders", "📦")
+    price_icon = tg_emoji("price", "💰")
+
     await update.message.reply_text(
-        f"📆 <b>Sales Last 7 Days</b>\n\n"
-        f"📦 <b>Orders:</b> {result['total_orders']}\n"
-        f"💰 <b>Total Sales:</b> {result['total_sales']} Ks",
+        f"{time_icon} <b>Sales Last 7 Days</b>\n\n"
+        f"{orders_icon} <b>Orders:</b> {result['total_orders']}\n"
+        f"{price_icon} <b>Total Sales:</b> {result['total_sales']} Ks",
         parse_mode=ParseMode.HTML,
     )
 
@@ -3372,10 +3387,14 @@ async def sales_month_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     end = now_dt()
     result = get_sales_between(start.strftime("%Y-%m-%d %H:%M:%S"), end.strftime("%Y-%m-%d %H:%M:%S"))
 
+    time_icon = tg_emoji("time", "🗓")
+    orders_icon = tg_emoji("orders", "📦")
+    price_icon = tg_emoji("price", "💰")
+
     await update.message.reply_text(
-        f"🗓 <b>Sales Last 30 Days</b>\n\n"
-        f"📦 <b>Orders:</b> {result['total_orders']}\n"
-        f"💰 <b>Total Sales:</b> {result['total_sales']} Ks",
+        f"{time_icon} <b>Sales Last 30 Days</b>\n\n"
+        f"{orders_icon} <b>Orders:</b> {result['total_orders']}\n"
+        f"{price_icon} <b>Total Sales:</b> {result['total_sales']} Ks",
         parse_mode=ParseMode.HTML,
     )
 
@@ -3384,15 +3403,28 @@ async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    lines = ["📦 <b>Stock List</b>"]
-    for key, p in PRODUCTS.items():
-        if p["category"] == "digital":
-            if key in INVITE_ONLY_PRODUCTS:
-                lines.append(f"💻 <b>{escape(p['name'])}</b> → Invite Flow")
-            else:
-                lines.append(f"💻 <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
+    lines = [f"{tg_emoji('stock', '📦')} <b>Stock List</b>"]
+
+for key, p in PRODUCTS.items():
+
+    emoji = tg_emoji(p.get("emoji_key", "default"), "✨")
+
+    if p["category"] == "digital":
+
+        if key in INVITE_ONLY_PRODUCTS:
+            lines.append(
+                f"{emoji} <b>{escape(p['name'])}</b> → Invite Flow"
+            )
+
         else:
-            lines.append(f"🎮 <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
+            lines.append(
+                f"{emoji} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}"
+            )
+
+    else:
+        lines.append(
+            f"{emoji} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}"
+        )
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -3400,54 +3432,74 @@ async def lowstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    lines = ["⚠️ <b>Low Stock Items</b>"]
+    lowstock_icon = tg_emoji("pending", "⚠️")
+    digital_icon = tg_emoji("digital", "💻")
+    game_icon = tg_emoji("game", "🎮")
+    success_icon = tg_emoji("success", "✅")
+
+    lines = [f"{lowstock_icon} <b>Low Stock Items</b>"]
     found = False
 
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
             if key in INVITE_ONLY_PRODUCTS:
                 continue
+
             total = get_cached_digital_stock(key)
             if total <= LOW_STOCK_THRESHOLD:
                 found = True
-                lines.append(f"💻 <b>{escape(p['name'])}</b> → {total}")
+                icon = tg_emoji(p.get("emoji_key", "digital"), "💻")
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → {total}")
         else:
             total = get_cached_game_stock(key)
             if total <= LOW_STOCK_THRESHOLD:
                 found = True
-                lines.append(f"🎮 <b>{escape(p['name'])}</b> → {total}")
+                icon = tg_emoji(p.get("emoji_key", "game"), "🎮")
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → {total}")
 
     if not found:
-        lines.append("✅ Low stock item မရှိပါ။")
+        lines.append(f"{success_icon} Low stock item မရှိပါ။")
 
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        "\n".join(lines),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 async def outofstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    lines = ["❌ <b>Out of Stock Items</b>"]
+    reject_icon = tg_emoji("reject", "❌")
+    success_icon = tg_emoji("success", "✅")
+
+    lines = [f"{reject_icon} <b>Out of Stock Items</b>"]
     found = False
 
     for key, p in PRODUCTS.items():
         if p["category"] == "digital":
             if key in INVITE_ONLY_PRODUCTS:
                 continue
+
             total = get_cached_digital_stock(key)
             if total <= 0:
                 found = True
-                lines.append(f"💻 <b>{escape(p['name'])}</b> → 0")
+                icon = tg_emoji(p.get("emoji_key", "digital"), "💻")
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → 0")
         else:
             total = get_cached_game_stock(key)
             if total <= 0:
                 found = True
-                lines.append(f"🎮 <b>{escape(p['name'])}</b> → 0")
+                icon = tg_emoji(p.get("emoji_key", "game"), "🎮")
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → 0")
 
     if not found:
-        lines.append("✅ Out of stock item မရှိပါ။")
+        lines.append(f"{success_icon} Out of stock item မရှိပါ။")
 
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
+    await update.message.reply_text(
+        "\n".join(lines),
+        parse_mode=ParseMode.HTML,
+        )
 
 
 async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
