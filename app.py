@@ -35,6 +35,7 @@ CUSTOM_EMOJI = {
     "capcut": os.getenv("EMOJI_CAPCUT", "").strip(),
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
+    "youtube": "5334681713316479679",
     "netflix": "5318911503938634641",
     "primevideo": "5346056560537779652",
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
@@ -260,47 +261,91 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "price": 50300
         },
     },
-},
+},  
     "capcut_pro": {
-        "category": "digital",
-        "emoji_key": "capcut",
-        "name": "CapCut Pro",
-        "full_name": "CapCut Pro Subscription",
-        "description": "📱 CapCut Pro account delivery service.",
-        "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
-        "enabled": True,
-        "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-        ),
-        "plans": {
-            "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
-            "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
-            "private_1m": {"label": "Private Plan - 1 Month", "price": 7000},
-        },
+    "category": "digital",
+    "emoji_key": "capcut",
+    "name": "CapCut Pro",
+    "full_name": "CapCut Pro Subscription",
+    "description": "📱 CapCut Pro account delivery service.",
+    "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>CapCut Plan Information</b>\n\n'
+
+        f'{tg_emoji("reject", "⚠️")} <b>Share Plan</b>\n'
+        "• One Device ပဲဝင်ပါဗျ\n"
+        "• Devices အများကြီးဝင်လို့ account ပျက်ရင် ပြန်မလဲပေးပါ\n\n"
+
+        f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
+        "• Devices 4 လုံးထိဝင်လို့ရပါတယ်\n\n"
+
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
+        "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
+        "private_1m": {"label": "Private Plan - 1 Month", "price": 7000},
     },
+},  
     "express_vpn": {
-        "category": "digital",
-        "emoji_key": "expressvpn",
-        "name": "Express VPN",
-        "full_name": "Express VPN Subscription",
-        "description": "🌐 Express VPN email & password delivery service.",
-        "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
-        "enabled": True,
-        "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-        ),
-        "plans": {
-            "mobile_share_1m": {"label": "1 Month (Share) - Mobile", "price": 1400},
-            "pc_share_1m": {"label": "1 Month (Share) - PC/Windows", "price": 2500},
-            "mac_linux_share_1m": {"label": "1 Month (Share) - Mac/Linux", "price": 2500},
-            "private_1m": {"label": "1 Month Private - All Devices Support", "price": 6500},
-            "private_3m": {"label": "3 Month Share - All Devices Support", "price": 9000},
-            "private_6m": {"label": "3 Month Private - All Devices Support", "price": 11500},
+    "category": "digital",
+    "emoji_key": "expressvpn",
+    "name": "Express VPN",
+    "full_name": "Express VPN Subscription",
+    "description": "🌐 Express VPN email & password delivery service.",
+    "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Express VPN Plan Information</b>\n\n'
+
+        f'{tg_emoji("reject", "⚠️")} <b>Share Plan</b>\n'
+        "• One Device ပဲဝင်ပါဗျ\n"
+        "• Devices အများကြီးဝင်ရင် လိုင်းမကောင်းတာမျိုး ခဏခဏဖြစ်နိုင်ပါတယ်\n\n"
+
+        f'{tg_emoji("success", "✅")} <b>3M / 6M Plan</b>\n'
+        "• All Devices Support\n"
+        "• Devices အများကြီးသုံးချင်ရင် ဒီ Plan တွေက ပိုသင့်တော်ပါတယ်\n\n"
+
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "mobile_share_1m": {
+            "label": "1 Month (Share) - Mobile",
+            "price": 1400
+        },
+
+        "pc_share_1m": {
+            "label": "1 Month (Share) - PC/Windows",
+            "price": 2500
+        },
+
+        "mac_linux_share_1m": {
+            "label": "1 Month (Share) - Mac/Linux",
+            "price": 2500
+        },
+
+        "private_1m": {
+            "label": "1 Month Private - All Devices Support",
+            "price": 6500
+        },
+
+        "private_3m": {
+            "label": "3 Month Share - All Devices Support",
+            "price": 9000
+        },
+
+        "private_6m": {
+            "label": "6 Month Share - All Devices Support",
+            "price": 11500
         },
     },
-"outline_vpn": {
+},
+ "outline_vpn": {
     "category": "digital",
     "emoji_key": "outline",
     "name": "Outline Key",
@@ -308,18 +353,47 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "description": "🔐 Outline VPN key delivery service.",
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
+
     "requires_detail_label": (
-        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+        f'{tg_emoji("detail", "📝")} <b>Outline VPN Information</b>\n\n'
+
+        f'{tg_emoji("key", "🔑")} Key ပေးမှာပါဗျ\n'
+        "ရရှိတဲ့ Key ကို Paste လုပ်ရုံနဲ့ အသုံးပြုနိုင်ပါတယ်\n\n"
+
+        f'{tg_emoji("world", "🌍")} <b>Available Regions</b>\n'
+        "• Singapore (SG)\n"
+        "• United States (US)\n"
+        "• Thailand (TH)\n\n"
+
+        f'{tg_emoji("note", "✍️")} <b>လိုချင်တဲ့ Region ကို Note မှာရေးပို့ပါ</b>\n'
+        "ဥပမာ - SG / US / Thailand\n\n"
+
+        f'{tg_emoji("skip", "⏭")} <b>မရေးချင်ရင် Skip button ပဲနှိပ်ပါဗျ။</b>'
     ),
+
     "plans": {
-        "50gb_1m": {"label": "50GB Plan - 1 Month", "price": 3000},
-        "100gb_1m": {"label": "100GB Plan - 1 Month", "price": 4500},
-        "150gb_1m": {"label": "150GB Plan - 1 Month", "price": 6500},
-        "200gb_1m": {"label": "200GB Plan - 1 Month", "price": 8000},
+        "50gb_1m": {
+            "label": "50GB Plan - 1 Month",
+            "price": 3000
+        },
+
+        "100gb_1m": {
+            "label": "100GB Plan - 1 Month",
+            "price": 4500
+        },
+
+        "150gb_1m": {
+            "label": "150GB Plan - 1 Month",
+            "price": 6500
+        },
+
+        "200gb_1m": {
+            "label": "200GB Plan - 1 Month",
+            "price": 8000
+        },
     },
-},
-    
+}, 
+
     "spotify_premium": {
         "category": "digital",
         "emoji_key": "spotify",
@@ -337,23 +411,54 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "individual_1m": {"label": "Individual Plan - 1 Month", "price": 12000},
         },
     },
-    "netflix_premium": {
-        "category": "digital",
-        "emoji_key": "netflix",
-        "name": "Netflix Premium",
-        "full_name": "Netflix Premium Subscription",
-        "description": "📺 Netflix Premium account delivery service.",
-        "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
-        "enabled": True,
-        "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-        ),
-        "plans": {
-            "private_1m": {"label": "Private Plan - 1 Month", "price": 15000},
+    "youtube_premium": {
+    "category": "digital",
+    "emoji_key": "youtube",
+    "name": "YouTube Premium",
+    "full_name": "YouTube Premium Subscription",
+    "description": "🎬 YouTube Premium private account service.",
+    "photo": "youtube.jpg",
+    "enabled": True,
+
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Private account ဖြစ်တဲ့အတွက် detail မလိုပါ။</b>\n\n'
+        f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "individual_1m": {
+            "label": "Individual Private 1 Month",
+            "price": 8000
         },
     },
+},   
+    "netflix_premium": {
+    "category": "digital",
+    "emoji_key": "netflix",
+    "name": "Netflix Premium",
+    "full_name": "Netflix Premium Subscription",
+    "description": "📺 Netflix Premium account delivery service.",
+    "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
 
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Netflix Information</b>\n\n'
+
+        f'{tg_emoji("success", "✅")} Login With Password account ပါ\n\n'
+
+        f'{tg_emoji("user", "👥")} <b>Profile များများဝယ်ချင်ရင် DM လာပေးပါဗျ</b>\n'
+        "ဈေးပိုသက်သာပါတယ်\n\n"
+
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ပဲနှိပ်ပေးပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "private_1m": {
+            "label": "Private Plan - 1 Month",
+            "price": 15000
+        },
+    },
+},
     "prime_video": {
     "category": "digital",
     "emoji_key": "primevideo",
@@ -412,7 +517,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
         },
     },
-    "wink_app": {
+
+"wink_app": {
     "category": "digital",
     "emoji_key": "wink",
     "name": "Wink App",
@@ -421,23 +527,19 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "photo": "wink.jpg",
     "enabled": True,
     "requires_detail_label": (
-        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+        f'{tg_emoji("detail", "📝")} <b>Wink App Information</b>\n\n'
+        f'{tg_emoji("success", "✅")} China Version မို့ <b>China Wink</b> နဲ့သုံးရပါမယ်\n\n'
+        f'{tg_emoji("phone", "📱")} China Phone တွေဆို <b>GetApps</b> ကနေ Download ရပါတယ်\n'
+        f'{tg_emoji("phone", "📱")} iOS ဆို <b>App Store</b> ကနေ Download ရပါတယ်\n\n'
+        f'{tg_emoji("contact", "📩")} Global Phone တွေအတွက် ကျနော့်ဆီ File လာတောင်းပေးပါ\n\n'
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ပဲနှိပ်ပေးပါဗျ။</b>'
     ),
     "plans": {
-        "share_1m": {
-            "label": "Share 1 Month",
-            "price": 6500
-        },
-
-        "private_1m": {
-            "label": "Private 1 Month",
-            "price": 17000
-        },
+        "share_1m": {"label": "Share 1 Month", "price": 6500},
+        "private_1m": {"label": "Private 1 Month", "price": 17000},
     },
 },
-
-"meitu_vip": {
+    "meitu_vip": {
     "category": "digital",
     "emoji_key": "meitu",
     "name": "Meitu VIP",
@@ -446,35 +548,19 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "photo": "meitu.jpg",
     "enabled": True,
     "requires_detail_label": (
-        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+        f'{tg_emoji("detail", "📝")} <b>Meitu VIP Information</b>\n\n'
+        f'{tg_emoji("success", "✅")} China Version မို့ <b>China Meitu</b> နဲ့သုံးရပါမယ်\n\n'
+        f'{tg_emoji("phone", "📱")} China Phone တွေဆို <b>GetApps</b> ကနေ Download ရပါတယ်\n'
+        f'{tg_emoji("phone", "📱")} iOS ဆို <b>App Store</b> ကနေ Download ရပါတယ်\n\n'
+        f'{tg_emoji("contact", "📩")} Global Phone တွေအတွက် ကျနော့်ဆီ File လာတောင်းပေးပါ\n\n'
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ပဲနှိပ်ပေးပါဗျ။</b>'
     ),
     "plans": {
-"vip_1m": {
-    "label": "VIP Plan (1 Month)",
-    "price": 12500,
-    "emoji_key": "vip",
-},
-"vip_1y": {
-    "label": "VIP Plan (1 Year)",
-    "price": 95000,
-    "emoji_key": "vip",
-},
-"svip_1m": {
-    "label": "SVIP Plan (1 Month)",
-    "price": 22000,
-    "emoji_key": "svip",
-},
-"svip_3m": {
-    "label": "SVIP Plan (3 Months)",
-    "price": 53000,
-    "emoji_key": "svip",
-},
-"svip_1y": {
-    "label": "SVIP Plan (1 Year)",
-    "price": 160000,
-    "emoji_key": "svip",
-},
+        "vip_1m": {"label": "VIP Plan (1 Month)", "price": 12500, "emoji_key": "vip"},
+        "vip_1y": {"label": "VIP Plan (1 Year)", "price": 95000, "emoji_key": "vip"},
+        "svip_1m": {"label": "SVIP Plan (1 Month)", "price": 22000, "emoji_key": "svip"},
+        "svip_3m": {"label": "SVIP Plan (3 Months)", "price": 53000, "emoji_key": "svip"},
+        "svip_1y": {"label": "SVIP Plan (1 Year)", "price": 160000, "emoji_key": "svip"},
     },
 },
     "picsart_pro": {
@@ -508,7 +594,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "share_1y_basic": {"label": "1 Year (Share)", "price": 3000},
-            "share_1y_pro": {"label": "1 Year (Share) Premium", "price": 5000},
+            "share_1y_pro": {"label": "1 Year (Private) Premium", "price": 5000},
         },
     },
     "grammarly_ai": {
@@ -676,6 +762,10 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+   "youtube_premium": {
+    "auto_delivery": False,
+    "accounts": [],
+}, 
     "netflix_premium": {
         "auto_delivery": True,
         "accounts": [
@@ -789,7 +879,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
 }
-INVITE_ONLY_PRODUCTS = {"gemini_ai_pro"}
+INVITE_ONLY_PRODUCTS = {"gemini_ai_pro", "canva_pro_edu"}
 INVITE_ONLY_PLANS = {
     ("canva_pro_edu", "edu_1y"),
     ("canva_pro_edu", "business_1m"),
@@ -2071,39 +2161,78 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
     return InlineKeyboardMarkup(buttons)
 
-
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
         if product_key == "gemini_ai_pro" or product_key == "canva_pro_edu":
             return InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton("📧 Invite Check", callback_data=f"auto:{order_id}"),
-                        InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
+                        InlineKeyboardButton(
+                            "Invite Check",
+                            callback_data=f"auto:{order_id}",
+                            **button_kwargs("contact"),
+                        ),
+
+                        InlineKeyboardButton(
+                            "Approve",
+                            callback_data=f"approve:{order_id}",
+                            **button_kwargs("success"),
+                        ),
                     ],
-                    [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
+
+                    [
+                        InlineKeyboardButton(
+                            "Reject",
+                            callback_data=f"rejectmenu:{order_id}",
+                            **button_kwargs("reject"),
+                        )
+                    ],
                 ]
             )
 
         return InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("⚡ Auto Deliver", callback_data=f"auto:{order_id}"),
-                    InlineKeyboardButton("✍️ Manual Deliver", callback_data=f"manual:{order_id}"),
+                    InlineKeyboardButton(
+                        "Auto Deliver",
+                        callback_data=f"auto:{order_id}",
+                        **button_kwargs("fast"),
+                    ),
+
+                    InlineKeyboardButton(
+                        "Manual Deliver",
+                        callback_data=f"manual:{order_id}",
+                        **button_kwargs("detail"),
+                    ),
                 ],
-                [InlineKeyboardButton("❌ Reject Order", callback_data=f"rejectmenu:{order_id}")],
+
+                [
+                    InlineKeyboardButton(
+                        "Reject",
+                        callback_data=f"rejectmenu:{order_id}",
+                        **button_kwargs("reject"),
+                    )
+                ],
             ]
         )
 
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("✅ Approve", callback_data=f"approve:{order_id}"),
-                InlineKeyboardButton("❌ Reject", callback_data=f"rejectmenu:{order_id}"),
+                InlineKeyboardButton(
+                    "Approve",
+                    callback_data=f"approve:{order_id}",
+                    **button_kwargs("success"),
+                ),
+
+                InlineKeyboardButton(
+                    "Reject",
+                    callback_data=f"rejectmenu:{order_id}",
+                    **button_kwargs("reject"),
+                ),
             ]
         ]
     )
-
 
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
