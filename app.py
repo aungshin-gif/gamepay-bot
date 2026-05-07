@@ -1461,17 +1461,25 @@ def human_status(status: str) -> str:
     }
     return mapping.get(status, status)
 
-
 def order_summary_text(order: dict) -> str:
+    summary_icon = tg_emoji("detail", "📋")
+    id_icon = tg_emoji("id", "🆔")
+    product_icon = tg_emoji("cart", "🛍️")
+    plan_icon = tg_emoji("stock", "📦")
+    price_icon = tg_emoji("price", "💸")
+    detail_icon = tg_emoji("detail", "📝")
+    payment_icon = tg_emoji("payment", "🏦")
+    status_icon = tg_emoji("status", "📌")
+
     return (
-        f"📋 <b>Order Summary</b>\n\n"
-        f"🆔 <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
-        f"🛍️ <b>Product:</b> {escape(order['product_name'])}\n"
-        f"📦 <b>Plan:</b> {escape(order['plan_label'])}\n"
-        f"💸 <b>Price:</b> {order['price']} Ks\n"
-        f"📝 <b>Detail / Note:</b> {escape(order.get('detail') or '-')}\n"
-        f"🏦 <b>Payment:</b> {escape(order.get('payment_name') or '-')}\n"
-        f"📌 <b>Status:</b> {human_status(order['status'])}\n"
+        f"{summary_icon} <b>Order Summary</b>\n\n"
+        f"{id_icon} <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
+        f"{product_icon} <b>Product:</b> {escape(order['product_name'])}\n"
+        f"{plan_icon} <b>Plan:</b> {escape(order['plan_label'])}\n"
+        f"{price_icon} <b>Price:</b> {order['price']} Ks\n"
+        f"{detail_icon} <b>Detail / Note:</b> {escape(order.get('detail') or '-')}\n"
+        f"{payment_icon} <b>Payment:</b> {escape(order.get('payment_name') or '-')}\n"
+        f"{status_icon} <b>Status:</b> {human_status(order['status'])}\n"
         f"🕒 <b>Created:</b> {escape(order['created_at'])}"
     )
 
@@ -2464,9 +2472,9 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await send_optional_bot_sticker(context.bot, user.id, SUCCESS_STICKER_ID)
 
     await update.message.reply_text(
-        f"✅ <b>Order Received Successfully</b>\n\n"
-        f"{order_summary_text(data)}\n\n"
-        f"⏳ Admin review ပြီးတာနဲ့ result ပြန်ပို့ပေးပါမယ်",
+    f"{tg_emoji('success', '✅')} <b>Order Received Successfully</b>\n\n"
+    f"{order_summary_text(data)}\n\n"
+    f"⏳ Admin review ပြီးတာနဲ့ result ပြန်ပို့ပေးပါမယ်",
         parse_mode=ParseMode.HTML,
         reply_markup=main_menu_keyboard(),
     )
