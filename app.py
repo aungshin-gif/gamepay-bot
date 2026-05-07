@@ -2027,7 +2027,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     await query.answer(cache_time=1)
     data = query.data
 
-    if data == "detail_skip":
+if data == "detail_skip":
         product_key = context.user_data.get("product_key")
 
         if product_key == "gemini_ai_pro":
@@ -2037,7 +2037,8 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         if product_key == "canva_pro_edu":
             await query.answer("Canva အတွက် mail ပို့ပေးပါ။", show_alert=True)
             return DETAIL_STATE
-context.user_data["detail"] = "No"
+
+        context.user_data["detail"] = "No"
 
         payment_method_icon = tg_emoji("payment_method", "💳")
 
@@ -2087,9 +2088,11 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return PLAN_STATE
 
     if data == "back_payment_methods":
+        payment_method_icon = tg_emoji("payment_method", "💳")
+
         await safe_edit_message(
             query,
-            "💳 <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
+            f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
             reply_markup=payment_keyboard(),
         )
         return PAYMENT_STATE
