@@ -40,6 +40,10 @@ CUSTOM_EMOJI = {
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
     "alight": os.getenv("EMOJI_ALIGHT", "").strip(),
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
+    "skip": "5416117059207572332",
+"back": "6319056439096644016",
+"cancel": "5210952531676504517",
+"detail": "5395444784611480792",
 
     # Text/card icons
     "price": os.getenv("EMOJI_PRICE", "").strip(),
@@ -1353,9 +1357,12 @@ def plan_text(product_key: str) -> str:
 
 
 def detail_text(product_key: str) -> str:
+    detail_icon = tg_emoji("detail", "📝")
+
     product = PRODUCTS[product_key]
+
     return (
-        f"📝 <b>Detail / Note</b>\n\n"
+        f"{detail_icon} <b>Detail / Note</b>\n\n"
         f"{product['requires_detail_label']}\n\n"
         f"စာရိုက်ပို့လို့ရပါတယ်\n"
         f"မလိုရင် button ကိုနှိပ်လို့ရပါတယ် 👇"
@@ -1567,17 +1574,31 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(rows)
 
-
 def detail_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("⏭ Skip / No Note", callback_data="detail_skip")],
             [
-                InlineKeyboardButton("⬅️ Back to Plans", callback_data="detail_back_plan"),
-                InlineKeyboardButton("❌ Cancel", callback_data="detail_cancel"),
+                InlineKeyboardButton(
+                    "Skip / No Note",
+                    callback_data="detail_skip",
+                    **button_kwargs("skip"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Back to Plans",
+                    callback_data="detail_back_plan",
+                    **button_kwargs("back"),
+                ),
+                InlineKeyboardButton(
+                    "Cancel",
+                    callback_data="detail_cancel",
+                    **button_kwargs("cancel"),
+                ),
             ],
         ]
     )
+
 
 
 def payment_keyboard() -> InlineKeyboardMarkup:
