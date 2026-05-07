@@ -36,7 +36,6 @@ CUSTOM_EMOJI = {
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
     "netflix": "5318911503938634641",
-    "netflix": os.getenv("EMOJI_NETFLIX", "").strip(),
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
