@@ -1476,7 +1476,8 @@ def order_summary_text(order: dict) -> str:
     detail_icon = tg_emoji("detail", "📝")
     payment_icon = tg_emoji("payment", "🏦")
     status_icon = tg_emoji("status", "📌")
-time_icon = tg_emoji("time", "🕒")
+    time_icon = tg_emoji("time", "🕒")
+
     return (
         f"{summary_icon} <b>Order Summary</b>\n\n"
         f"{id_icon} <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
