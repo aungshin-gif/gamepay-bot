@@ -349,23 +349,24 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
 
     "prime_video": {
-    "auto_delivery": True,
-    "accounts": [
-        {
-            "plan_key": "private_1m",
-            "email": "prime1@example.com",
-            "password": "pass1234",
-            "extra": "✅ Private Account",
-            "used": False,
+    "category": "digital",
+    "emoji_key": "primevideo",
+    "name": "Prime Video",
+    "full_name": "Prime Video Premium",
+    "description": "Prime Video premium account service.",
+    "photo": "prime.jpg",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
+    ),
+    "plans": {
+        "private_1m": {
+            "label": "Private 1 Month",
+            "price": 10500,
+            "emoji_key": "primevideo",
         },
-        {
-            "plan_key": "private_1m",
-            "email": "prime2@example.com",
-            "password": "pass5678",
-            "extra": "✅ Private Account",
-            "used": False,
-        },
-    ],
+    },
 },
     "canva_pro_edu": {
         "category": "digital",
@@ -2259,15 +2260,13 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not text:
         await update.message.reply_text("❌ Detail / note ပို့ပေးပါ။", reply_markup=detail_keyboard())
         return DETAIL_STATE
+product_key = context.user_data.get("product_key")
+    plan_key = context.user_data.get("plan_key")
 
-    product_key = context.user_data.get("product_key")
-
-   if (
-    (product_key, context.user_data.get("plan_key")) in INVITE_ONLY_PLANS
-    and text.lower() == "no"
-):
-    await update.message.reply_text("❌ ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။")
-    return DETAIL_STATE 
+    if (product_key, plan_key) in INVITE_ONLY_PLANS and text.lower() == "no":
+        await update.message.reply_text("❌ ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။")
+        return DETAIL_STATE
+    
 
     context.user_data["detail"] = text
 
@@ -2286,16 +2285,13 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     await query.answer(cache_time=1)
     data = query.data
 
-    if data == "detail_skip":
+   if data == "detail_skip":
         product_key = context.user_data.get("product_key")
+        plan_key = context.user_data.get("plan_key")
 
-        if product_key == "gemini_ai_pro":
-            await query.answer("Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
+        if (product_key, plan_key) in INVITE_ONLY_PLANS:
+            await query.answer("ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
             return DETAIL_STATE
-
-        if (product_key, context.user_data.get("plan_key")) in INVITE_ONLY_PLANS:
-    await query.answer("ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
-    return DETAIL_STATE
 
         context.user_data["detail"] = "No"
         payment_method_icon = tg_emoji("payment_method", "💳")
@@ -2305,8 +2301,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
             reply_markup=payment_keyboard(),
         )
-        return PAYMENT_STATE
-
+        return PAYMENT_STATE 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
         if not product_key:
