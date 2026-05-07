@@ -36,6 +36,7 @@ CUSTOM_EMOJI = {
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
     "netflix": "5318911503938634641",
+    "primevideo": "5346056560537779652",
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
@@ -346,6 +347,48 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "private_1m": {"label": "Private Plan - 1 Month", "price": 15000},
         },
     },
+    "prime_video": {
+    "category": "digital",
+    "emoji_key": "primevideo",
+    "name": "Prime Video",
+    "full_name": "Prime Video Premium",
+    "description": "Prime Video premium account service.",
+    "photo": "prime.jpg",
+    "enabled": True,
+
+    "requires_detail_label": (
+        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
+    ),
+
+    "plans": {
+        "private_1m": {
+            "label": "Private 1 Month",
+            "price": 10500,
+            "emoji_key": "primevideo",
+        },
+    },
+},
+    "prime_video": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "private_1m",
+            "email": "prime1@example.com",
+            "password": "pass1234",
+            "extra": "✅ Private Account",
+            "used": False,
+        },
+
+        {
+            "plan_key": "private_1m",
+            "email": "prime2@example.com",
+            "password": "pass5678",
+            "extra": "✅ Private Account",
+            "used": False,
+        },
+    ],
+},
     "canva_pro_edu": {
         "category": "digital",
          "emoji_key": "canva",
@@ -361,7 +404,8 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "edu_1y": {"label": "1 Year Invite Access", "price": 3500},
-            "pro_1m": {"label": "Canva Pro - 1 Month", "price": 8000},
+            "pro_1m": {"label": "Canva Pro - 1 Month", "price": 7000},
+            "business_1m": {"label": "Business Invite 1 Month", "price": 9000},
         },
     },
     "gemini_ai_pro": {
@@ -741,7 +785,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     },
 }
 
-INVITE_ONLY_PRODUCTS = {"canva_pro_edu", "gemini_ai_pro"}
+INVITE_ONLY_PRODUCTS = {"gemini_ai_pro"}
 MANUAL_UNLIMITED_PRODUCTS = {"outline_vpn", "wink_app", "meitu_vip"}
 (
     MENU_STATE,
