@@ -379,7 +379,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "extra": "✅ Private Account",
             "used": False,
         },
-
         {
             "plan_key": "private_1m",
             "email": "prime2@example.com",
@@ -709,6 +708,25 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "prime_video": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "private_1m",
+            "email": "prime1@example.com",
+            "password": "pass1234",
+            "extra": "✅ Private Account",
+            "used": False,
+        },
+        {
+            "plan_key": "private_1m",
+            "email": "prime2@example.com",
+            "password": "pass5678",
+            "extra": "✅ Private Account",
+            "used": False,
+        },
+    ],
+},
     "canva_pro_edu": {
         "auto_delivery": False,
         "accounts": [],
@@ -784,9 +802,15 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
 }
-
 INVITE_ONLY_PRODUCTS = {"gemini_ai_pro"}
-MANUAL_UNLIMITED_PRODUCTS = {"outline_vpn", "wink_app", "meitu_vip"}
+
+MANUAL_UNLIMITED_PRODUCTS = {
+    "outline_vpn",
+    "wink_app",
+    "meitu_vip",
+    "canva_pro_edu",
+}
+
 (
     MENU_STATE,
     CATEGORY_STATE,
