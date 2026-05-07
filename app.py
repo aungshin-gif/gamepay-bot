@@ -1606,17 +1606,47 @@ def detail_keyboard() -> InlineKeyboardMarkup:
         ]
     )
 
-
 def payment_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("KPay", callback_data="pay:kpay", **button_kwargs("kpay"))],
-            [InlineKeyboardButton("Wave Pay", callback_data="pay:wave", **button_kwargs("wave"))],
-            [InlineKeyboardButton("AYA Pay", callback_data="pay:aya", **button_kwargs("aya"))],
-            [InlineKeyboardButton("UAB Pay", callback_data="pay:uab", **button_kwargs("uab"))],
-            [InlineKeyboardButton("Back", callback_data="back_plan", **button_kwargs("back"))],
+            [
+                InlineKeyboardButton(
+                    "KPay",
+                    callback_data="pay:kpay",
+                    **button_kwargs("kpay"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Wave Pay",
+                    callback_data="pay:wave",
+                    **button_kwargs("wave"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "AYA Pay",
+                    callback_data="pay:aya",
+                    **button_kwargs("aya"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "UAB Pay",
+                    callback_data="pay:uab",
+                    **button_kwargs("uab"),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    "Back",
+                    callback_data="back_plan",
+                    **button_kwargs("back"),
+                )
+            ],
         ]
     )
+
 
 
 
@@ -1982,12 +2012,14 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["detail"] = text
 
     payment_method_icon = tg_emoji("payment_method", "💳")
+payment_method_icon = tg_emoji("payment_method", "💳")
 
-await query.message.reply_text(
+await update.message.reply_text(
     f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
     reply_markup=payment_keyboard(),
     parse_mode=ParseMode.HTML,
 )
+
     return PAYMENT_STATE
 
 
@@ -2008,12 +2040,13 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             return DETAIL_STATE
 
         context.user_data["detail"] = "No"
-        await safe_edit_message(
-            query,
-            "💳 <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
-            reply_markup=payment_keyboard(),
-        )
-        return PAYMENT_STATE
+        payment_method_icon = tg_emoji("payment_method", "💳")
+
+await safe_edit_message(
+    query,
+    f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
+    reply_markup=payment_keyboard(),
+)
 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
