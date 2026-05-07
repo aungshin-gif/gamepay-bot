@@ -69,6 +69,7 @@ CUSTOM_EMOJI = {
     "cart": os.getenv("EMOJI_CART", "").strip(),
     "refresh": os.getenv("EMOJI_REFRESH", "").strip(),
 "orders": os.getenv("EMOJI_ORDERS", "").strip(),
+    "id": "5841276284155467413",
 
     # General icons
     "shop": os.getenv("EMOJI_SHOP", "").strip(),
@@ -135,7 +136,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "stock": 10,
         "enabled": True,
         "requires_detail_label": (
-            "🆔 <b>Game ID + Server ID ပို့ပေးပါ</b>\n\n"
+           f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n' 
             "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
             "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
         ),
@@ -153,7 +154,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
+        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
         "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
         "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
     ),
@@ -172,7 +173,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
+        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
         "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
         " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
     ),
@@ -190,7 +191,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
+        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
         "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
         " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
     ),
