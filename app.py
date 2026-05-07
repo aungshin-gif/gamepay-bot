@@ -347,28 +347,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "private_1m": {"label": "Private Plan - 1 Month", "price": 15000},
         },
     },
-    "prime_video": {
-    "category": "digital",
-    "emoji_key": "primevideo",
-    "name": "Prime Video",
-    "full_name": "Prime Video Premium",
-    "description": "Prime Video premium account service.",
-    "photo": "prime.jpg",
-    "enabled": True,
 
-    "requires_detail_label": (
-        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
-    ),
-
-    "plans": {
-        "private_1m": {
-            "label": "Private 1 Month",
-            "price": 10500,
-            "emoji_key": "primevideo",
-        },
-    },
-},
     "prime_video": {
     "auto_delivery": True,
     "accounts": [
@@ -402,10 +381,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "ဥပမာ:\n<code>example@gmail.com</code>"
         ),
         "plans": {
-            "edu_1y": {"label": "1 Year Invite Access", "price": 3500},
-            "pro_1m": {"label": "Canva Pro - 1 Month", "price": 7000},
-            "business_1m": {"label": "Business Invite 1 Month", "price": 9000},
-        },
+    "edu_1y": {"label": "Edu Invite 1 Year", "price": 3500},
+    "pro_1m": {"label": "Canva Pro Account 1 Month", "price": 7500},
+    "business_1m": {"label": "Business Invite 1 Month", "price": 9000},
+},
     },
     "gemini_ai_pro": {
         "category": "digital",
@@ -803,7 +782,11 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     },
 }
 INVITE_ONLY_PRODUCTS = {"gemini_ai_pro"}
-
+INVITE_ONLY_PLANS = {
+    ("canva_pro_edu", "edu_1y"),
+    ("canva_pro_edu", "business_1m"),
+    ("gemini_ai_pro", "invite_1m"),
+}
 MANUAL_UNLIMITED_PRODUCTS = {
     "outline_vpn",
     "wink_app",
@@ -2279,9 +2262,12 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     product_key = context.user_data.get("product_key")
 
-    if product_key in {"gemini_ai_pro", "canva_pro_edu"} and text.lower() == "no":
-        await update.message.reply_text("❌ ဒီ product အတွက် mail မဖြစ်မနေလိုပါတယ်။")
-        return DETAIL_STATE
+   if (
+    (product_key, context.user_data.get("plan_key")) in INVITE_ONLY_PLANS
+    and text.lower() == "no"
+):
+    await update.message.reply_text("❌ ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။")
+    return DETAIL_STATE 
 
     context.user_data["detail"] = text
 
@@ -2307,9 +2293,9 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             await query.answer("Gemini အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
             return DETAIL_STATE
 
-        if product_key == "canva_pro_edu":
-            await query.answer("Canva အတွက် mail ပို့ပေးပါ။", show_alert=True)
-            return DETAIL_STATE
+        if (product_key, context.user_data.get("plan_key")) in INVITE_ONLY_PLANS:
+    await query.answer("ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။", show_alert=True)
+    return DETAIL_STATE
 
         context.user_data["detail"] = "No"
         payment_method_icon = tg_emoji("payment_method", "💳")
