@@ -140,7 +140,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "stock": 10,
         "enabled": True,
         "requires_detail_label": (
-           f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n' 
+            "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
             "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
             "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
         ),
@@ -158,7 +158,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
         "ဥပမာ:\n<code>812345678 / Asia</code>\n\n"
         "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
     ),
@@ -177,7 +177,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
         "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
         " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
     ),
@@ -195,7 +195,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-        f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
         "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
         " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
     ),
@@ -651,12 +651,12 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "accounts": [],
     },
     "wink_app": {
-    "auto_delivery": True,
+    "auto_delivery": False,
     "accounts": [],
 },
 
 "meitu_vip": {
-    "auto_delivery": True,
+    "auto_delivery": False,
     "accounts": [],
 },
     "picsart_pro": {
@@ -1713,8 +1713,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     emoji_key = product.get("emoji_key", "default")
 
     for plan_key, plan in product["plans"].items():
+        plan_emoji_key = plan.get("emoji_key", emoji_key)
+
         if product["category"] == "digital":
-            plan_emoji_key = plan.get("emoji_key", emoji_key)
             if not product.get("enabled", True):
                 rows.append([
                     InlineKeyboardButton(
