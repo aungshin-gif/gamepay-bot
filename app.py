@@ -31,6 +31,7 @@ CUSTOM_EMOJI = {
     "mlbb": os.getenv("EMOJI_MLBB", "").strip(),
     "genshin": os.getenv("EMOJI_GENSHIN", "").strip(),
     "hsr": os.getenv("EMOJI_HSR", "").strip(),
+    "arena": "6129869323050687063",
     "capcut": os.getenv("EMOJI_CAPCUT", "").strip(),
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
@@ -173,10 +174,56 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
         "🆔 <b>UID / Server ပို့ပေးပါ</b>\n\n"
         "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
-        "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+        " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
     ),
     "plans": {
         "default": {"label": "Express Supply", "price": 18000},
+    },
+},
+    "arena_breakout": {
+    "category": "game",
+    "emoji_key": "game",
+    "name": "Arena Breakout",
+    "full_name": "Arena Breakout Infinite",
+    "description": "🎯 Fast and trusted Arena Breakout top up service.",
+    "photo": "arena.jpg",
+    "stock": 10,
+    "enabled": True,
+    "requires_detail_label": (
+        "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
+        "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
+        " Account info <b>No Skip</b> infoသေချာဖြည့်ပြီးမှ Skipကိုနှိပ်ပါ။"
+    ),
+    "plans": {
+        "beginner_select": {
+            "label": "Beginner Select",
+            "price": 3500
+        },
+
+        "bulletproof_case": {
+            "label": "Bulletproof Case (30d)",
+            "price": 9900
+        },
+
+        "composition_case": {
+            "label": "Composition Case (30d)",
+            "price": 29300
+        },
+
+        "monthly_abp": {
+            "label": "Monthly Advanced Battle Pass",
+            "price": 4400
+        },
+
+        "monthly_pbp": {
+            "label": "Monthly Premium Battle Pass",
+            "price": 16800
+        },
+
+        "quarterly_pbp": {
+            "label": "Quarterly Premium Battle Pass",
+            "price": 50300
+        },
     },
 },
     "capcut_pro": {
