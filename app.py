@@ -383,10 +383,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
-            "📧 <b>Canva Mail ပို့ပေးပါ</b>\n\n"
-            "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
-            "ဥပမာ:\n<code>example@gmail.com</code>"
-        ),
+    f'{tg_emoji("contact", "📧")} <b>invite Planဆို Canva Mail ပို့ပေးပါAcccountဆို. Skipကိုပဲနှိပ်ပေးပါ။</b>\n\n'
+    f'{tg_emoji("success", "👉")} Invite ပို့ဖို့ mail လိုပါတယ်\n'
+    "ဥပမာ:\n"
+    "<code>example@gmail.com</code>"
+),
         "plans": {
     "edu_1y": {"label": "Edu Invite 1 Year", "price": 3500},
     "pro_1m": {"label": "Canva Pro Account 1 Month", "price": 7500},
@@ -402,11 +403,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
-            "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
-            "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
-            "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
-            "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
-        ),
+    "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
+    "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
+    "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
+    "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
+),
         "plans": {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
         },
