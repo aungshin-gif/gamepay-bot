@@ -88,7 +88,6 @@ CUSTOM_EMOJI = {
     "digital": os.getenv("EMOJI_DIGITAL", "").strip(),
 "default": os.getenv("EMOJI_DEFAULT", "").strip(),
     "join": os.getenv("EMOJI_JOIN", "").strip(),
-    "contact": os.getenv("EMOJI_CONTACT", "").strip(),
     "category": os.getenv("EMOJI_CATEGORY", "").strip(),
       "cart": os.getenv("EMOJI_CART", "").strip(),
     "shop_now": os.getenv("EMOJI_SHOP_NOW", "").strip(),
@@ -909,19 +908,43 @@ def init_db():
         """
     )
 
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS game_products (
-            product_key TEXT PRIMARY KEY,
-            stock INTEGER NOT NULL DEFAULT 0,
-            enabled INTEGER NOT NULL DEFAULT 1,
-            updated_at TEXT NOT NULL
-        )
-        """
+   cur.execute(
+    """
+    CREATE TABLE IF NOT EXISTS game_products (
+        product_key TEXT PRIMARY KEY,
+        stock INTEGER NOT NULL DEFAULT 0,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        updated_at TEXT NOT NULL
     )
+    """
+)
 
-    conn.commit()
-    conn.close()
+cur.execute(
+    """
+    CREATE TABLE IF NOT EXISTS users (
+        user_id INTEGER PRIMARY KEY,
+        username TEXT,
+        full_name TEXT,
+        joined_at TEXT NOT NULL
+    )
+    """
+)
+
+cur.execute(
+    """
+    CREATE TABLE IF NOT EXISTS broadcast_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        broadcast_id TEXT NOT NULL,
+        user_id INTEGER NOT NULL,
+        message_id INTEGER NOT NULL,
+        created_at TEXT NOT NULL
+    )
+    """
+)
+
+conn.commit()
+conn.close() 
+    
 
     sync_inventory_to_db()
     sync_game_products_to_db()
@@ -1433,7 +1456,91 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
     rows = cur.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+def save_user(user):
+    if not user:
+        return
 
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT OR REPLACE INTO users (
+            user_id, username, full_name, joined_at
+        )
+        VALUES (?, ?, ?, COALESCE(
+            (SELECT joined_at FROM users WHERE user_id = ?),
+            ?
+        ))
+        """,
+        (
+            user.id,
+            f"@{user.username}" if user.username else "",
+            user.full_name or "",
+            user.id,
+            now_str(),
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_all_users() -> List[int]:
+    conn = db_connect()
+    cur = conn.cursor()
+    cur.execute("SELECT user_id FROM users")
+    rows = cur.fetchall()
+    conn.close()
+    return [int(r["user_id"]) for r in rows]
+
+
+def save_broadcast_message(broadcast_id: str, user_id: int, message_id: int):
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO broadcast_messages (
+            broadcast_id, user_id, message_id, created_at
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (broadcast_id, user_id, message_id, now_str()),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_broadcast_messages(broadcast_id: str) -> List[dict]:
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT * FROM broadcast_messages
+        WHERE broadcast_id = ?
+        """,
+        (broadcast_id,),
+    )
+
+    rows = cur.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def delete_broadcast_records(broadcast_id: str):
+    conn = db_connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "DELETE FROM broadcast_messages WHERE broadcast_id = ?",
+        (broadcast_id,),
+    )
+
+    conn.commit()
+    conn.close()
 # =========================================================
 # UI HELPERS
 # =========================================================
@@ -2078,6 +2185,7 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
 # =========================================================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    save_user(update.effective_user)
     context.user_data.clear()
     if update.message:
         await send_optional_sticker(update.message, WELCOME_STICKER_ID)
@@ -2860,6 +2968,102 @@ async def admin_gui_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================
 # COMMANDS
 # =========================================================
+async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if not update.message or not update.message.text:
+        return
+
+    text = update.message.text.replace("/broadcast", "", 1).strip()
+
+    if not text:
+        await update.message.reply_text(
+            "Usage:\n/broadcast Your message"
+        )
+        return
+
+    broadcast_id = "BC-" + now_dt().strftime("%Y%m%d-%H%M%S")
+    users = get_all_users()
+
+    sent = 0
+    failed = 0
+
+    for user_id in users:
+        try:
+            msg = await context.bot.send_message(
+                chat_id=user_id,
+                text=text,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+
+            save_broadcast_message(
+                broadcast_id=broadcast_id,
+                user_id=user_id,
+                message_id=msg.message_id,
+            )
+
+            sent += 1
+            await asyncio.sleep(0.05)
+
+        except Exception:
+            failed += 1
+
+    await update.message.reply_text(
+        f"✅ Broadcast sent\n\n"
+        f"🆔 Broadcast ID: <code>{broadcast_id}</code>\n"
+        f"📤 Sent: {sent}\n"
+        f"❌ Failed: {failed}\n\n"
+        f"ပြန်ဖျက်ချင်ရင်:\n"
+        f"<code>/delete_broadcast {broadcast_id}</code>",
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def delete_broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        return
+
+    if not context.args:
+        await update.message.reply_text(
+            "Usage:\n/delete_broadcast BC-YYYYMMDD-HHMMSS"
+        )
+        return
+
+    broadcast_id = context.args[0].strip()
+    rows = get_broadcast_messages(broadcast_id)
+
+    if not rows:
+        await update.message.reply_text("❌ Broadcast ID မတွေ့ပါ။")
+        return
+
+    deleted = 0
+    failed = 0
+
+    for row in rows:
+        try:
+            await context.bot.delete_message(
+                chat_id=row["user_id"],
+                message_id=row["message_id"],
+            )
+
+            deleted += 1
+            await asyncio.sleep(0.05)
+
+        except Exception:
+            failed += 1
+
+    delete_broadcast_records(broadcast_id)
+
+    await update.message.reply_text(
+        f"🗑 Broadcast delete finished\n\n"
+        f"🆔 Broadcast ID: <code>{broadcast_id}</code>\n"
+        f"✅ Deleted: {deleted}\n"
+        f"❌ Failed: {failed}",
+        parse_mode=ParseMode.HTML,
+    )
+
 def extract_custom_emoji_ids_from_message(message) -> List[str]:
     entities = message.entities or []
     caption_entities = message.caption_entities or []
@@ -3520,6 +3724,8 @@ def main():
     application.add_handler(CommandHandler("enable_game", enable_game_command))
     application.add_handler(CommandHandler("code", code_command))
     application.add_handler(CommandHandler("admin", admin_panel_command))
+    application.add_handler(CommandHandler("broadcast", broadcast_command))
+    application.add_handler(CommandHandler("delete_broadcast", delete_broadcast_command))
     application.add_handler(CommandHandler("emojiid", emoji_id_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, emoji_id_message_handler))
     application.add_handler(
