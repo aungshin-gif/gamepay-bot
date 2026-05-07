@@ -58,6 +58,10 @@ CUSTOM_EMOJI = {
 "wave": "6172676549125346152",
 "aya": "6145467330009767114",
 "uab": "6145670035286268472",
+    "wink": "6244687263595239404",
+"meitu": "6244383016701925583",
+"vip": "5438496463044752972",
+"svip": "5217822164362739968",
 
     # Text/card icons
     "stock": os.getenv("EMOJI_STOCK", "").strip(),
@@ -316,8 +320,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
-            "share_1m": {"label": "Share Plan - 1 Month", "price": 8000},
-            "private_1m": {"label": "Private Plan - 1 Month", "price": 13000},
+            "private_1m": {"label": "Private Plan - 1 Month", "price": 15000},
         },
     },
     "canva_pro_edu": {
@@ -356,12 +359,77 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
         },
     },
+    "wink_app": {
+    "category": "digital",
+    "emoji_key": "wink",
+    "name": "Wink App",
+    "full_name": "Wink Premium Subscription",
+    "description": "✨ Wink premium account delivery service.",
+    "photo": "wink.jpg",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+    ),
+    "plans": {
+        "share_1m": {
+            "label": "Share 1 Month",
+            "price": 6500
+        },
+
+        "private_1m": {
+            "label": "Private 1 Month",
+            "price": 17000
+        },
+    },
+},
+
+"meitu_vip": {
+    "category": "digital",
+    "emoji_key": "meitu",
+    "name": "Meitu VIP",
+    "full_name": "Meitu Premium Subscription",
+    "description": "📸 Meitu VIP / SVIP private account service.",
+    "photo": "meitu.jpg",
+    "enabled": True,
+    "requires_detail_label": (
+        "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
+    ),
+    "plans": {
+
+        "vip_1m": {
+            "label": f'{tg_emoji("vip", "⭐")} VIP Plan (1 Month)',
+            "price": 12500
+        },
+
+        "vip_1y": {
+            "label": f'{tg_emoji("vip", "⭐")} VIP Plan (1 Year)',
+            "price": 95000
+        },
+
+        "svip_1m": {
+            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (1 Month)',
+            "price": 22000
+        },
+
+        "svip_3m": {
+            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (3 Months)',
+            "price": 53000
+        },
+
+        "svip_1y": {
+            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (1 Year)',
+            "price": 160000
+        },
+    },
+},
     "picsart_pro": {
         "category": "digital",
           "emoji_key": "picsart",
         "name": "PicsArt Pro",
         "full_name": "PicsArt Pro Subscription",
-        "description": "🖊️✒️ PicsArt Pro premium editing account service.",
+        "description": "PicsArt Pro premium editing account service.",
         "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
@@ -556,21 +624,21 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
     "netflix_premium": {
-        "auto_delivery": False,
+        "auto_delivery": True,
         "accounts": [
             {
                 "plan_key": "share_1m",
                 "email": "netflixshare1@example.com",
                 "password": "nf123456",
                 "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
-                "used": True,
+                "used": False,
             },
             {
                 "plan_key": "private_1m",
                 "email": "netflixshare2@example.com",
                 "password": "nf223456",
                 "extra": "📌 Profile 1 ကိုပဲသုံးပါ။",
-                "used": True,
+                "used": False,
             },
         ],
     },
@@ -582,6 +650,15 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "auto_delivery": False,
         "accounts": [],
     },
+    "wink_app": {
+    "auto_delivery": True,
+    "accounts": [],
+},
+
+"meitu_vip": {
+    "auto_delivery": True,
+    "accounts": [],
+},
     "picsart_pro": {
         "auto_delivery": True,
         "accounts": [
