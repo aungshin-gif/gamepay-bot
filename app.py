@@ -73,6 +73,7 @@ CUSTOM_EMOJI = {
     # Text/card icons
     "stock": os.getenv("EMOJI_STOCK", "").strip(),
     "status": os.getenv("EMOJI_STATUS", "").strip(),
+    "loading": "5386367538735104399",
     "description": os.getenv("EMOJI_DESCRIPTION", "").strip(),
     "fast": os.getenv("EMOJI_FAST", "").strip(),
     "secure": os.getenv("EMOJI_SECURE", "").strip(),
@@ -1544,13 +1545,22 @@ def delete_broadcast_records(broadcast_id: str):
 # UI HELPERS
 # =========================================================
 
+async def fake_loading(query, text: str = None):
 
-async def fake_loading(query, text: str = "⏳ Loading..."):
+    if text is None:
+        text = f"{tg_emoji('pending', '⏳')} <b>Loading...</b>"
+
     try:
-        await query.edit_message_text(text)
+        await query.edit_message_text(
+            text,
+            parse_mode=ParseMode.HTML,
+        )
+
         await asyncio.sleep(0.18)
+
     except Exception:
         pass
+
 
 
 def glam_title(title: str) -> str:
