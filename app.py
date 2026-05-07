@@ -1526,7 +1526,7 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 continue
 
             cheapest = min(v["price"] for v in product["plans"].values())
-            total_stock = 999 if key in INVITE_ONLY_PRODUCTS else get_cached_digital_stock(key)
+            total_stock = 999 if key in INVITE_ONLY_PRODUCTS or key in MANUAL_UNLIMITED_PRODUCTS else get_cached_digital_stock(key)
 
             if total_stock > 0:
                 price_text = f"{cheapest} Ks" if key in INVITE_ONLY_PRODUCTS else f"From {cheapest} Ks"
@@ -1552,8 +1552,6 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 continue
 
             stock = get_cached_game_stock(key)
-            if key == "outline_vpn":
-    stock = 999
             default_price = next(iter(product["plans"].values()))["price"]
 
             if stock > 0:
