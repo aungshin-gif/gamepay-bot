@@ -2104,23 +2104,42 @@ def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
             [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other")],
         ]
     )
-
-
 def admin_panel_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("📊 Stats", callback_data="admin_gui:stats"),
-                InlineKeyboardButton("📦 Stock", callback_data="admin_gui:stock"),
+                InlineKeyboardButton(
+                    "Stats",
+                    callback_data="admin_gui:stats",
+                    **button_kwargs("status"),
+                ),
+                InlineKeyboardButton(
+                    "Stock",
+                    callback_data="admin_gui:stock",
+                    **button_kwargs("stock"),
+                ),
             ],
             [
-                InlineKeyboardButton("📋 Pending", callback_data="admin_gui:pending"),
-                InlineKeyboardButton("⚠️ Low Stock", callback_data="admin_gui:lowstock"),
+                InlineKeyboardButton(
+                    "Pending",
+                    callback_data="admin_gui:pending",
+                    **button_kwargs("pending"),
+                ),
+                InlineKeyboardButton(
+                    "Low Stock",
+                    callback_data="admin_gui:lowstock",
+                    **button_kwargs("outofstock"),
+                ),
             ],
-            [InlineKeyboardButton("🔙 Close", callback_data="admin_gui:close")],
+            [
+                InlineKeyboardButton(
+                    "Close",
+                    callback_data="admin_gui:close",
+                    **button_kwargs("back"),
+                )
+            ],
         ]
     )
-
 
 async def send_optional_sticker(message_obj, sticker_id: str):
     if sticker_id:
@@ -3314,30 +3333,28 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
-
 async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
     stats = get_stats_summary()
-    await update.message.reply_text(
-        stats_icon = tg_emoji("status", "📊")
-orders_icon = tg_emoji("orders", "📦")
-success_icon = tg_emoji("success", "✅")
-pending_icon = tg_emoji("pending", "⏳")
-reject_icon = tg_emoji("reject", "❌")
-price_icon = tg_emoji("price", "💰")
 
-await update.message.reply_text(
-    f"{stats_icon} <b>Bot Statistics</b>\n\n"
-    f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
-    f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
-    f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
-    f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
-    f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks",
-    parse_mode=ParseMode.HTML,
-)
+    stats_icon = tg_emoji("status", "📊")
+    orders_icon = tg_emoji("orders", "📦")
+    success_icon = tg_emoji("success", "✅")
+    pending_icon = tg_emoji("pending", "⏳")
+    reject_icon = tg_emoji("reject", "❌")
+    price_icon = tg_emoji("price", "💰")
+
+    await update.message.reply_text(
+        f"{stats_icon} <b>Bot Statistics</b>\n\n"
+        f"{orders_icon} <b>Total Orders:</b> {stats['total_orders']}\n"
+        f"{success_icon} <b>Delivered / Approved:</b> {stats['delivered_orders']}\n"
+        f"{pending_icon} <b>Pending:</b> {stats['pending_orders']}\n"
+        f"{reject_icon} <b>Rejected:</b> {stats['rejected_orders']}\n"
+        f"{price_icon} <b>Total Sales:</b> {stats['total_sales']} Ks",
+        parse_mode=ParseMode.HTML,
+    )
 
 async def sales_today_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -3397,36 +3414,27 @@ async def sales_month_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"{price_icon} <b>Total Sales:</b> {result['total_sales']} Ks",
         parse_mode=ParseMode.HTML,
     )
-
-
 async def stock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
     lines = [f"{tg_emoji('stock', '📦')} <b>Stock List</b>"]
 
-for key, p in PRODUCTS.items():
+    for key, p in PRODUCTS.items():
+        icon = tg_emoji(p.get("emoji_key", "default"), "✨")
 
-    emoji = tg_emoji(p.get("emoji_key", "default"), "✨")
-
-    if p["category"] == "digital":
-
-        if key in INVITE_ONLY_PRODUCTS:
-            lines.append(
-                f"{emoji} <b>{escape(p['name'])}</b> → Invite Flow"
-            )
-
+        if p["category"] == "digital":
+            if key in INVITE_ONLY_PRODUCTS:
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → Invite Flow")
+            else:
+                lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}")
         else:
-            lines.append(
-                f"{emoji} <b>{escape(p['name'])}</b> → {get_cached_digital_stock(key)}"
-            )
+            lines.append(f"{icon} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}")
 
-    else:
-        lines.append(
-            f"{emoji} <b>{escape(p['name'])}</b> → {get_cached_game_stock(key)}"
-        )
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
+    await update.message.reply_text(
+        "\n".join(lines),
+        parse_mode=ParseMode.HTML,
+    )
 
 async def lowstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
