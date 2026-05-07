@@ -143,6 +143,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "plans": {
             "default": {"label": "Blessing", "price": 14000},
         },
+        },
         "honkai_starrail_supply": {
     "category": "game",
     "emoji_key": "hsr",
