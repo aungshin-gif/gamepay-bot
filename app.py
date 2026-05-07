@@ -70,7 +70,6 @@ CUSTOM_EMOJI = {
       "cart": os.getenv("EMOJI_CART", "").strip(),
     "shop_now": os.getenv("EMOJI_SHOP_NOW", "").strip(),
     "choose": os.getenv("EMOJI_CHOOSE", "").strip(),
-    "back": os.getenv("EMOJI_BACK", "").strip(),
 }
 
 SHOP_NAME = "GAMEPAY HUB"
