@@ -182,7 +182,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 },
     "arena_breakout": {
     "category": "game",
-    "emoji_key": "game",
+    "emoji_key": "arena",
     "name": "Arena Breakout",
     "full_name": "Arena Breakout Infinite",
     "description": "🎯 Fast and trusted Arena Breakout top up service.",
