@@ -87,6 +87,26 @@ CUSTOM_EMOJI = {
     "shop_now": os.getenv("EMOJI_SHOP_NOW", "").strip(),
     "choose": os.getenv("EMOJI_CHOOSE", "").strip(),
 }
+def tg_emoji(key: str, fallback: str = "✨") -> str:
+    emoji_id = CUSTOM_EMOJI.get(key, "").strip()
+
+    if emoji_id:
+        return f'<tg-emoji emoji-id="{emoji_id}">{fallback}</tg-emoji>'
+
+    return fallback
+
+
+def button_kwargs(key: str) -> dict:
+    emoji_id = CUSTOM_EMOJI.get(key, "").strip()
+
+    if not emoji_id:
+        return {}
+
+    return {
+        "api_kwargs": {
+            "icon_custom_emoji_id": emoji_id
+        }
+    }
 
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
@@ -140,10 +160,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "stock": 10,
         "enabled": True,
         "requires_detail_label": (
-            "🆔 <b>Player ID ပို့ပေးပါ</b>\n\n"
-            "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-            "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
-        ),
+    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+),
         "plans": {
             "default": {"label": "Weekly Pass", "price": 6400},
         },
@@ -1356,25 +1376,6 @@ def get_order_logs(order_id: str, limit: int = 20) -> List[dict]:
 # =========================================================
 # UI HELPERS
 # =========================================================
-
-def tg_emoji(key: str, fallback: str = "✨") -> str:
-    emoji_id = CUSTOM_EMOJI.get(key, "") or CUSTOM_EMOJI.get("default", "")
-    if emoji_id:
-        return f'<tg-emoji emoji-id="{escape(emoji_id)}">{escape(fallback)}</tg-emoji>'
-    return fallback
-
-def button_kwargs(key: str) -> dict:
-    emoji_id = CUSTOM_EMOJI.get(key, "").strip()
-
-    if not emoji_id:
-        return {}
-
-    return {
-        "api_kwargs": {
-            "icon_custom_emoji_id": emoji_id
-        }
-    }
-
 
 
 async def fake_loading(query, text: str = "⏳ Loading..."):
