@@ -1942,7 +1942,7 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
 
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
-        if product_key in INVITE_ONLY_PRODUCTS:
+        if product_key == "gemini_ai_pro" or product_key == "canva_pro_edu":
             return InlineKeyboardMarkup(
                 [
                     [
@@ -2250,8 +2250,6 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return DETAIL_STATE
 
     return PLAN_STATE
-
-
 async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return DETAIL_STATE
@@ -2260,13 +2258,13 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not text:
         await update.message.reply_text("❌ Detail / note ပို့ပေးပါ။", reply_markup=detail_keyboard())
         return DETAIL_STATE
-product_key = context.user_data.get("product_key")
+
+    product_key = context.user_data.get("product_key")
     plan_key = context.user_data.get("plan_key")
 
     if (product_key, plan_key) in INVITE_ONLY_PLANS and text.lower() == "no":
         await update.message.reply_text("❌ ဒီ plan အတွက် mail မဖြစ်မနေလိုပါတယ်။")
         return DETAIL_STATE
-    
 
     context.user_data["detail"] = text
 
@@ -2280,12 +2278,13 @@ product_key = context.user_data.get("product_key")
 
     return PAYMENT_STATE
 
+
 async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer(cache_time=1)
     data = query.data
 
-   if data == "detail_skip":
+    if data == "detail_skip":
         product_key = context.user_data.get("product_key")
         plan_key = context.user_data.get("plan_key")
 
@@ -2301,7 +2300,8 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
             f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
             reply_markup=payment_keyboard(),
         )
-        return PAYMENT_STATE 
+        return PAYMENT_STATE
+
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
         if not product_key:
@@ -2322,8 +2322,6 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         return MENU_STATE
 
     return DETAIL_STATE
-
-
 
 async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
