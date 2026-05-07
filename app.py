@@ -61,6 +61,9 @@ CUSTOM_EMOJI = {
 "reason": "5440660757194744323",
     "new_order": "5424818078833715060",
 "contact": "5271604874419647061",
+    "key": "5307843983102204243",
+"world": "5447410659077661506",
+"note": "5395444784611480792",
     "payment_method": "6179409279729012467",    
 "kpay": "6172325371124389041",
 "wave": "6172676549125346152",
@@ -2365,18 +2368,26 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_shop":
         await safe_edit_message(query, category_text(), reply_markup=category_keyboard())
         return CATEGORY_STATE
+       if data == "menu_myorders":
+    rows = get_user_orders(query.from_user.id, limit=10)
 
-    if data == "menu_myorders":
-        rows = get_user_orders(query.from_user.id, limit=10)
-        if not rows:
-           await safe_edit_message(
-    query,
-    f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
-    "သင့် order history မရှိသေးပါ။",
-    reply_markup=simple_back_main_keyboard(),
-) 
-            )
-            return MENU_STATE
+    if not rows:
+        await safe_edit_message(
+            query,
+            f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
+            "သင့် order history မရှိသေးပါ။",
+            reply_markup=simple_back_main_keyboard(),
+        )
+        return MENU_STATE
+
+    await safe_edit_message(
+        query,
+        f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
+        "ကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
+        reply_markup=my_orders_keyboard(rows),
+    )
+    return MENU_STATE
+    
         await safe_edit_message(
     query,
     f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
