@@ -30,6 +30,7 @@ CUSTOM_EMOJI = {
     # Product title icons
     "mlbb": os.getenv("EMOJI_MLBB", "").strip(),
     "genshin": os.getenv("EMOJI_GENSHIN", "").strip(),
+    "hsr": os.getenv("EMOJI_HSR", "").strip(),
     "capcut": os.getenv("EMOJI_CAPCUT", "").strip(),
     "expressvpn": os.getenv("EMOJI_EXPRESSVPN", "").strip(),
     "spotify": os.getenv("EMOJI_SPOTIFY", "").strip(),
