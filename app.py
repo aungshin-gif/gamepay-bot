@@ -850,7 +850,6 @@ def now_str() -> str:
 def new_order_id() -> str:
     return "ORD-" + now_dt().strftime("%Y%m%d-%H%M%S-%f")[-20:]
 
-
 def init_db():
     conn = db_connect()
     cur = conn.cursor()
@@ -908,47 +907,47 @@ def init_db():
         """
     )
 
-   cur.execute(
-    """
-    CREATE TABLE IF NOT EXISTS game_products (
-        product_key TEXT PRIMARY KEY,
-        stock INTEGER NOT NULL DEFAULT 0,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        updated_at TEXT NOT NULL
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS game_products (
+            product_key TEXT PRIMARY KEY,
+            stock INTEGER NOT NULL DEFAULT 0,
+            enabled INTEGER NOT NULL DEFAULT 1,
+            updated_at TEXT NOT NULL
+        )
+        """
     )
-    """
-)
 
-cur.execute(
-    """
-    CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
-        username TEXT,
-        full_name TEXT,
-        joined_at TEXT NOT NULL
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            user_id INTEGER PRIMARY KEY,
+            username TEXT,
+            full_name TEXT,
+            joined_at TEXT NOT NULL
+        )
+        """
     )
-    """
-)
 
-cur.execute(
-    """
-    CREATE TABLE IF NOT EXISTS broadcast_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        broadcast_id TEXT NOT NULL,
-        user_id INTEGER NOT NULL,
-        message_id INTEGER NOT NULL,
-        created_at TEXT NOT NULL
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS broadcast_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            broadcast_id TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            message_id INTEGER NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
     )
-    """
-)
 
-conn.commit()
-conn.close() 
-    
+    conn.commit()
+    conn.close()
 
     sync_inventory_to_db()
     sync_game_products_to_db()
 
+    
 
 def sync_inventory_to_db():
     conn = db_connect()
