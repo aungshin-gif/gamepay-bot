@@ -2021,13 +2021,12 @@ async def detail_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     return PAYMENT_STATE
 
-
 async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer(cache_time=1)
     data = query.data
 
-if data == "detail_skip":
+    if data == "detail_skip":
         product_key = context.user_data.get("product_key")
 
         if product_key == "gemini_ai_pro":
@@ -2039,7 +2038,6 @@ if data == "detail_skip":
             return DETAIL_STATE
 
         context.user_data["detail"] = "No"
-
         payment_method_icon = tg_emoji("payment_method", "💳")
 
         await safe_edit_message(
@@ -2047,9 +2045,7 @@ if data == "detail_skip":
             f"{payment_method_icon} <b>Payment Method</b>\n\nငွေပေးချေမယ့် method ကိုရွေးပေးပါ 👇",
             reply_markup=payment_keyboard(),
         )
-
         return PAYMENT_STATE
-        
 
     if data == "detail_back_plan":
         product_key = context.user_data.get("product_key")
@@ -2071,6 +2067,7 @@ if data == "detail_skip":
         return MENU_STATE
 
     return DETAIL_STATE
+
 
 
 async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
