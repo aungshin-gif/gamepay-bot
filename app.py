@@ -347,7 +347,52 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "price": 11500
         },
     },
+},"hiddify_vpn": {
+    "category": "digital",
+    "emoji_key": "hiddify",
+    "name": "Hiddify VPN",
+    "full_name": "Hiddify VPN Key",
+    "description": "🔐 Hiddify VPN key delivery service.",
+    "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Hiddify VPN Information</b>\n\n'
+
+        f'{tg_emoji("key", "🔑")} Key ပေးမှာပါဗျ\n'
+        "ရရှိတဲ့ Key ကို Paste လုပ်ရုံနဲ့ အသုံးပြုနိုင်ပါတယ်\n\n"
+
+        f'{tg_emoji("world", "🌍")} <b>Available Region</b>\n'
+        "• Singapore (SG)\n\n"
+
+        f'{tg_emoji("note", "✍️")} <b>လိုအပ်ရင် Note ရေးပို့နိုင်ပါတယ်</b>\n\n'
+
+        f'{tg_emoji("skip", "⏭")} <b>မရေးချင်ရင် Skip button ပဲနှိပ်ပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "50gb_1m": {
+            "label": "50GB Plan - 1 Month",
+            "price": 3000
+        },
+
+        "100gb_1m": {
+            "label": "100GB Plan - 1 Month",
+            "price": 4500
+        },
+
+        "150gb_1m": {
+            "label": "150GB Plan - 1 Month",
+            "price": 6500
+        },
+
+        "200gb_1m": {
+            "label": "200GB Plan - 1 Month",
+            "price": 8000
+        },
+    },
 },
+    
  "outline_vpn": {
     "category": "digital",
     "emoji_key": "outline",
@@ -735,6 +780,10 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "hiddify_vpn": {
+    "auto_delivery": False,
+    "accounts": [],
+},
     "outline_vpn": {
     "auto_delivery": False,
     "accounts": [],
@@ -889,6 +938,7 @@ INVITE_ONLY_PLANS = {
     ("gemini_ai_pro", "invite_1m"),
 }
 MANUAL_UNLIMITED_PRODUCTS = {
+    "hiddify_vpn",
     "outline_vpn",
     "wink_app",
     "meitu_vip",
@@ -2358,8 +2408,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             disable_web_page_preview=True,
         )
     return MENU_STATE
-
-
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer(cache_time=1)
@@ -2368,42 +2416,35 @@ async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "menu_shop":
         await safe_edit_message(query, category_text(), reply_markup=category_keyboard())
         return CATEGORY_STATE
-       if data == "menu_myorders":
-    rows = get_user_orders(query.from_user.id, limit=10)
 
-    if not rows:
+    if data == "menu_myorders":
+        rows = get_user_orders(query.from_user.id, limit=10)
+
+        if not rows:
+            await safe_edit_message(
+                query,
+                f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
+                "သင့် order history မရှိသေးပါ။",
+                reply_markup=simple_back_main_keyboard(),
+            )
+            return MENU_STATE
+
         await safe_edit_message(
             query,
             f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
-            "သင့် order history မရှိသေးပါ။",
-            reply_markup=simple_back_main_keyboard(),
+            "ကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
+            reply_markup=my_orders_keyboard(rows),
         )
-        return MENU_STATE
-
-    await safe_edit_message(
-        query,
-        f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
-        "ကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
-        reply_markup=my_orders_keyboard(rows),
-    )
-    return MENU_STATE
-    
-        await safe_edit_message(
-    query,
-    f"{tg_emoji('orders', '📦')} <b>Your Orders</b>\n\n"
-    "ကိုယ်ဝယ်ထားတဲ့ order တွေကိုအောက်မှာပြန်ကြည့်နိုင်ပါတယ် 👇",
-    reply_markup=my_orders_keyboard(rows),
-)
         return MENU_STATE
 
     if data == "menu_contact":
         contact_icon = tg_emoji("contact", "📞")
         await safe_edit_message(
-    query,
-    f"{contact_icon} <b>Contact Admin</b>\n\n"
-    f"{tg_emoji('user', '👤')} Telegram: {escape(CONTACT_USERNAME)}",
-    reply_markup=simple_back_main_keyboard(),
-)
+            query,
+            f"{contact_icon} <b>Contact Admin</b>\n\n"
+            f"{tg_emoji('user', '👤')} Telegram: {escape(CONTACT_USERNAME)}",
+            reply_markup=simple_back_main_keyboard(),
+        )
         return MENU_STATE
 
     if data == "menu_restart":
