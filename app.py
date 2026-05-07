@@ -3022,13 +3022,18 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.replace("/broadcast", "", 1).strip()
 
     if not text:
-        await update.message.reply_text(
-            "Usage:\n/broadcast Your message"
-        )
+        await update.message.reply_text("Usage:\n/broadcast Your message")
         return
 
     broadcast_id = "BC-" + now_dt().strftime("%Y%m%d-%H%M%S")
     users = get_all_users()
+
+    if not users:
+        await update.message.reply_text(
+            "❌ Broadcast ပို့မယ့် user မရှိသေးပါ။\n\n"
+            "User တွေ bot ကို /start လုပ်ထားမှ ပို့လို့ရပါတယ်။"
+        )
+        return
 
     sent = 0
     failed = 0
@@ -3038,7 +3043,6 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             msg = await context.bot.send_message(
                 chat_id=user_id,
                 text=text,
-                parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
             )
 
@@ -3051,20 +3055,21 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             sent += 1
             await asyncio.sleep(0.05)
 
-        except Exception:
+        except Exception as e:
             failed += 1
+            logger.warning("Broadcast failed to %s: %s", user_id, e)
 
     await update.message.reply_text(
         f"✅ Broadcast sent\n\n"
         f"🆔 Broadcast ID: <code>{broadcast_id}</code>\n"
+        f"👥 Users: {len(users)}\n"
         f"📤 Sent: {sent}\n"
         f"❌ Failed: {failed}\n\n"
         f"ပြန်ဖျက်ချင်ရင်:\n"
         f"<code>/delete_broadcast {broadcast_id}</code>",
         parse_mode=ParseMode.HTML,
     )
-
-
+    
 async def delete_broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
