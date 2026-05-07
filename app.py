@@ -1539,11 +1539,13 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 ])
             else:
                 rows.append([
-                    InlineKeyboardButton(
-                        f"{tg_emoji(emoji_key, '🔴')} {product['name']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+    InlineKeyboardButton(
+        f"{product['name']} • Out of Stock",
+        callback_data="out_of_stock",
+        **button_kwargs("cancel"),
+    )
+])
+                
 
         else:
             if not is_game_enabled(key):
@@ -1562,11 +1564,13 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 ])
             else:
                 rows.append([
-                    InlineKeyboardButton(
-                        f"{tg_emoji(emoji_key, '🔴')} {product['name']} • Out of Stock",
-                        callback_data="out_of_stock",
-                    )
-                ])
+    InlineKeyboardButton(
+        f"{product['name']} • Out of Stock",
+        callback_data="out_of_stock",
+        **button_kwargs("cancel"),
+    )
+])
+                
 
     rows.append([
         InlineKeyboardButton(
