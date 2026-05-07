@@ -1288,7 +1288,7 @@ def welcome_text() -> str:
     fast_icon = tg_emoji("fast", "⚡")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
-    choose_icon = tg_emoji("cart", "👇")
+    choose_icon = tg_emoji("choose", "👇")
     
 
     return (
