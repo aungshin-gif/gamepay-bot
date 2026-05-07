@@ -397,31 +397,31 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
     ),
     "plans": {
-
-        "vip_1m": {
-            "label": f'{tg_emoji("vip", "⭐")} VIP Plan (1 Month)',
-            "price": 12500
-        },
-
-        "vip_1y": {
-            "label": f'{tg_emoji("vip", "⭐")} VIP Plan (1 Year)',
-            "price": 95000
-        },
-
-        "svip_1m": {
-            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (1 Month)',
-            "price": 22000
-        },
-
-        "svip_3m": {
-            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (3 Months)',
-            "price": 53000
-        },
-
-        "svip_1y": {
-            "label": f'{tg_emoji("svip", "💎")} SVIP Plan (1 Year)',
-            "price": 160000
-        },
+"vip_1m": {
+    "label": "VIP Plan (1 Month)",
+    "price": 12500,
+    "emoji_key": "vip",
+},
+"vip_1y": {
+    "label": "VIP Plan (1 Year)",
+    "price": 95000,
+    "emoji_key": "vip",
+},
+"svip_1m": {
+    "label": "SVIP Plan (1 Month)",
+    "price": 22000,
+    "emoji_key": "svip",
+},
+"svip_3m": {
+    "label": "SVIP Plan (3 Months)",
+    "price": 53000,
+    "emoji_key": "svip",
+},
+"svip_1y": {
+    "label": "SVIP Plan (1 Year)",
+    "price": 160000,
+    "emoji_key": "svip",
+},
     },
 },
     "picsart_pro": {
@@ -719,7 +719,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
 }
 
 INVITE_ONLY_PRODUCTS = {"canva_pro_edu", "gemini_ai_pro"}
-MANUAL_UNLIMITED_PRODUCTS = {"outline_vpn"}
+MANUAL_UNLIMITED_PRODUCTS = {"outline_vpn", "wink_app", "meitu_vip"}
 (
     MENU_STATE,
     CATEGORY_STATE,
@@ -1714,6 +1714,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
 
     for plan_key, plan in product["plans"].items():
         if product["category"] == "digital":
+            plan_emoji_key = plan.get("emoji_key", emoji_key)
             if not product.get("enabled", True):
                 rows.append([
                     InlineKeyboardButton(
@@ -1748,7 +1749,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 f"{plan['label']} • {plan['price']} Ks",
                 callback_data=f"plan:{plan_key}",
-                **button_kwargs(emoji_key),
+                **button_kwargs(plan_emoji_key),
             )
         ])
 
