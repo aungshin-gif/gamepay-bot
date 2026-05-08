@@ -172,9 +172,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
         "enabled": True,
-       "requires_detail_label": (
-    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
-    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "requires_detail_label": (
+    f'{tg_emoji("id", "🆔")} <b>MLBB ID, Server ID နဲ့ Account Name ကို ပို့ပေးပါ။</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / 1234 / Mg</code>\n\n"
     f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
      "plans": {
@@ -191,11 +191,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
-    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    f'{tg_emoji("id", "🆔")} <b>Genshin ID နဲ့ Region ကို ပို့ပေးပါ။</b>\n\n'
+    "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
     f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
-    
     "plans": {
         "default": {"label": "Blessing", "price": 20300},
     },
@@ -211,11 +210,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "stock": 10,
     "enabled": True,
     "requires_detail_label": (
-    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
-    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    f'{tg_emoji("id", "🆔")} <b>Honkai Star Rail ID နဲ့ Region ကို ပို့ပေးပါ။</b>\n\n'
+    "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
     f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
-    
     "plans": {
         "default": {"label": "Express Supply", "price": 18000},
     },
@@ -229,12 +227,11 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "photo": "arena.jpg",
     "stock": 10,
     "enabled": True,
-        "requires_detail_label": (
-    f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
-    "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
+    "requires_detail_label": (
+    f'{tg_emoji("id", "🆔")} <b>Arena Breakout ID နဲ့ Account Name ကို ပို့ပေးပါ။</b>\n\n'
+    "ဥပမာ:\n<code>123456789 / Mg Mg</code>\n\n"
     f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
-
     "plans": {
         "beginner_select": {
             "label": "Beginner Select",
@@ -275,20 +272,15 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "description": f'{tg_emoji("capcut", "📱")} CapCut Pro account delivery service.',    
     "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
-
     "requires_detail_label": (
-        f'{tg_emoji("detail", "📝")} <b>CapCut Plan Information</b>\n\n'
-
-        f'{tg_emoji("reject", "⚠️")} <b>Share Plan</b>\n'
-        "• One Device ပဲဝင်ပါဗျ\n"
-        "• Devices အများကြီးဝင်လို့ account ပျက်ရင် ပြန်မလဲပေးပါ\n\n"
-
-        f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
-        "• Devices 4 လုံးထိဝင်လို့ရပါတယ်\n\n"
-
-        f'{tg_emoji("skip", "⏭")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
-    ),
-
+    f'{tg_emoji("detail", "📝")} <b>CapCut Pro Plan Information</b>\n\n'
+    f'{tg_emoji("warning", "⚠️")} <b>Share Plan</b>\n'
+    "1 Device ပဲဝင်ရပါတယ်။\n"
+    "ပိုဝင်လို့အကောင့်ပျက်ရင် ပြန်မလဲပေးပါ။\n\n"
+    f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
+    "4 Devices ဝင်ရပါတယ်။\n\n"
+    f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+),
     "plans": {
         "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
         "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
@@ -303,7 +295,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "description": f'{tg_emoji("expressvpn", "🌐")} Express VPN email & password delivery service.',   
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
-
     "requires_detail_label": (
         f'{tg_emoji("detail", "📝")} <b>Express VPN Plan Information</b>\n\n'
 
@@ -538,10 +529,10 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
-    f'{tg_emoji("contact", "📧")} <b>invite Planဆို Canva Mail ပို့ပေးပါAcccountဆို. Skipကိုပဲနှိပ်ပေးပါ။</b>\n\n'
-    f'{tg_emoji("success", "👉")} Invite ပို့ဖို့ mail လိုပါတယ်\n'
-    "ဥပမာ:\n"
-    "<code>example@gmail.com</code>"
+    f'{tg_emoji("detail", "📝")} <b>Canva Plan Information</b>\n\n'
+    f'{tg_emoji("mail", "📧")} Invite Plan တွေဆိုရင် မိမိရဲ့ Canva Mail ပို့ပေးပါ။\n\n'
+    "Account ဆိုရင် ဒီဘက်ကပို့ပေးပါမယ်။\n\n"
+    f'{tg_emoji("success", "👉")} <b>Mail မလိုတဲ့ plan ဆိုရင် Skip button ကိုနှိပ်ပေးပါဗျ။</b>'
 ),
         "plans": {
     "edu_1y": {"label": "Edu Invite 1 Year", "price": 3500},
