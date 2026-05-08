@@ -2466,6 +2466,29 @@ async def track_callback_handler(update: Update, context: ContextTypes.DEFAULT_T
     await safe_edit_message(query, order_summary_text(order), reply_markup=simple_back_main_keyboard())
     return MENU_STATE
 
+async def web_app_data_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Web App ကနေ ပို့လိုက်တဲ့ data ကို ဖတ်မယ် (ဥပမာ: cat:game)
+    data = update.effective_message.web_app_data.data
+    
+    if data == "back_main":
+        await update.effective_message.reply_text(
+            welcome_text(), 
+            reply_markup=main_menu_keyboard(), 
+            parse_mode="HTML"
+        )
+        return MENU_STATE
+    
+    if data.startswith("cat:"):
+        category_key = data.split(":", 1)[1]
+        context.user_data["category_key"] = category_key
+        # ဒီနေရာမှာ Bot က Premium Emoji နဲ့ message ပြန်ပို့ပါလိမ့်မယ်
+        await update.effective_message.reply_text(
+            products_text(category_key),
+            reply_markup=products_keyboard(category_key),
+            parse_mode="HTML"
+        )
+        return PRODUCT_STATE
+    return CATEGORY_STATE
 
 async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
