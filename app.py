@@ -437,22 +437,26 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         },
     },
 }, 
-
-    "spotify_premium": {
+        "spotify_premium": {
         "category": "digital",
         "emoji_key": "spotify",
         "name": "Spotify Premium",
         "full_name": "Spotify Premium Subscription",
-        "description": f'{tg_emoji("spotify", "🎵")} 3M ကIndividual Planပါ။',
+        "description": f'{tg_emoji("spotify", "🎵")} 3M individualက‌ စောင့်ရပါတယ်။',
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "enabled": True,
         "requires_detail_label": (
-    f'{tg_emoji("detail", "📝")} <b>Spotify Plan Information</b>\n\n'
-    f'{tg_emoji("reject", "⚠️")} <b>Individual 3M Plan က စောင့်ရပါတယ်ဗျ။</b>\n'
-    "At least 30 min ပါဗျ။\n\n"
-    f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
-),
-        
+            f'{tg_emoji("detail", "📝")} <b>Spotify Plan Information</b>\n\n'
+            f'{tg_emoji("reject", "⚠️")} <b>Individual 3M Plan က စောင့်ရပါတယ်ဗျ။</b>\n'
+            "At least 30 min ပါဗျ။\n\n"
+            f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+        ),
+        "plans": {
+            "family_1m": {"label": "Family Plan - 1 Month", "price": 8500},
+            "individual_3m": {"label": "Individual Plan - 3 Months", "price":13000},
+        },
+    },
+       
     "youtube_premium": {
     "category": "digital",
     "emoji_key": "youtube",
@@ -793,17 +797,10 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "used": False,
             },
             {
-                "plan_key": "individual_1m",
-                "email": "spotifyindividual1@example.com",
-                "password": "12345",
-                "extra": "🎵 Individual 1 Month",
-                "used": False,
-            },
-            {
-                "plan_key": "individual_1m",
+                "plan_key": "individual_3m",
                 "email": "spotifyindividua2@example.com",
                 "password": "12345",
-                "extra": "🎵 Individual 1 Month",
+                "extra": "🎵 Individual 3 Month",
                 "used": False,
             },
         ],
