@@ -798,6 +798,13 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
                 "used": False,
             },
             {
+                "plan_key": "individual_2m",
+                "email": "spotifyindividua2@example.com",
+                "password": "12345",
+                "extra": "🎵 Individual 2 Month",
+                "used": False,
+            },
+            {
                 "plan_key": "individual_3m",
                 "email": "spotifyindividua2@example.com",
                 "password": "12345",
@@ -2039,14 +2046,15 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
         plan_emoji_key = plan.get("emoji_key", emoji_key)
 
         # Plan-level out of stock check (must be first)
-        if plan.get("out_of_stock", False):
+                if plan.get("out_of_stock", False):
             rows.append([
                 InlineKeyboardButton(
-                    f"❌ {plan['label']} • Out of Stock",
+                    f"❌ {plan['label']} • {plan['price']} Ks • Out of Stock",
                     callback_data=f"plan:{plan_key}",
                 )
             ])
             continue
+
 
         if product["category"] == "digital":
             if not product.get("enabled", True):
