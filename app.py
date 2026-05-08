@@ -1964,10 +1964,16 @@ def category_keyboard() -> InlineKeyboardMarkup:
                     **button_kwargs("digital"),
                 )
             ],
-            [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
+            [
+                InlineKeyboardButton(
+                    "Back",
+                    callback_data="back_main",
+                    **button_kwargs("back"),
+                )
+            ],
         ]
     )
-
+    
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
 
@@ -2044,22 +2050,25 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
 
     for plan_key, plan in product["plans"].items():
         plan_emoji_key = plan.get("emoji_key", emoji_key)
+
         # Plan-level out of stock check (must be first)
         if plan.get("out_of_stock", False):
             rows.append([
                 InlineKeyboardButton(
-                    f"❌ {plan['label']} • {plan['price']} Ks • Out of Stock",
+                    f"{plan['label']} • {plan['price']} Ks • Out of Stock",
                     callback_data=f"plan:{plan_key}",
+                    **button_kwargs("reject"),
                 )
             ])
             continue
-            
+
         if product["category"] == "digital":
             if not product.get("enabled", True):
                 rows.append([
                     InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Disabled",
+                        f"{plan['label']} • Disabled",
                         callback_data="out_of_stock",
+                        **button_kwargs("reject"),
                     )
                 ])
                 continue
@@ -2069,8 +2078,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 if stock <= 0:
                     rows.append([
                         InlineKeyboardButton(
-                            f"🔴 {plan['label']} • Out of Stock",
+                            f"{plan['label']} • {plan['price']} Ks • Out of Stock",
                             callback_data="out_of_stock",
+                            **button_kwargs("reject"),
                         )
                     ])
                     continue
@@ -2079,8 +2089,9 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
             if not is_game_enabled(product_key) or get_cached_game_stock(product_key) <= 0:
                 rows.append([
                     InlineKeyboardButton(
-                        f"🔴 {plan['label']} • Out of Stock",
+                        f"{plan['label']} • {plan['price']} Ks • Out of Stock",
                         callback_data="out_of_stock",
+                        **button_kwargs("reject"),
                     )
                 ])
                 continue
