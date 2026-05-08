@@ -95,7 +95,6 @@ CUSTOM_EMOJI = {
 "default": os.getenv("EMOJI_DEFAULT", "").strip(),
     "join": os.getenv("EMOJI_JOIN", "").strip(),
     "category": os.getenv("EMOJI_CATEGORY", "").strip(),
-      "cart": os.getenv("EMOJI_CART", "").strip(),
     "shop_now": os.getenv("EMOJI_SHOP_NOW", "").strip(),
     "choose": os.getenv("EMOJI_CHOOSE", "").strip(),
 }
@@ -134,24 +133,25 @@ DUPLICATE_ORDER_WINDOW_MINUTES = 5
 PAYMENT_ACCOUNTS = {
     "kpay": {
         "label": "KPay",
-        "text": "KPay\n📱 09795687480\n👤 Aung Shin Thant Htun",
+        "text": f'KPay\n{tg_emoji("phone", "📱")} 09795687480\n{tg_emoji("user", "👤")} Aung Shin Thant Htun',
     },
 
     "wave": {
         "label": "Wave Pay",
-        "text": "Wave Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
+        "text": f'Wave Pay\n{tg_emoji("phone", "📱")} 09795687480\n{tg_emoji("user", "👤")} Aung Shin Thant Htun',
     },
 
     "uab": {
         "label": "UAB Pay",
-        "text": "UAB Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
+        "text": f'UAB Pay\n{tg_emoji("phone", "📱")} 09795687480\n{tg_emoji("user", "👤")} Aung Shin Thant Htun',
     },
 
     "aya": {
         "label": "AYA Pay",
-        "text": "AYA Pay\n📱 09795687480\n👤 Aung Shin Thant Htun",
+        "text": f'AYA Pay\n{tg_emoji("phone", "📱")} 09795687480\n{tg_emoji("user", "👤")} Aung Shin Thant Htun',
     },
 }
+
 
 REJECT_REASONS = {
     "wrong_amount": "ငွေပမာဏမမှန်ပါ",
@@ -167,15 +167,15 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "emoji_key": "mlbb",
         "name": "Weekly Pass",
         "full_name": "MLBB Weekly Pass",
-        "description": "⚡ Fast and trusted MLBB Weekly Pass top up service.",
+        "description": f'{tg_emoji("mlbb", "⚡")} Fast and trusted MLBB Weekly Pass top up service.',
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
         "enabled": True,
         "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
-),
+    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'       
+    
         "plans": {
             "default": {"label": "Weekly Pass", "price": 6400},
         },
@@ -185,7 +185,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "genshin",
     "name": "Blessing",
     "full_name": "Genshin Impact Blessing",
-    "description": "✨ Safe and quick Genshin Blessing top up service.",
+    "description": f'{tg_emoji("genshin", "✨")} Safe and quick Genshin Blessing top up service.',
     "photo": "Buy-Welkin-Moon-In-Game.png",
     "stock": 10,
     "enabled": True,
@@ -205,7 +205,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "hsr",
     "name": "Express Supply",
     "full_name": "Honkai Star Rail Express Supply",
-    "description": "🚄 Fast and trusted Honkai Star Rail Express Supply top up service.",
+    "description": f'{tg_emoji("hsr", "🚄")} Fast and trusted Honkai Star Rail Express Supply top up service.',
     "photo": "hsr.jpg",
     "stock": 10,
     "enabled": True,
@@ -224,7 +224,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "arena",
     "name": "Arena Breakout",
     "full_name": "Arena Breakout Infinite",
-    "description": "🎯 Fast and trusted Arena Breakout top up service.",
+    "description": f'{tg_emoji("arena", "🎯")} Fast and trusted Arena Breakout top up service.', 
     "photo": "arena.jpg",
     "stock": 10,
     "enabled": True,
@@ -271,7 +271,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "capcut",
     "name": "CapCut Pro",
     "full_name": "CapCut Pro Subscription",
-    "description": "📱 CapCut Pro account delivery service.",
+    "description": f'{tg_emoji("capcut", "📱")} CapCut Pro account delivery service.',    
     "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -299,7 +299,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "expressvpn",
     "name": "Express VPN",
     "full_name": "Express VPN Subscription",
-    "description": "🌐 Express VPN email & password delivery service.",
+    "description": f'{tg_emoji("expressvpn", "🌐")} Express VPN email & password delivery service.',   
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -353,7 +353,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "hiddify",
     "name": "Hiddify VPN",
     "full_name": "Hiddify VPN Key",
-    "description": "🔐 Hiddify VPN key delivery service.",
+    "description": f'{tg_emoji("hiddify", "🔐")} Hiddify VPN key delivery service.', 
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -399,7 +399,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "outline",
     "name": "Outline Key",
     "full_name": "Outline VPN Key",
-    "description": "🔐 Outline VPN key delivery service.",
+    "description": f'{tg_emoji("outline", "🔐")} Outline VPN key delivery service.',
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -448,7 +448,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "emoji_key": "spotify",
         "name": "Spotify Premium",
         "full_name": "Spotify Premium Subscription",
-        "description": "🎵 Spotify Premium account delivery service.",
+        "description": f'{tg_emoji("spotify", "🎵")} Spotify Premium account delivery service.', 
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "enabled": True,
         "requires_detail_label": (
@@ -465,6 +465,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "youtube",
     "name": "YouTube Premium",
     "full_name": "YouTube Premium Subscription",
+    "description": f'{tg_emoji("youtube", "🎬")} YouTube Premium private account service.', 
     "description": "🎬 YouTube Premium private account service.",
     "photo": "youtube.jpg",
     "enabled": True,
@@ -486,7 +487,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "netflix",
     "name": "Netflix Premium",
     "full_name": "Netflix Premium Subscription",
-    "description": "📺 Netflix Premium account delivery service.",
+    "description": f'{tg_emoji("netflix", "📺")} Netflix Premium account delivery service.',   
     "photo": "https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
