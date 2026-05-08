@@ -1914,6 +1914,8 @@ def category_text() -> str:
     )
 
 def products_text(category_key: str) -> str:
+    choose_icon = tg_emoji("choose", "👇")
+
     if category_key == "game":
         game_icon = tg_emoji("game", "🎮")
         return (
@@ -1924,7 +1926,7 @@ def products_text(category_key: str) -> str:
     digital_icon = tg_emoji("digital", "💻")
     return (
         f"{digital_icon} <b>Digital Products</b>\n\n"
-        f"ဝယ်ယူချင်တဲ့ product ကိုရွေးပေးပါ {tg_emoji('choose', '👇')}"
+        f"ဝယ်ယူချင်တဲ့ product ကိုရွေးပေးပါ {choose_icon}"
     )
 
 
@@ -3661,21 +3663,27 @@ for o in rows:
     )
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
-
-async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
 
-    if not context.args:
-        await update.message.reply_text("Usage: /order ORDER_ID")
+    rows = get_pending_orders(limit=20)
+    if not rows:
+        await update.message.reply_text("✅ Pending orders မရှိပါ။")
         return
 
-    order = order_get(context.args[0])
-    if not order:
-        await update.message.reply_text("❌ Order not found.")
-        return
+    lines = [f"{tg_emoji('detail', '📋')} <b>Pending Orders</b>"]
 
-    await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
+    for o in rows:
+        lines.append(
+            f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+            f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+            f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+            f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
+            f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
+        )
+
+    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3986,21 +3994,22 @@ async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = get_user_orders(update.effective_user.id, limit=10)
+
     if not rows:
         await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
         return
 
-  lines = [f"{tg_emoji('orders', '📦')} <b>Your Recent Orders</b>"]
-for o in rows:
-    lines.append(
-        f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
-        f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
-        f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
-        f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
-    )  
+    lines = [f"{tg_emoji('orders', '📦')} <b>Your Recent Orders</b>"]
+
+    for o in rows:
+        lines.append(
+            f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+            f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+            f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+            f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
+        )
 
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
 
 async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
