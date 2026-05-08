@@ -3936,8 +3936,12 @@ def main():
         raise ValueError("ADMIN_ID environment variable is missing or invalid.")
 
     init_db()
-    application = Application.builder().token(BOT_TOKEN).build()
-
+    application = (
+    Application.builder()
+    .token(BOT_TOKEN)
+    .defaults(Defaults(parse_mode=ParseMode.HTML))
+    .build()
+)
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
