@@ -3663,29 +3663,6 @@ for o in rows:
     )
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
-async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    rows = get_pending_orders(limit=20)
-    if not rows:
-        await update.message.reply_text("✅ Pending orders မရှိပါ။")
-        return
-
-    lines = [f"{tg_emoji('detail', '📋')} <b>Pending Orders</b>"]
-
-    for o in rows:
-        lines.append(
-            f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
-            f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
-            f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
-            f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
-            f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
-        )
-
-    await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
-
-
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
