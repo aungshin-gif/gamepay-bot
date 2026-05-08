@@ -1760,17 +1760,30 @@ def glam_title(title: str) -> str:
 def glam_footer() -> str:
     return ""
 
-
 def human_status(status: str) -> str:
     mapping = {
-        "pending_payment_review": "⏳ Pending Review",
-        "waiting_manual_delivery": "📦 Waiting Delivery",
-        "approved": "✅ Approved",
-        "delivered": "✅ Delivered",
-        "code_requested": "🔐 Code Requested",
-        "code_sent": "🔑 Code Sent",
-        "rejected": "❌ Rejected",
+        "pending_payment_review":
+            f"{tg_emoji('pending', '⏳')} Pending Review",
+
+        "waiting_manual_delivery":
+            f"{tg_emoji('box', '📦')} Waiting Delivery",
+
+        "approved":
+            f"{tg_emoji('success', '✅')} Approved",
+
+        "delivered":
+            f"{tg_emoji('success', '✅')} Delivered",
+
+        "code_requested":
+            f"{tg_emoji('lock', '🔐')} Code Requested",
+
+        "code_sent":
+            f"{tg_emoji('key', '🔑')} Code Sent",
+
+        "rejected":
+            f"{tg_emoji('reject', '❌')} Rejected",
     }
+
     return mapping.get(status, status)
 
 def order_summary_text(order: dict) -> str:
