@@ -650,13 +650,16 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "gmail",
     "name": "Gmail",
     "full_name": "Gmail Account",
-    "description": (
-        f'{tg_emoji("gmail", "📧")} <b>Gmail Account</b>\n\n'
-        f'{tg_emoji("reject", "⚠️")} <b>Disable 2FA</b>\n'
-        "• 2FA ပိတ်ထားပြီးသား Gmail ဖြစ်ပါတယ်ဗျ\n"
-        "• Login ဝင်ပြီးတာနဲ့ Password / Recovery Info ပြောင်းထားပေးပါ\n"
-        "• ဝယ်ပြီးနောက် ကိုယ်တိုင်စနစ်တကျသိမ်းထားပေးပါဗျ\n"
-    ),
+     "description": (
+    f'{tg_emoji("gmail", "📧")} Gmail Account\n'
+    f'{tg_emoji("reject", "⚠️")} Disable 2FA'
+),  
+     "requires_detail_label": (
+    f'{tg_emoji("detail", "📝")} <b>Gmail Account Information</b>\n\n'
+    f'{tg_emoji("reject", "⚠️")} 2FA ပိတ်ထားပြီးသား Gmail ပါ\n'
+    "Login ဝင်ပြီးတာနဲ့ Password / Recovery Info ပြောင်းထားပေးပါ\n\n"
+    f'{tg_emoji("skip", "⏭")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+),
     "photo": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
     "plans": {
@@ -1899,13 +1902,13 @@ def products_text(category_key: str) -> str:
         game_icon = tg_emoji("game", "🎮")
         return (
             f"{game_icon} <b>Game Products</b>\n\n"
-            f"ဝယ်ယူချင်တဲ့ game item ကိုရွေးပေးပါ 👇"
+            f"ဝယ်ယူချင်တဲ့ game item ကိုရွေးပေးပါ {choose_icon}"
         )
 
     digital_icon = tg_emoji("digital", "💻")
     return (
         f"{digital_icon} <b>Digital Products</b>\n\n"
-        f"ဝယ်ယူချင်တဲ့ product ကိုရွေးပေးပါ 👇"
+        f"ဝယ်ယူချင်တဲ့ product ကိုရွေးပေးပါ {tg_emoji('choose', '👇')}"
     )
 
 
