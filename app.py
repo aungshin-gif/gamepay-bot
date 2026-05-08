@@ -466,7 +466,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "youtube",
     "name": "YouTube Premium",
     "full_name": "YouTube Premium Subscription",
-    "description": f'{tg_emoji("youtube", "🎬")} YouTube Premium private account service.', 
+    "description": f'{tg_emoji("youtube", "🎬")} Individual Plan Private accountပါ။',  
     "photo": "youtube.jpg",
     "enabled": True,
 
@@ -1782,17 +1782,18 @@ def product_caption(product: dict, product_key: str) -> str:
 
     status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
     
-        return (
+           return (
         f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
         f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
         f"{stock_icon} <b>Stock:</b> {stock}\n"
         f"{status_icon} <b>Status:</b> {status}\n\n"
         f"{description_icon} <b>Description</b>\n"
-        f"{product_icon} {escape(product['description'])}\n\n"
+        f"{product['description']}\n\n"
         f"{fast_icon} Fast Service\n"
         f"{secure_icon} Secure Payment\n"
         f"{trusted_icon} Trusted Seller"
     )
+ 
 
 def payment_text(payment_name: str, account: str, amount: int, payment_key: str) -> str:
 
