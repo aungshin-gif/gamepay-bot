@@ -2044,9 +2044,8 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
 
     for plan_key, plan in product["plans"].items():
         plan_emoji_key = plan.get("emoji_key", emoji_key)
-
         # Plan-level out of stock check (must be first)
-                if plan.get("out_of_stock", False):
+        if plan.get("out_of_stock", False):
             rows.append([
                 InlineKeyboardButton(
                     f"❌ {plan['label']} • {plan['price']} Ks • Out of Stock",
@@ -2054,8 +2053,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                 )
             ])
             continue
-
-
+            
         if product["category"] == "digital":
             if not product.get("enabled", True):
                 rows.append([
