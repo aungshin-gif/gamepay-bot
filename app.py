@@ -6,7 +6,7 @@ from html import escape
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -1955,21 +1955,14 @@ def category_keyboard() -> InlineKeyboardMarkup:
         [
             [
                 InlineKeyboardButton(
-                    "Game Top Up",
-                    callback_data="cat:game",
-                    **button_kwargs("game"),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "Digital Products",
-                    callback_data="cat:digital",
-                    **button_kwargs("digital"),
+                    "🎨 Select Category (Colored Buttons)",
+                    web_app=WebAppInfo(url="https://aungshin-gif.github.io/gamepay-bot/") 
                 )
             ],
             [InlineKeyboardButton("⬅️ Back", callback_data="back_main")],
         ]
     )
+
 
 def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     rows = []
