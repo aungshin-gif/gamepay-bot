@@ -1779,10 +1779,9 @@ def product_caption(product: dict, product_key: str) -> str:
     fast_icon = tg_emoji("fast", "⚡")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
-
     status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
-    
-           return (
+
+    return (
         f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
         f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
         f"{stock_icon} <b>Stock:</b> {stock}\n"
@@ -1793,8 +1792,8 @@ def product_caption(product: dict, product_key: str) -> str:
         f"{secure_icon} Secure Payment\n"
         f"{trusted_icon} Trusted Seller"
     )
- 
 
+    
 def payment_text(payment_name: str, account: str, amount: int, payment_key: str) -> str:
 
     payment_icon = tg_emoji("payment", "💳")
