@@ -76,6 +76,9 @@ CUSTOM_EMOJI = {
 "meitu": "6244383016701925583",
 "vip": "5438496463044752972",
 "svip": "5217822164362739968",
+    "box": "5334544901428229844",
+"lock": "5296369303661067030",
+"mail": "5253742260054409879",
 
     # Text/card icons
     "stock": os.getenv("EMOJI_STOCK", "").strip(),
@@ -3647,15 +3650,15 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ Pending orders မရှိပါ။")
         return
 
-    lines = ["📋 <b>Pending Orders</b>"]
-    for o in rows:
-        lines.append(
-            f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
-            f"🛍️ {escape(o['product_name'])}\n"
-            f"📦 {escape(o['plan_label'])}\n"
-            f"👤 {escape(o['full_name'])}\n"
-            f"📌 {human_status(o['status'])}"
-        )
+    lines = [f"{tg_emoji('detail', '📋')} <b>Pending Orders</b>"]
+for o in rows:
+    lines.append(
+        f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+        f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+        f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+        f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
+        f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
+    )
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 
@@ -3987,14 +3990,14 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
         return
 
-    lines = ["📦 <b>Your Recent Orders</b>"]
-    for o in rows:
-        lines.append(
-            f"\n🆔 <code>{escape(o['order_id'])}</code>\n"
-            f"🛍️ {escape(o['product_name'])}\n"
-            f"📦 {escape(o['plan_label'])}\n"
-            f"📌 {human_status(o['status'])}"
-        )
+  lines = [f"{tg_emoji('orders', '📦')} <b>Your Recent Orders</b>"]
+for o in rows:
+    lines.append(
+        f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+        f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+        f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+        f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
+    )  
 
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
