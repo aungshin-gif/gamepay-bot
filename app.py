@@ -2549,7 +2549,6 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "out_of_stock":
         await query.answer("🔴 This plan is out of stock.", show_alert=True)
         return PLAN_STATE
-
     if data.startswith("plan:"):
         plan_key = data.split(":", 1)[1]
         product_key = context.user_data.get("product_key")
@@ -2563,16 +2562,21 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if plan_key not in product["plans"]:
             await query.answer("❌ Invalid plan.", show_alert=True)
             return PLAN_STATE
-            
-       plan = product["plans"][plan_key]
 
-                if plan.get("out_of_stock", False):
-                    await query.answer(
-                        "ဒီ plan က လက်ရှိ Out of Stock ဖြစ်နေပါတယ်ဗျ။",
-                        show_alert=True
-                    )
-                    return PLAN_STATE
-                  
+        plan = product["plans"][plan_key]
+
+        if plan.get("out_of_stock", False):
+            await query.answer(
+                "ဒီ plan က လက်ရှိ Out of Stock ဖြစ်နေပါတယ်ဗျ။",
+                show_alert=True
+            )
+            return PLAN_STATE
+
+        if product["category"] == "digital":
+            if not product.get("enabled", True):
+                await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
+                return PLAN_STATE
+
         if product["category"] == "digital":
             if not product.get("enabled", True):
                 await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
