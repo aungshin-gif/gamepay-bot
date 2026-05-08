@@ -467,7 +467,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "name": "YouTube Premium",
     "full_name": "YouTube Premium Subscription",
     "description": f'{tg_emoji("youtube", "🎬")} YouTube Premium private account service.', 
-    "description": "🎬 YouTube Premium private account service.",
     "photo": "youtube.jpg",
     "enabled": True,
 
