@@ -400,7 +400,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "outline",
     "name": "Outline Key",
     "full_name": "Outline VPN Key",
-    "description": f'{tg_emoji("outline", "🔐")} Outline VPN key delivery service.',
+    "description": "Outline VPN key delivery service.",
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -1781,6 +1781,18 @@ def product_caption(product: dict, product_key: str) -> str:
     trusted_icon = tg_emoji("trusted", "💎")
 
     status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
+    
+        return (
+        f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
+        f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
+        f"{stock_icon} <b>Stock:</b> {stock}\n"
+        f"{status_icon} <b>Status:</b> {status}\n\n"
+        f"{description_icon} <b>Description</b>\n"
+        f"{product_icon} {escape(product['description'])}\n\n"
+        f"{fast_icon} Fast Service\n"
+        f"{secure_icon} Secure Payment\n"
+        f"{trusted_icon} Trusted Seller"
+    )
 
     return (
         f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
