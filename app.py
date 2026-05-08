@@ -3657,7 +3657,6 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
         parse_mode=ParseMode.HTML,
     )
 
-
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
         return
@@ -3668,14 +3667,16 @@ async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     lines = [f"{tg_emoji('detail', '📋')} <b>Pending Orders</b>"]
-for o in rows:
-    lines.append(
-        f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
-        f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
-        f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
-        f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
-        f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
-    )
+
+    for o in rows:
+        lines.append(
+            f"\n{tg_emoji('id', '🆔')} <code>{escape(o['order_id'])}</code>\n"
+            f"{tg_emoji('cart', '🛍️')} {escape(o['product_name'])}\n"
+            f"{tg_emoji('stock', '📦')} {escape(o['plan_label'])}\n"
+            f"{tg_emoji('user', '👤')} {escape(o['full_name'])}\n"
+            f"{tg_emoji('status', '📌')} {human_status(o['status'])}"
+        )
+
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.HTML)
 
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4141,7 +4142,6 @@ def main():
     application.add_handler(CommandHandler("track", track_command))
     application.add_handler(CommandHandler("deliver", deliver_command))
     application.add_handler(CommandHandler("orders", orders_command))
-    application.add_handler(CommandHandler("order", order_command))
     application.add_handler(CommandHandler("logs", logs_command))
     application.add_handler(CommandHandler("stock", stock_command))
     application.add_handler(CommandHandler("lowstock", lowstock_command))
