@@ -269,12 +269,15 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "capcut",
     "name": "CapCut Pro",
     "full_name": "CapCut Pro Subscription",
-    "description": f'{tg_emoji("capcut", "📱")} CapCut Pro account delivery service.',    
+        "description": (
+    f'{tg_emoji("capcut", "📱")} CapCut Pro\n'
+    f'{tg_emoji("reject", "⚠️")} Share Plan One Device'
+),    
     "photo": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
     "requires_detail_label": (
     f'{tg_emoji("detail", "📝")} <b>CapCut Pro Plan Information</b>\n\n'
-    f'{tg_emoji("warning", "⚠️")} <b>Share Plan</b>\n'
+    f'{tg_emoji("reject", "⚠️")} <b>Share Plan</b>\n'
     "1 Device ပဲဝင်ရပါတယ်။\n"
     "ပိုဝင်လို့အကောင့်ပျက်ရင် ပြန်မလဲပေးပါ။\n\n"
     f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
@@ -292,7 +295,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "expressvpn",
     "name": "Express VPN",
     "full_name": "Express VPN Subscription",
-    "description": f'{tg_emoji("expressvpn", "🌐")} Express VPN email & password delivery service.',   
+    "description": f'{tg_emoji("expressvpn", "🌐")} Share‌ Plan inly One deviceပါ။ပို၀င်ရင်လိူင်းကျပါတယ်။စည်းစနစ်ရှိ‌‌ေပးပါ။',  
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
     "requires_detail_label": (
@@ -391,7 +394,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "outline",
     "name": "Outline Key",
     "full_name": "Outline VPN Key",
-    "description": "Outline VPN key delivery service.",
+     "description": f'{tg_emoji("outline", "🔑")} Unlimitedလိုချင်Dmကြွပါ။',
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -440,18 +443,16 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "emoji_key": "spotify",
         "name": "Spotify Premium",
         "full_name": "Spotify Premium Subscription",
-        "description": f'{tg_emoji("spotify", "🎵")} Spotify Premium account delivery service.', 
+        "description": f'{tg_emoji("spotify", "🎵")} 3M ကIndividual Planပါ။',
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "enabled": True,
         "requires_detail_label": (
-            f'{tg_emoji("detail", "📝")} <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n'
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
-        ),
-        "plans": {
-            "family_1m": {"label": "Family Plan - 1 Month", "price": 8000},
-            "individual_1m": {"label": "Individual Plan - 1 Month", "price": 12000},
-        },
-    },
+    f'{tg_emoji("detail", "📝")} <b>Spotify Plan Information</b>\n\n'
+    f'{tg_emoji("reject", "⚠️")} <b>Individual 3M Plan က စောင့်ရပါတယ်ဗျ။</b>\n'
+    "At least 30 min ပါဗျ။\n\n"
+    f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+),
+        
     "youtube_premium": {
     "category": "digital",
     "emoji_key": "youtube",
@@ -525,7 +526,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
          "emoji_key": "canva",
         "name": "Canva Pro Edu",
         "full_name": "Canva Pro Edu Subscription",
-        "description": "🎨 Canva Pro Edu invite delivery service.",
+        "description": f'{tg_emoji("canva", "🎨")} Canva plans၃ခူရှိလို့ သေချာဖတ်‌ပေးပါဗျ။',
         "photo": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
@@ -545,11 +546,14 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
            "emoji_key": "gemini",
         "name": "Gemini Ai Pro",
         "full_name": "Gemini Ai Pro Subscription",
-        "description": "🤖 Gemini Ai Pro own-mail invite service.",
+        "description": f'{tg_emoji("gemini", "🤖")} 3M/4M ပိုတန်ပါတယ်။',
         "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
-        "requires_detail_label": (
-        f'{tg_emoji("contact", "📧")} <b>Gemini Mail ပို့ပေးပါ</b>\n\n'f'{tg_emoji("success", "👉")} Invite ပို့ဖို့ mail လိုပါတယ်\n'f'{tg_emoji("reject", "⚠️")} Mail မဖြစ်မနေလိုပါတယ်'
+       "requires_detail_label": (
+    f'{tg_emoji("detail", "📝")} <b>Gemini Plan Information</b>\n\n'
+    f'{tg_emoji("mail", "📧")} Invite Plan တွေဆိုရင် မိမိရဲ့ Mail ပို့ပေးပါ။\n\n'
+    "Account ဆိုရင် ဒီဘက်ကပို့ပေးပါမယ်။\n\n"
+    f'{tg_emoji("success", "👉")} <b>Mail မလိုတဲ့ plan ဆိုရင် Skip button ကိုနှိပ်ပေးပါဗျ။</b>'
 ),
         "plans": {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
@@ -561,7 +565,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "wink",
     "name": "Wink App",
     "full_name": "Wink Premium Subscription",
-    "description": "✨ Wink premium account delivery service.",
+    "description": f'{tg_emoji("wink", "✨")} China Versionပါ။',
     "photo": "wink.jpg",
     "enabled": True,
     "requires_detail_label": (
@@ -582,12 +586,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "meitu",
     "name": "Meitu VIP",
     "full_name": "Meitu Premium Subscription",
-    "description": "📸 Meitu VIP / SVIP private account service.",
+    "description": f'{tg_emoji("meitu", "📸")} China Version',
     "photo": "meitu.jpg",
     "enabled": True,
     "requires_detail_label": (
         f'{tg_emoji("detail", "📝")} <b>Meitu VIP Information</b>\n\n'
-        f'{tg_emoji("success", "✅")} China Version မို့ <b>China Meitu</b> နဲ့သုံးရပါမယ်\n\n'
+        f'{tg_emoji("success", "✅")} China Ver မို့ <b>China Meitu</b> နဲ့သုံးရပါမယ်\n\n'
         f'{tg_emoji("phone", "📱")} China Phone တွေဆို <b>GetApps</b> ကနေ Download ရပါတယ်\n'
         f'{tg_emoji("phone", "📱")} iOS ဆို <b>App Store</b> ကနေ Download ရပါတယ်\n\n'
         f'{tg_emoji("contact", "📩")} Global Phone တွေအတွက် ကျနော့်ဆီ File လာတောင်းပေးပါ\n\n'
