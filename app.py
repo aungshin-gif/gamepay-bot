@@ -442,17 +442,18 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "emoji_key": "spotify",
         "name": "Spotify Premium",
         "full_name": "Spotify Premium Subscription",
-        "description": f'{tg_emoji("spotify", "🎵")} 3M individualက‌ စောင့်ရပါတယ်။',
+        "description": f'{tg_emoji("spotify", "🎵")} 2M/3M individualက‌ စောင့်ရပါတယ်။',
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "enabled": True,
         "requires_detail_label": (
             f'{tg_emoji("detail", "📝")} <b>Spotify Plan Information</b>\n\n'
-            f'{tg_emoji("reject", "⚠️")} <b>Individual 3M Plan က စောင့်ရပါတယ်ဗျ။</b>\n'
+            f'{tg_emoji("reject", "⚠️")} <b>Individual 2M/3M Plan က စောင့်ရပါတယ်ဗျ။</b>\n'
             "At least 30 min ပါဗျ။\n\n"
             f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
         ),
         "plans": {
             "family_1m": {"label": "Family Plan - 1 Month", "price": 8500},
+            "individual_2m": {"label": "Individual Plan - 3 Months", "price":8000,"out_of_stock": True},
             "individual_3m": {"label": "Individual Plan - 3 Months", "price":13000},
         },
     },
@@ -2037,6 +2038,16 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     for plan_key, plan in product["plans"].items():
         plan_emoji_key = plan.get("emoji_key", emoji_key)
 
+        # Plan-level out of stock check (must be first)
+        if plan.get("out_of_stock", False):
+            rows.append([
+                InlineKeyboardButton(
+                    f"❌ {plan['label']} • Out of Stock",
+                    callback_data=f"plan:{plan_key}",
+                )
+            ])
+            continue
+
         if product["category"] == "digital":
             if not product.get("enabled", True):
                 rows.append([
@@ -2085,6 +2096,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     ])
 
     return InlineKeyboardMarkup(rows)
+
 
 def detail_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
@@ -2551,9 +2563,16 @@ async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if plan_key not in product["plans"]:
             await query.answer("❌ Invalid plan.", show_alert=True)
             return PLAN_STATE
+            
+       plan = product["plans"][plan_key]
 
-        plan = product["plans"][plan_key]
-
+                if plan.get("out_of_stock", False):
+                    await query.answer(
+                        "ဒီ plan က လက်ရှိ Out of Stock ဖြစ်နေပါတယ်ဗျ။",
+                        show_alert=True
+                    )
+                    return PLAN_STATE
+                  
         if product["category"] == "digital":
             if not product.get("enabled", True):
                 await query.answer("🔴 ဒီ plan က မရနိုင်သေးပါ။", show_alert=True)
