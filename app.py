@@ -168,7 +168,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "emoji_key": "mlbb",
         "name": "Weekly Pass",
         "full_name": "MLBB Weekly Pass",
-        "description": f'{tg_emoji("mlbb", "⚡")} Fast and trusted MLBB Weekly Pass top up service.',
+        "description": "Fast and trusted MLBB Weekly Pass top up service.", 
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
         "enabled": True,
@@ -186,7 +186,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "genshin",
     "name": "Blessing",
     "full_name": "Genshin Impact Blessing",
-    "description": f'{tg_emoji("genshin", "✨")} Safe and quick Genshin Blessing top up service.',
+    "description": "Fast and trusted MLBB Weekly Pass top up service.",
     "photo": "Buy-Welkin-Moon-In-Game.png",
     "stock": 10,
     "enabled": True,
@@ -206,7 +206,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "hsr",
     "name": "Express Supply",
     "full_name": "Honkai Star Rail Express Supply",
-    "description": f'{tg_emoji("hsr", "🚄")} Fast and trusted Honkai Star Rail Express Supply top up service.',
+    "description": "Fast and trusted Honkai Star Rail Express Supply top up service.",
     "photo": "hsr.jpg",
     "stock": 10,
     "enabled": True,
@@ -225,7 +225,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "emoji_key": "arena",
     "name": "Arena Breakout",
     "full_name": "Arena Breakout Infinite",
-    "description": f'{tg_emoji("arena", "🎯")} Fast and trusted Arena Breakout top up service.', 
+    "description": "Fast and trusted Arena Breakout top up service.",
     "photo": "arena.jpg",
     "stock": 10,
     "enabled": True,
@@ -1788,8 +1788,7 @@ def product_caption(product: dict, product_key: str) -> str:
         f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
         f"{stock_icon} <b>Stock:</b> {stock}\n"
         f"{status_icon} <b>Status:</b> {status}\n\n"
-        f"{description_icon} <b>Description</b>\n"
-        f"{escape(product['description'])}\n\n"
+        f"{product_icon} {escape(product['description'])}\n\n" f"{description_icon} <b>Description</b>\n"
         f"{fast_icon} Fast Service\n"
         f"{secure_icon} Secure Payment\n"
         f"{trusted_icon} Trusted Seller"
