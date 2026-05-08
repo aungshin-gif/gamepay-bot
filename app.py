@@ -453,7 +453,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         ),
         "plans": {
             "family_1m": {"label": "Family Plan - 1 Month", "price": 8500},
-            "individual_2m": {"label": "Individual Plan - 3 Months", "price":8000,"out_of_stock": True},
+            "individual_2m": {"label": "Individual Plan - 2 Months", "price":8000,"out_of_stock": True},
             "individual_3m": {"label": "Individual Plan - 3 Months", "price":13000},
         },
     },
