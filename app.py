@@ -171,12 +171,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "Screenshot_2026-03-31-09-45-06-397_com.mobile.legends.jpg",
         "stock": 10,
         "enabled": True,
-        "requires_detail_label": (
+       "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'       
-    
-        "plans": {
+    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
+),
+     "plans": {
             "default": {"label": "Weekly Pass", "price": 6400},
         },
     },
@@ -192,7 +192,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     
     "plans": {
@@ -212,7 +212,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     
     "plans": {
@@ -231,7 +231,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Player ID ပို့ပေးပါ</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234</code>\n\n"
-    "💡 Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။"
+    f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
 
     "plans": {
@@ -452,7 +452,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?auto=format&fit=crop&w=1000&q=80",
         "enabled": True,
         "requires_detail_label": (
-            "📝 <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n"
+            f'{tg_emoji("detail", "📝")} <b>လိုအပ်ရင် note / message ပို့ပါ</b>\n'
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ သို့မဟုတ် <b>Skip / No Note</b> ကိုနှိပ်ပါ။"
         ),
         "plans": {
@@ -518,7 +518,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "photo": "prime.jpg",
     "enabled": True,
     "requires_detail_label": (
-        "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+        f'{tg_emoji("detail", "📝")} Note လိုအပ်ရင်ရေးပေးပါ\n'
         "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
     ),
     "plans": {
@@ -558,10 +558,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "photo": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
-    "📧 <b>Gemini Mail ပို့ပေးပါ</b>\n\n"
-    "👉 Invite ပို့ဖို့ mail လိုပါတယ်\n"
-    "ဥပမာ:\n<code>example@gmail.com</code>\n\n"
-    "⚠️ Mail မဖြစ်မနေလိုပါတယ်"
+        f'{tg_emoji("contact", "📧")} <b>Gemini Mail ပို့ပေးပါ</b>\n\n'f'{tg_emoji("success", "👉")} Invite ပို့ဖို့ mail လိုပါတယ်\n'f'{tg_emoji("reject", "⚠️")} Mail မဖြစ်မနေလိုပါတယ်'
 ),
         "plans": {
             "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
