@@ -1794,17 +1794,6 @@ def product_caption(product: dict, product_key: str) -> str:
         f"{trusted_icon} Trusted Seller"
     )
 
-    return (
-        f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
-        f"{price_icon} <b>Price:</b> {escape(price_text)}\n"
-        f"{stock_icon} <b>Stock:</b> {stock}\n"
-        f"{status_icon} <b>Status:</b> {status}\n\n"
-        f"{product_icon} {escape(product['description'])}\n\n" f"{description_icon} <b>Description</b>\n"
-        f"{fast_icon} Fast Service\n"
-        f"{secure_icon} Secure Payment\n"
-        f"{trusted_icon} Trusted Seller"
-    )
-
 def payment_text(payment_name: str, account: str, amount: int, payment_key: str) -> str:
 
     payment_icon = tg_emoji("payment", "💳")
