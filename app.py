@@ -2322,21 +2322,40 @@ def simple_back_main_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-
 def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
     buttons = []
+
     for o in rows:
         buttons.append(
             [
                 InlineKeyboardButton(
-                    f"📦 {o['plan_label']} • {human_status(o['status'])}",
+                    f"{o['plan_label']} • {human_status(o['status'])}",
                     callback_data=f"track:{o['order_id']}",
+                    **button_kwargs("orders"),
                 )
             ]
         )
 
-    buttons.append([InlineKeyboardButton("🔄 Refresh", callback_data="menu_myorders")])
-    buttons.append([InlineKeyboardButton("⬅️ Back", callback_data="back_main")])
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                "Refresh",
+                callback_data="menu_myorders",
+                **button_kwargs("refresh"),
+            )
+        ]
+    )
+
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                "Back",
+                callback_data="back_main",
+                **button_kwargs("back"),
+            )
+        ]
+    )
+
     return InlineKeyboardMarkup(buttons)
 
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
