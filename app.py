@@ -1973,20 +1973,39 @@ def category_keyboard() -> InlineKeyboardMarkup:
             ],
         ]
     )
-    
-def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
+  DIGITAL_PRODUCTS_PER_PAGE = 8
+
+
+def products_keyboard(category_key: str, page: int = 0) -> InlineKeyboardMarkup:
     rows = []
 
-    for key, product in PRODUCTS.items():
-        if product["category"] != category_key:
-            continue
+    products = [
+        (key, product)
+        for key, product in PRODUCTS.items()
+        if product["category"] == category_key
+    ]
 
+    if category_key == "digital":
+        products = [
+            (key, product)
+            for key, product in products
+            if product.get("enabled", True)
+        ]
+
+        total_pages = max(1, (len(products) + DIGITAL_PRODUCTS_PER_PAGE - 1) // DIGITAL_PRODUCTS_PER_PAGE)
+        page = max(0, min(page, total_pages - 1))
+        start = page * DIGITAL_PRODUCTS_PER_PAGE
+        end = start + DIGITAL_PRODUCTS_PER_PAGE
+        visible_products = products[start:end]
+    else:
+        visible_products = products
+        total_pages = 1
+        page = 0
+
+    for key, product in visible_products:
         emoji_key = product.get("emoji_key", "default")
 
         if category_key == "digital":
-            if not product.get("enabled", True):
-                continue
-
             cheapest = min(v["price"] for v in product["plans"].values())
             total_stock = 999 if key in INVITE_ONLY_PRODUCTS or key in MANUAL_UNLIMITED_PRODUCTS else get_cached_digital_stock(key)
 
@@ -2001,13 +2020,12 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 ])
             else:
                 rows.append([
-    InlineKeyboardButton(
-        f"{product['name']} • Out of Stock",
-        callback_data="out_of_stock",
-        **button_kwargs("cancel"),
-    )
-])
-                
+                    InlineKeyboardButton(
+                        f"{product['name']} • Out of Stock",
+                        callback_data="out_of_stock",
+                        **button_kwargs("reject"),
+                    )
+                ])
 
         else:
             if not is_game_enabled(key):
@@ -2026,13 +2044,35 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
                 ])
             else:
                 rows.append([
-    InlineKeyboardButton(
-        f"{product['name']} • Out of Stock",
-        callback_data="out_of_stock",
-        **button_kwargs("cancel"),
-    )
-])
-                
+                    InlineKeyboardButton(
+                        f"{product['name']} • Out of Stock",
+                        callback_data="out_of_stock",
+                        **button_kwargs("reject"),
+                    )
+                ])
+
+    if category_key == "digital" and total_pages > 1:
+        nav_row = []
+
+        if page > 0:
+            nav_row.append(
+                InlineKeyboardButton(
+                    "Previous",
+                    callback_data=f"digital_page:{page - 1}",
+                    **button_kwargs("back"),
+                )
+            )
+
+        if page < total_pages - 1:
+            nav_row.append(
+                InlineKeyboardButton(
+                    "Next",
+                    callback_data=f"digital_page:{page + 1}",
+                    **button_kwargs("skip"),
+                )
+            )
+
+        rows.append(nav_row)
 
     rows.append([
         InlineKeyboardButton(
@@ -2043,6 +2083,8 @@ def products_keyboard(category_key: str) -> InlineKeyboardMarkup:
     ])
 
     return InlineKeyboardMarkup(rows)
+  
+
 def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
     rows = []
     product = PRODUCTS[product_key]
@@ -2501,7 +2543,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
         return MENU_STATE
 
-    if data.startswith("cat:"):
+        if data.startswith("cat:"):
         category_key = data.split(":", 1)[1]
         context.user_data["category_key"] = category_key
         await safe_edit_message(
@@ -2510,6 +2552,7 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=products_keyboard(category_key),
         )
         return PRODUCT_STATE
+
 
     return CATEGORY_STATE
 
@@ -2522,6 +2565,17 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "back_categories":
         await safe_edit_message(query, category_text(), reply_markup=category_keyboard())
         return CATEGORY_STATE
+
+    if data.startswith("digital_page:"):
+        page = int(data.split(":", 1)[1])
+        context.user_data["category_key"] = "digital"
+        context.user_data["product_page"] = page
+        await safe_edit_message(
+            query,
+            products_text("digital"),
+            reply_markup=products_keyboard("digital", page=page),
+        )
+        return PRODUCT_STATE
 
     if data == "out_of_stock":
         await query.answer("🔴 This item is out of stock.", show_alert=True)
@@ -2538,15 +2592,15 @@ async def product_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["product_name"] = product["full_name"]
         context.user_data["category"] = product["category"]
 
-        
         await fake_loading(
-    query,
-    f"{tg_emoji('loading', '⏳')} <b>Opening product...</b>"
-)
+            query,
+            f"{tg_emoji('loading', '⏳')} <b>Opening product...</b>"
+        )
         await send_or_edit_product_card(query, product_key, reply_markup=plans_keyboard(product_key))
         return PLAN_STATE
 
     return PRODUCT_STATE
+
 
 
 async def plan_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -3988,7 +4042,7 @@ def main():
                 CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)")
             ],
             PLAN_STATE: [
-                CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")
+                CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$|digital_page:)")
             ],
             DETAIL_STATE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
