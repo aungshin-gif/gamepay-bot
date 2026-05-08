@@ -1973,8 +1973,7 @@ def category_keyboard() -> InlineKeyboardMarkup:
             ],
         ]
     )
-  DIGITAL_PRODUCTS_PER_PAGE = 8
-
+DIGITAL_PRODUCTS_PER_PAGE = 8
 
 def products_keyboard(category_key: str, page: int = 0) -> InlineKeyboardMarkup:
     rows = []
@@ -2543,16 +2542,16 @@ async def category_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await safe_edit_message(query, welcome_text(), reply_markup=main_menu_keyboard())
         return MENU_STATE
 
-        if data.startswith("cat:"):
+    if data.startswith("cat:"):
         category_key = data.split(":", 1)[1]
         context.user_data["category_key"] = category_key
+        context.user_data["product_page"] = 0
         await safe_edit_message(
             query,
             products_text(category_key),
-            reply_markup=products_keyboard(category_key),
+            reply_markup=products_keyboard(category_key, page=0),
         )
         return PRODUCT_STATE
-
 
     return CATEGORY_STATE
 
@@ -4038,12 +4037,13 @@ def main():
             CATEGORY_STATE: [
                 CallbackQueryHandler(category_handler, pattern=r"^(cat:|back_main$)")
             ],
-            PRODUCT_STATE: [
-                CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$)")
-            ],
-            PLAN_STATE: [
+                      PRODUCT_STATE: [
                 CallbackQueryHandler(product_handler, pattern=r"^(product:|back_categories$|out_of_stock$|digital_page:)")
             ],
+            PLAN_STATE: [
+                CallbackQueryHandler(plan_handler, pattern=r"^(plan:|back_products$|out_of_stock$)")
+            ],
+  
             DETAIL_STATE: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, detail_handler),
                 CallbackQueryHandler(detail_callback_handler, pattern=r"^(detail_skip$|detail_back_plan$|detail_cancel$)"),
