@@ -15,6 +15,7 @@ from telegram.ext import (
     MessageHandler,
     ConversationHandler,
     ContextTypes,
+    Defaults,
     filters,
 )
 
