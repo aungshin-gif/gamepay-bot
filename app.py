@@ -42,6 +42,7 @@ CUSTOM_EMOJI = {
     "canva": os.getenv("EMOJI_CANVA", "").strip(),
     "picsart": os.getenv("EMOJI_PICSART", "").strip(),
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
+    "gmail": "6242548417126469488",
     "alight": "6244275874447760070",
     "gemini": "6244416981303303108",
     "hiddify": "5940644462832127906",
@@ -644,6 +645,29 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "share_1y_pro": {"label": "1 Year (Private) Premium", "price": 5000},
         },
     },
+    "gmail": {
+    "category": "digital",
+    "emoji_key": "gmail",
+    "name": "Gmail",
+    "full_name": "Gmail Account",
+    "description": (
+        f'{tg_emoji("gmail", "📧")} <b>Gmail Account</b>\n\n'
+        f'{tg_emoji("reject", "⚠️")} <b>Disable 2FA</b>\n'
+        "• 2FA ပိတ်ထားပြီးသား Gmail ဖြစ်ပါတယ်ဗျ\n"
+        "• Login ဝင်ပြီးတာနဲ့ Password / Recovery Info ပြောင်းထားပေးပါ\n"
+        "• ဝယ်ပြီးနောက် ကိုယ်တိုင်စနစ်တကျသိမ်းထားပေးပါဗျ\n"
+    ),
+    "photo": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=1200&q=80",
+    "enabled": True,
+    "plans": {
+        "one_mail": {
+            "label": "One Mail",
+            "price": 3300,
+            "emoji_key": "gmail",
+        },
+    },
+},
+    
     "grammarly_ai": {
         "category": "digital",
            "emoji_key": "grammarly",
@@ -910,6 +934,25 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+     "gmail": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "one_mail",
+            "email": "gmail1@example.com",
+            "password": "gmail12345",
+            "extra": "⚠️ 2FA Disabled\n✅ Login ဝင်ပြီး Password / Recovery Info ပြောင်းပါ\n✅ Full Warranty",
+            "used": False,
+        },
+        {
+            "plan_key": "one_mail",
+            "email": "gmail2@example.com",
+            "password": "gmail67890",
+            "extra": "⚠️ 2FA Disabled\n✅ Login ဝင်ပြီး Password / Recovery Info ပြောင်းပါ\n✅ Full Warranty",
+            "used": False,
+        },
+    ],
+},
     "grammarly_ai": {
         "auto_delivery": True,
         "accounts": [
