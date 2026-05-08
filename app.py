@@ -3526,10 +3526,10 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=order["user_id"],
         text=(
-            f"✅ <b>Account Ready</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"<pre>{escape(delivery_text)}</pre>"
-        ),
+    f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
+    f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+    f"<pre>{escape(delivery_text)}</pre>"
+),
         parse_mode=ParseMode.HTML,
     )
 
