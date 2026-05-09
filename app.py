@@ -3051,7 +3051,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
     if not order:
         return
 
-   if action == "approve":
+    if action == "approve":
         if order["status"] not in ["pending_payment_review", "waiting_manual_delivery", "code_requested"]:
             await query.answer("Already processed!", show_alert=True)
             return
@@ -3124,7 +3124,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
 
         if order["category"] != "digital":
             return
-            if (order["product_key"], order.get("plan_key", "")) in INVITE_ONLY_PLANS:
+        if (order["product_key"], order.get("plan_key", "")) in INVITE_ONLY_PLANS:
             user_mail = (order.get("detail") or "").strip()
 
             if not user_mail or user_mail.lower() == "no":
