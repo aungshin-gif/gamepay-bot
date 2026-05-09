@@ -2183,8 +2183,7 @@ def plans_keyboard(product_key: str) -> InlineKeyboardMarkup:
                     )
                 ])
                 continue
-
-            if product_key not in INVITE_ONLY_PRODUCTS and product_key not in MANUAL_UNLIMITED_PRODUCTS and (product_key, plan_key) not in MANUAL_DELIVERY_PLANS:
+            if product_key not in INVITE_ONLY_PRODUCTS and product_key not in MANUAL_UNLIMITED_PRODUCTS and (product_key, plan_key) not in MANUAL_DELIVERY_PLANS and (product_key, plan_key) not in INVITE_ONLY_PLANS:
                 stock = get_cached_digital_stock(product_key, plan_key)
                 if stock <= 0:
                     rows.append([
