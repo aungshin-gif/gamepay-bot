@@ -988,6 +988,7 @@ INVITE_ONLY_PLANS = {
 }
 MANUAL_DELIVERY_PLANS = {
     ("canva_pro_edu", "pro_1m"),
+}
 MANUAL_UNLIMITED_PRODUCTS = {
     "hiddify_vpn",
     "outline_vpn",
