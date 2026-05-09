@@ -2432,13 +2432,14 @@ def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton(f"{tg_emoji('price', '💸')} ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
-            [InlineKeyboardButton(f"{tg_emoji('camera', '🖼')} Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
-            [InlineKeyboardButton(f"{tg_emoji('reject', '🚫')} Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
-            [InlineKeyboardButton(f"{tg_emoji('refresh', '♻️')} Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
-            [InlineKeyboardButton(f"{tg_emoji('detail', '📝')} Other", callback_data=f"reject:{order_id}:other")],
+            [InlineKeyboardButton("💸 ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount", **button_kwargs("price"))],
+            [InlineKeyboardButton("🖼 Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss", **button_kwargs("camera"))],
+            [InlineKeyboardButton("🚫 Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment", **button_kwargs("reject"))],
+            [InlineKeyboardButton("♻️ Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order", **button_kwargs("refresh"))],
+            [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other", **button_kwargs("detail"))],
         ]
     )
+    
 def admin_panel_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
