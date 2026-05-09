@@ -1842,7 +1842,7 @@ def product_caption(product: dict, product_key: str) -> str:
     fast_icon = tg_emoji("fast", "⚡")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
-        status_green = tg_emoji("success", "🟢")
+    status_green = tg_emoji("success", "🟢")
     status_red = tg_emoji("outofstock", "🔴")
     status = f"{status_green} Available" if is_in_stock else f"{status_red} Out of Stock"
 
