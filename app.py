@@ -2354,7 +2354,7 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
         )
     ])
 
-    return InlineKeyboardMarkup(buttons
+    return InlineKeyboardMarkup(buttons)
 
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
