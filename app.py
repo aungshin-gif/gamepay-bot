@@ -980,7 +980,7 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         ],
     },
 }
-INVITE_ONLY_PRODUCTS = {"gemini_ai_pro", "canva_pro_edu"}
+INVITE_ONLY_PRODUCTS = {"gemini_ai_pro"}
 INVITE_ONLY_PLANS = {
     ("canva_pro_edu", "edu_1y"),
     ("canva_pro_edu", "business_1m"),
@@ -991,7 +991,6 @@ MANUAL_UNLIMITED_PRODUCTS = {
     "outline_vpn",
     "wink_app",
     "meitu_vip",
-    "canva_pro_edu",
     "youtube_premium",
 }
 
@@ -3057,8 +3056,12 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
             await query.answer("Already processed!", show_alert=True)
             return
 
-        if order["product_key"] in INVITE_ONLY_PRODUCTS:
-            product_label = "Canva Pro Edu" if order["product_key"] == "canva_pro_edu" else "Gemini Ai Pro"
+                if order["product_key"] == "canva_pro_edu":
+                plan_label = order.get("plan_label", "")
+                product_label = f"Canva {plan_label}"
+            else:
+                product_label = "Gemini Ai Pro"
+            return
 
             order_update_status(order_id, "approved", "Invite completed")
             log_action(order_id, query.from_user.id, "invite_approved")
@@ -3121,10 +3124,12 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
         if order["category"] != "digital":
             return
 
-        if order["product_key"] in INVITE_ONLY_PRODUCTS:
+        if (order["product_key"], order.get("plan_key", "")) in INVITE_ONLY_PLANS:
             user_mail = (order.get("detail") or "").strip()
+            ...invite flow...
+            return   
 
-            if not user_mail or user_mail.lower() == "no":
+          if not user_mail or user_mail.lower() == "no":
                 await query.message.reply_text("❌ User mail မရှိသေးပါ။ Customer ဆီက mail တောင်းပေးပါ။")
                 return
 
