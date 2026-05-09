@@ -986,6 +986,8 @@ INVITE_ONLY_PLANS = {
     ("canva_pro_edu", "business_1m"),
     ("gemini_ai_pro", "invite_1m"),
 }
+MANUAL_DELIVERY_PLANS = {
+    ("canva_pro_edu", "pro_1m"),
 MANUAL_UNLIMITED_PRODUCTS = {
     "hiddify_vpn",
     "outline_vpn",
@@ -2073,8 +2075,8 @@ def products_keyboard(category_key: str, page: int = 0) -> InlineKeyboardMarkup:
 
         if category_key == "digital":
             cheapest = min(v["price"] for v in product["plans"].values())
-            total_stock = 999 if key in INVITE_ONLY_PRODUCTS or key in MANUAL_UNLIMITED_PRODUCTS else get_cached_digital_stock(key)
-
+            total_stock = 999 if key in INVITE_ONLY_PRODUCTS or key in MANUAL_UNLIMITED_PRODUCTS or any(k == key for k, _ in INVITE_ONLY_PLANS | MANUAL_DELIVERY_PLANS) else get_cached_digital_stock(key)
+            
             if total_stock > 0:
                 price_text = f"{cheapest} Ks" if key in INVITE_ONLY_PRODUCTS else f"From {cheapest} Ks"
                 rows.append([
