@@ -631,16 +631,16 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "private_1m": {"label": "1 Month (Private)", "price": 5700},
         },
     },
-    "alight_motion": {
+        "alight_motion": {
         "category": "digital",
            "emoji_key": "alight",
         "name": "Alight Motion",
         "full_name": "Alight Motion Premium",
-        "description": "🟦 Alight Motion premium account service.",
+        "description": f'{tg_emoji("alight", "🟦")} Alight Motion premium account service.',
         "photo": "https://images.unsplash.com/photo-1558655146-9f40138edfeb?auto=format&fit=crop&w=1200&q=80",
         "enabled": True,
         "requires_detail_label": (
-            "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
+            f'{tg_emoji("detail", "📝")} Note လိုအပ်ရင်ရေးပေးပါ\n'
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
         ),
         "plans": {
@@ -648,6 +648,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "share_1y_pro": {"label": "1 Year (Private) Premium", "price": 5000},
         },
     },
+    
     "gmail": {
     "category": "digital",
     "emoji_key": "gmail",
@@ -1841,7 +1842,10 @@ def product_caption(product: dict, product_key: str) -> str:
     fast_icon = tg_emoji("fast", "⚡")
     secure_icon = tg_emoji("secure", "🔐")
     trusted_icon = tg_emoji("trusted", "💎")
-    status = "🟢 Available" if is_in_stock else "🔴 Out of Stock"
+        status_green = tg_emoji("success", "🟢")
+    status_red = tg_emoji("outofstock", "🔴")
+    status = f"{status_green} Available" if is_in_stock else f"{status_red} Out of Stock"
+
 
     return (
         f"{product_icon} <b>{escape(product['full_name'])}</b>\n\n"
@@ -1944,7 +1948,7 @@ def detail_text(product_key: str) -> str:
         f"{detail_icon} <b>Detail / Note</b>\n\n"
         f"{product['requires_detail_label']}\n\n"
         f"စာရိုက်ပို့လို့ရပါတယ်\n"
-        f"မလိုရင် button ကိုနှိပ်လို့ရပါတယ် 👇"
+        f"မလိုရင် button ကိုနှိပ်လို့ရပါတယ် {tg_emoji('choose', '👇')}"
     )
 
 
@@ -2430,11 +2434,11 @@ def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -
 def reject_reason_keyboard(order_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
-            [InlineKeyboardButton("💸 ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
-            [InlineKeyboardButton("🖼 Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
-            [InlineKeyboardButton("🚫 Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
-            [InlineKeyboardButton("♻️ Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
-            [InlineKeyboardButton("📝 Other", callback_data=f"reject:{order_id}:other")],
+            [InlineKeyboardButton(f"{tg_emoji('price', '💸')} ငွေပမာဏမမှန်", callback_data=f"reject:{order_id}:wrong_amount")],
+            [InlineKeyboardButton(f"{tg_emoji('camera', '🖼')} Screenshot မရှင်း", callback_data=f"reject:{order_id}:unclear_ss")],
+            [InlineKeyboardButton(f"{tg_emoji('reject', '🚫')} Payment မအောင်မြင်", callback_data=f"reject:{order_id}:fake_payment")],
+            [InlineKeyboardButton(f"{tg_emoji('refresh', '♻️')} Duplicate Order", callback_data=f"reject:{order_id}:duplicate_order")],
+            [InlineKeyboardButton(f"{tg_emoji('detail', '📝')} Other", callback_data=f"reject:{order_id}:other")],
         ]
     )
 def admin_panel_keyboard() -> InlineKeyboardMarkup:
@@ -2525,7 +2529,7 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
                         f"⚠️ <b>Low Stock Alert</b>\n\n"
                         f"🛍️ <b>Product:</b> {escape(product['full_name'])}\n"
                         f"📉 <b>Remaining:</b> {current_stock}"
-                    ),
+                    )
                     parse_mode=ParseMode.HTML,
                 )
     except Exception as e:
@@ -2818,7 +2822,7 @@ async def detail_callback_handler(update: Update, context: ContextTypes.DEFAULT_
         context.user_data.clear()
         await safe_edit_message(
             query,
-            "❌ <b>Order Cancelled</b>\n\nYour current order has been cancelled.",
+            f"{tg_emoji('cancel', '❌')} <b>Order Cancelled</b>\n\nYour current order has been cancelled.",
             reply_markup=main_menu_keyboard(),
         )
         return MENU_STATE
@@ -2881,7 +2885,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if not update.message or not update.message.photo:
         if update.message:
             await update.message.reply_text(
-                "📷 <b>Upload Screenshot</b>\n\nPayment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
+                f"{tg_emoji('camera', '📷')} <b>Upload Screenshot</b>\n\nPayment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ။",
                 parse_mode=ParseMode.HTML,
             )
         return SCREENSHOT_STATE
@@ -2996,7 +3000,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if raw.startswith("rejectmenu:"):
         order_id = raw.split(":", 1)[1]
         await query.message.reply_text(
-            f"❌ <b>Reject Reason</b>\n\n🆔 <code>{escape(order_id)}</code>\nReason ရွေးပေးပါ",
+            f"{tg_emoji('reject', '❌')} <b>Reject Reason</b>\n\n{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\nReason ရွေးပေးပါ",
             parse_mode=ParseMode.HTML,
             reply_markup=reject_reason_keyboard(order_id),
         )
@@ -3063,15 +3067,15 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
             await context.bot.send_message(
                 chat_id=order["user_id"],
                 text=(
-                    f"✅ <b>Invite Ready</b>\n\n"
+                    f"{tg_emoji('success', '✅')} <b>Invite Ready</b>\n\n"
                     f"Your {escape(product_label)} access is ready.\n"
-                    f"📧 Invite already sent to your email"
+                    f"{tg_emoji('mail', '📧')} Invite already sent to your email"
                 ),
                 parse_mode=ParseMode.HTML,
             )
 
             await query.message.reply_text(
-                f"✅ <b>Invite Approved</b>\n\n🆔 <code>{escape(order_id)}</code>\nInvite completed",
+                f"{tg_emoji('success', '✅')} <b>Invite Approved</b>\n\n{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\nInvite completed",
                 parse_mode=ParseMode.HTML,
             )
             return
@@ -3093,16 +3097,16 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=(
-                f"✅ <b>Order Approved</b>\n\n"
-                f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-                f"🛍️ <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+                f"{tg_emoji('success', '✅')} <b>Order Approved</b>\n\n"
+                f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                f"{tg_emoji('cart', '🛍️')} <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
                 f"💖 Thanks for using Gamepay Hub"
             ),
             parse_mode=ParseMode.HTML,
         )
 
         await query.message.reply_text(
-            f"✅ <b>Approved</b>\n\n🆔 <code>{escape(order_id)}</code>\n📦 Remaining Stock: {new_stock}",
+            f"{tg_emoji('success', '✅')} <b>Approved</b>\n\n{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\n{tg_emoji('stock', '📦')} Remaining Stock: {new_stock}",
             parse_mode=ParseMode.HTML,
         )
 
@@ -3155,7 +3159,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
 
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=f"✍️ <b>Manual Delivery Required</b>\n\n<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
+                text=f"{tg_emoji('detail', '✍️')} <b>Manual Delivery Required</b>\n\n<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
                 parse_mode=ParseMode.HTML,
             )
             return
@@ -3168,7 +3172,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
 
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=f"⚠️ <b>Auto Stock Not Found</b>\n\n<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
+                text=f"{tg_emoji('pending', '⚠️')} <b>Auto Stock Not Found</b>\n\n<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>",
                 parse_mode=ParseMode.HTML,
             )
             return
@@ -3178,17 +3182,15 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
         await disable_query_buttons(query)
 
         delivery_text = (
-            f"✅ <b>Account Ready</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"📧 <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-            f"🔑 <b>Password:</b> <code>{escape(account['password'])}</code>\n"
+            f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
+            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"{tg_emoji('mail', '📧')} <b>Email:</b> <code>{escape(account['email'])}</code>\n"
+            f"{tg_emoji('key', '🔑')} <b>Password:</b> <code>{escape(account['password'])}</code>\n"
         )
-
         if account["extra"]:
-            delivery_text += f"\n📝 <b>Note:</b> {escape(account['extra'])}\n"
-
-        delivery_text += "\n🔐 Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။"
-
+            delivery_text += f"\n{tg_emoji('note', '📝')} <b>Note:</b> {escape(account['extra'])}\n"
+        delivery_text += f"\n{tg_emoji('lock', '🔐')} Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။"
+        
         await context.bot.send_message(
             chat_id=order["user_id"],
             text=delivery_text,
@@ -3196,7 +3198,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
         )
 
         await query.message.reply_text(
-            f"✅ <b>Auto Delivered</b>\n\n🆔 <code>{escape(order_id)}</code>",
+            f"{tg_emoji('success', '✅')} <b>Auto Delivered</b>\n\n{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>",
             parse_mode=ParseMode.HTML,
         )
 
@@ -3217,7 +3219,7 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
 
         await context.bot.send_message(
             chat_id=ADMIN_ID,
-            text=f"✍️ <b>Manual Delivery Selected</b>\n\n<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>",
+            text=f"{tg_emoji('detail', '✍️')} <b>Manual Delivery Selected</b>\n\n<code>/deliver {escape(order_id)} Email: yourmail@gmail.com Password: 123456</code>",
             parse_mode=ParseMode.HTML,
         )
         return
@@ -3576,16 +3578,16 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
         chat_id=order["user_id"],
         text=(
-            f"🔐 <b>Login Code Ready</b>\n\n"
-            f"🆔 <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"🔢 <b>Code:</b> <code>{escape(code_value)}</code>"
+                 f"{tg_emoji('lock', '🔐')} <b>Login Code Ready</b>\n\n"
+            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"{tg_emoji('key', '🔢')} <b>Code:</b> <code>{escape(code_value)}</code>"
         ),
         parse_mode=ParseMode.HTML,
     )
 
     order_update_status(order_id, "code_sent", "Admin sent login code")
     log_action(order_id, update.effective_user.id, "code_sent", code_value)
-    await update.message.reply_text("✅ Login code ပို့ပြီးပါပြီ။")
+    await update.message.reply_text(f"{tg_emoji('success', '✅')} Login code ပို့ပြီးပါပြီ။")
 
 
 async def delete_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4055,10 +4057,10 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     order_update_status(order["order_id"], "code_requested", "Customer requested login code")
     log_action(order["order_id"], update.effective_user.id, "customer_code_request")
 
-    await update.message.reply_text("⏳ Code request ကို admin ဆီပို့ပြီးပါပြီ။")
+    await update.message.reply_text(f"{tg_emoji('pending', '⏳')} Code request ကို admin ဆီပို့ပြီးပါပြီ။")
     await context.bot.send_message(
         chat_id=ADMIN_ID,
-        text=f"🔐 <b>Code Requested</b>\n\n<code>/code {escape(order['order_id'])} 123456</code>",
+        text=f"{tg_emoji('lock', '🔐')} <b>Code Requested</b>\n\n<code>/code {escape(order['order_id'])} 123456</code>",
         parse_mode=ParseMode.HTML,
     )
 
@@ -4067,7 +4069,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
     if update.message:
         await update.message.reply_text(
-            "❌ <b>Order Cancelled</b>\n\nCurrent order cancelled.",
+            f"{tg_emoji('cancel', '❌')} <b>Order Cancelled</b>\n\nCurrent order cancelled.",
             reply_markup=main_menu_keyboard(),
             parse_mode=ParseMode.HTML,
         )
