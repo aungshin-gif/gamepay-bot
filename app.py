@@ -3124,13 +3124,10 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
 
         if order["category"] != "digital":
             return
-
-        if (order["product_key"], order.get("plan_key", "")) in INVITE_ONLY_PLANS:
+                if (order["product_key"], order.get("plan_key", "")) in INVITE_ONLY_PLANS:
             user_mail = (order.get("detail") or "").strip()
-            ...invite flow...
-            return   
 
-          if not user_mail or user_mail.lower() == "no":
+            if not user_mail or user_mail.lower() == "no":
                 await query.message.reply_text("❌ User mail မရှိသေးပါ။ Customer ဆီက mail တောင်းပေးပါ။")
                 return
 
@@ -3141,17 +3138,19 @@ f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
             await context.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
-                    f"📧 <b>Invite Required</b>\n\n"
-                    f"🆔 <code>{escape(order_id)}</code>\n"
-                    f"🛍️ <b>Product:</b> {escape(product_label)}\n"
-                    f"📧 <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
+                    f"{tg_emoji('mail', '📧')} <b>Invite Required</b>\n\n"
+                    f"{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\n"
+                    f"{tg_emoji('cart', '🛍️')} <b>Product:</b> {escape(product_label)}\n"
+                    f"{tg_emoji('mail', '📧')} <b>User Mail:</b> <code>{escape(user_mail)}</code>\n\n"
                     f"Invite ပို့ပြီးရင် original order message က Approve ကိုနှိပ်ပါ"
                 ),
                 parse_mode=ParseMode.HTML,
             )
 
             await query.message.reply_text(
-                f"📧 <b>Invite Required</b>\n\n🆔 <code>{escape(order_id)}</code>\nInvite ပို့ပြီးမှ Approve နှိပ်ပါ",
+                f"{tg_emoji('mail', '📧')} <b>Invite Required</b>\n\n"
+                f"{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\n"
+                f"Invite ပို့ပြီးမှ Approve နှိပ်ပါ",
                 parse_mode=ParseMode.HTML,
             )
             return
