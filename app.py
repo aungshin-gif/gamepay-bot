@@ -2354,9 +2354,7 @@ def my_orders_keyboard(rows: List[dict]) -> InlineKeyboardMarkup:
         )
     ])
 
-    return InlineKeyboardMarkup(buttons)
-
-    return InlineKeyboardMarkup(buttons)
+    return InlineKeyboardMarkup(buttons
 
 def admin_action_keyboard(order_id: str, category: str, product_key: str = "") -> InlineKeyboardMarkup:
     if category == "digital":
@@ -2525,12 +2523,13 @@ async def maybe_send_low_stock_alert(bot, product_key: str, plan_key: Optional[s
             if current_stock <= LOW_STOCK_THRESHOLD:
                 await bot.send_message(
                     chat_id=ADMIN_ID,
-                    text=(
+                                        text=(
                         f"⚠️ <b>Low Stock Alert</b>\n\n"
                         f"🛍️ <b>Product:</b> {escape(product['full_name'])}\n"
                         f"📉 <b>Remaining:</b> {current_stock}"
-                    )
+                    ),
                     parse_mode=ParseMode.HTML,
+        
                 )
     except Exception as e:
         logger.warning("Low stock alert failed: %s", e)
