@@ -182,7 +182,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("note", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
      "plans": {
-            "default": {"label": "Weekly Pass", "price": 6400},
+            "default": {"label": "Weekly Pass", "price": 6550},
         },
     },
 "genshin_blessing": {
