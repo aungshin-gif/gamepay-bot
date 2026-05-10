@@ -50,6 +50,8 @@ CUSTOM_EMOJI = {
     "skip": "5416117059207572332",
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
+    "zoom": "5334932883003949665",
+    "hbomax": "5346319945112240722",
     "outofstock": "5210952531676504517",
 "detail": "5395444784611480792",
     "payment": "5472250091332993630",
@@ -483,6 +485,42 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         },
     },
 },   
+    "hbo_max": {
+    "category": "digital",
+    "emoji_key": "hbomax",
+    "name": "HBO Max",
+    "full_name": "HBO Max Premium Subscription",
+    "description": (
+        f'{tg_emoji("hbomax", "🎬")} HBO Max Premium\n'
+        f'{tg_emoji("success", "✅")} Premium Streaming Service'
+    ),
+    "photo": "YOUR_HBO_IMAGE_URL",
+    "enabled": True,
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Profile 3ခူယူရင် ၁ခုစာကို6000 ks ပဲကျသင့်ပါတယ်။</b>\n\n'
+
+        f'{tg_emoji("success", "✅")} <b>1 Profile</b>\n'
+        "• Private Profile Access\n"
+        "• Premium Quality Support\n\n"
+
+        f'{tg_emoji("success", "✅")} <b>HBO Head</b>\n'
+        "• Full HBO Max Account Access\n"
+        "• Change Password & Manage Profiles\n\n"
+
+        f'{tg_emoji("success", "👉")} <b>Skip button ကိုနှိပ်ပေးပါ</b>'
+    ),
+    "plans": {
+        "profile_1": {
+            "label": "1 Profile",
+            "price": 8500
+        },
+
+        "hbo_head": {
+            "label": "HBO Head",
+            "price": 25000
+        },
+    },
+},
     "netflix_premium": {
     "category": "digital",
     "emoji_key": "netflix",
@@ -507,6 +545,34 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "private_1m": {
             "label": "Private Plan - 1 Month",
             "price": 15000
+        },
+    },
+},
+    "zoom_pro": {
+    "category": "digital",
+    "emoji_key": "zoom",
+    "name": "Zoom Pro",
+    "full_name": "Zoom Pro Subscription",
+    "description": (
+        f'{tg_emoji("zoom", "🎥")} Zoom Pro\n'
+        f'{tg_emoji("success", "✅")} Premium Meeting Features'
+    ),
+    "photo": "YOUR_ZOOM_IMAGE_URL",
+    "enabled": True,
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>Zoom Pro Plan Information</b>\n\n'
+
+        f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
+        "• Full Premium Features\n"
+        "• Private Account Access\n"
+        "• Meeting Host Support\n\n"
+
+        f'{tg_emoji("success", "👉")} <b>Skip button ကိုနှိပ်ပေးပါ</b>'
+    ),
+    "plans": {
+        "private_1m": {
+            "label": "1 Month Private",
+            "price": 8000
         },
     },
 },
@@ -848,6 +914,36 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     "auto_delivery": False,
     "accounts": [],
 }, 
+    "hbo_max": {
+    "auto_delivery": True,
+    "accounts": [
+
+        {
+            "plan_key": "profile_1",
+            "email": "hbomaxprofile1@example.com",
+            "password": "pass1234",
+            "extra": "🎬 HBO Max Profile",
+            "used": False,
+        },
+
+        {
+            "plan_key": "profile_1",
+            "email": "hbomaxprofile2@example.com",
+            "password": "pass1234",
+            "extra": "🎬 HBO Max Profile",
+            "used": False,
+        },
+
+        {
+            "plan_key": "hbo_head",
+            "email": "hbomaxhead1@example.com",
+            "password": "pass5678",
+            "extra": "👑 HBO Head Account",
+            "used": False,
+        },
+
+    ],
+},
     "netflix_premium": {
         "auto_delivery": True,
         "accounts": [
@@ -867,6 +963,28 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "zoom_pro": {
+    "auto_delivery": True,
+    "accounts": [
+
+        {
+            "plan_key": "private_1m",
+            "email": "zoomprivate1@example.com",
+            "password": "pass5678",
+            "extra": "🎥 Zoom Pro Private Account",
+            "used": False,
+        },
+
+        {
+            "plan_key": "private_1m",
+            "email": "zoomprivate2@example.com",
+            "password": "pass5678",
+            "extra": "🎥 Zoom Pro Private Account",
+            "used": False,
+        },
+
+    ],
+},
     "prime_video": {
     "auto_delivery": True,
     "accounts": [
