@@ -1162,8 +1162,10 @@ def db_connect():
     return conn
 
 
+MM_TZ = ZoneInfo("Asia/Yangon")
+
 def now_dt() -> datetime:
-    return datetime.now()
+    return datetime.now(MM_TZ)
 
 
 def now_str() -> str:
