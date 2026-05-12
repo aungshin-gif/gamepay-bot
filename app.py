@@ -1554,7 +1554,63 @@ def reserve_account(product_key: str, plan_key: str, order_id: str) -> Optional[
     finally:
         conn.close()
 
+def reserve_auto_account(product_key: str, plan_key: str, order_id: str):
 
+    conn = db_connect()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("BEGIN IMMEDIATE")
+
+        cur.execute(
+            """
+            SELECT id, email, password, extra
+            FROM digital_accounts
+            WHERE product_key = ?
+              AND plan_key = ?
+              AND used = 0
+              AND extra LIKE '[AUTO]%'
+            ORDER BY id ASC
+            LIMIT 1
+            """,
+            (product_key, plan_key),
+        )
+
+        row = cur.fetchone()
+
+        if not row:
+            conn.rollback()
+            return None
+
+        cur.execute(
+            """
+            UPDATE digital_accounts
+            SET used = 1, order_id = ?
+            WHERE id = ? AND used = 0
+            """,
+            (order_id, row["id"]),
+        )
+
+        if cur.rowcount != 1:
+            conn.rollback()
+            return None
+
+        conn.commit()
+        clear_cache()
+
+        return {
+            "id": row["id"],
+            "email": row["email"],
+            "password": row["password"],
+            "extra": row["extra"] or "",
+        }
+
+    except Exception:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
     conn = db_connect()
     cur = conn.cursor()
