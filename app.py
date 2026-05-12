@@ -819,20 +819,28 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "auto_delivery": True,
         "accounts": [
             {
-                "plan_key": "mobile_share_1m",
-                "email": "expressmobile1@example.com",
-                "password": "pass1234",
-                "extra": "📱 Mobile Only",
-                "used": False,
-            },
-            {
-                "plan_key": "mobile_share_1m",
-                "email": "expressmobile2@example.com",
-                "password": "pass1234",
-                "extra": "📱 Mobile Only",
-                "used": False,
-            },
-            {
+    "plan_key": "mobile_share_1m",
+    "email": "expressmobile1@example.com",
+    "password": "pass1234",
+    "extra": "[AUTO] Mobile Share | Slot 1",
+    "used": False,
+},
+
+{
+    "plan_key": "mobile_share_1m",
+    "email": "expressmobile1@example.com",
+    "password": "pass1234",
+    "extra": "[AUTO] Mobile Share | Slot 2",
+    "used": False,
+},
+
+{
+    "plan_key": "mobile_share_1m",
+    "email": "expressmobile1@example.com",
+    "password": "pass1234",
+    "extra": "[AUTO] Mobile Share | Slot 3",
+    "used": False,
+},            {
                 "plan_key": "pc_share_1m",
                 "email": "expresspc1@example.com",
                 "password": "pass1234",
@@ -1114,6 +1122,9 @@ MANUAL_UNLIMITED_PRODUCTS = {
     "meitu_vip",
     "youtube_premium",
 }
+AUTO_VERIFY_PLANS = {
+    ("express_vpn", "mobile_share_1m"),
+}
 
 (
     MENU_STATE,
@@ -1273,13 +1284,18 @@ def sync_inventory_to_db():
             cur.execute(
                 """
                 SELECT id FROM digital_accounts
-                WHERE product_key = ? AND plan_key = ? AND email = ? AND password = ?
+                WHERE product_key = ?
+                AND plan_key = ?
+                AND email = ?
+                AND password = ?
+                AND extra = ?
                 """,
                 (
-                    product_key,
-                    acc["plan_key"],
-                    acc["email"],
-                    acc["password"],
+               product_key,
+               acc["plan_key"],
+               acc["email"],
+               acc["password"],
+               acc.get("extra", ""),
                 ),
             )
             exists = cur.fetchone()
@@ -3071,6 +3087,33 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     }
 
     order_insert(data)
+    if (
+    data["payment_key"] == "kpay"
+    and (data["product_key"], data["plan_key"]) in AUTO_VERIFY_PLANS
+):
+
+    account = reserve_auto_account(
+        data["product_key"],
+        data["plan_key"],
+        order_id,
+    )
+
+    if account:
+
+        order_update_status(order_id, "delivered", "KPay Auto Delivered")
+
+        await context.bot.send_message(
+            chat_id=user.id,
+            text=(
+                f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
+                f"{tg_emoji('mail', '📧')} <code>{escape(account['email'])}</code>\n"
+                f"{tg_emoji('key', '🔑')} <code>{escape(account['password'])}</code>\n\n"
+                f"{escape(account['extra'])}"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+
+        return MENU_STATE
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
     admin_caption = (
