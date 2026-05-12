@@ -8,6 +8,7 @@ import logging
 import asyncio
 from html import escape
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Optional, Dict, Any, List
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
