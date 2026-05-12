@@ -1,3 +1,7 @@
+import re
+import os
+from PIL import Image
+import pytesseract
 import os
 import sqlite3
 import logging
@@ -1603,6 +1607,40 @@ def reserve_auto_account(product_key: str, plan_key: str, order_id: str):
 
     finally:
         conn.close()
+async def extract_amount_from_screenshot(context, file_id):
+
+    tg_file = await context.bot.get_file(file_id)
+
+    file_path = f"/tmp/payment_{file_id}.jpg"
+
+    await tg_file.download_to_drive(file_path)
+
+    text = pytesseract.image_to_string(
+        Image.open(file_path)
+    )
+
+    print(text)
+
+    try:
+        os.remove(file_path)
+    except Exception:
+        pass
+
+    numbers = re.findall(r"\d[\d,]*", text)
+
+    amounts = []
+
+    for n in numbers:
+
+        clean = int(n.replace(",", ""))
+
+        if 500 <= clean <= 500000:
+            amounts.append(clean)
+
+    if not amounts:
+        return None
+
+    return max(amounts)        
 def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
     conn = db_connect()
     cur = conn.cursor()
@@ -3140,6 +3178,32 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         data["payment_key"] == "kpay"
         and (data["product_key"], data["plan_key"]) in AUTO_VERIFY_PLANS
     ):
+
+        detected_amount = await extract_amount_from_screenshot(
+            context,
+            photo_file_id,
+        )
+
+        expected_amount = int(data["price"])
+
+        if detected_amount != expected_amount:
+
+            order_update_status(
+                order_id,
+                "pending_payment_review",
+                f"Amount mismatch: detected={detected_amount}, expected={expected_amount}"
+            )
+
+            await update.message.reply_text(
+                "❌ Amount မကိုက်ပါ။ Admin review ကိုပို့ထားပါတယ်။",
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard(),
+            )
+
+            context.user_data.clear()
+
+            return MENU_STATE
+
         account = reserve_auto_account(
             data["product_key"],
             data["plan_key"],
