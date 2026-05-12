@@ -1640,7 +1640,35 @@ async def extract_amount_from_screenshot(context, file_id):
     if not amounts:
         return None
 
-    return max(amounts)        
+    return max(amounts)     
+async def verify_kpay_receiver_name(context, file_id):
+
+    tg_file = await context.bot.get_file(file_id)
+
+    file_path = f"/tmp/name_{file_id}.jpg"
+
+    await tg_file.download_to_drive(file_path)
+
+    text = pytesseract.image_to_string(
+        Image.open(file_path)
+    )
+
+    text = text.lower()
+
+    try:
+        os.remove(file_path)
+    except Exception:
+        pass
+
+    expected_names = [
+        "aung shin thant htun",
+    ]
+
+    for name in expected_names:
+        if name in text:
+            return True
+
+    return False
 def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
     conn = db_connect()
     cur = conn.cursor()
@@ -3099,6 +3127,9 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ),
         reply_markup=payment_back_keyboard(),
     )
+
+    context.user_data["payment_started_at"] = now_str()
+
     return SCREENSHOT_STATE
 
 
@@ -3171,7 +3202,19 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "updated_at": now_str(),
         "admin_note": "",
     }
+    started_at = context.user_data.get("payment_started_at")
 
+    if started_at:
+        started_time = datetime.strptime(started_at, "%Y-%m-%d %H:%M:%S")
+
+        if now_dt() - started_time > timedelta(minutes=5):
+            await update.message.reply_text(
+                "❌ Payment time expired.\n၅ မိနစ်ကျော်သွားလို့ order ကို cancel လုပ်ထားပါတယ်။",
+                reply_markup=main_menu_keyboard(),
+            )
+
+            context.user_data.clear()
+            return MENU_STATE
     order_insert(data)
 
     if (
@@ -3187,7 +3230,28 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         expected_amount = int(data["price"])
 
         if detected_amount != expected_amount:
+        name_ok = await verify_kpay_receiver_name(
+            context,
+            photo_file_id,
+        )
 
+        if not name_ok:
+
+            order_update_status(
+                order_id,
+                "pending_payment_review",
+                "Receiver name mismatch"
+            )
+
+            await update.message.reply_text(
+                "❌ Receiver name mismatch.\nAdmin review ကိုပို့ထားပါတယ်။",
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard(),
+            )
+
+            context.user_data.clear()
+
+            return MENU_STATE
             order_update_status(
                 order_id,
                 "pending_payment_review",
