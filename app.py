@@ -3230,28 +3230,6 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         expected_amount = int(data["price"])
 
         if detected_amount != expected_amount:
-        name_ok = await verify_kpay_receiver_name(
-            context,
-            photo_file_id,
-        )
-
-        if not name_ok:
-
-            order_update_status(
-                order_id,
-                "pending_payment_review",
-                "Receiver name mismatch"
-            )
-
-            await update.message.reply_text(
-                "❌ Receiver name mismatch.\nAdmin review ကိုပို့ထားပါတယ်။",
-                parse_mode=ParseMode.HTML,
-                reply_markup=main_menu_keyboard(),
-            )
-
-            context.user_data.clear()
-
-            return MENU_STATE
             order_update_status(
                 order_id,
                 "pending_payment_review",
@@ -3265,7 +3243,27 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
 
             context.user_data.clear()
+            return MENU_STATE
 
+        name_ok = await verify_kpay_receiver_name(
+            context,
+            photo_file_id,
+        )
+
+        if not name_ok:
+            order_update_status(
+                order_id,
+                "pending_payment_review",
+                "Receiver name mismatch"
+            )
+
+            await update.message.reply_text(
+                "❌ Receiver name mismatch.\nAdmin review ကိုပို့ထားပါတယ်။",
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard(),
+            )
+
+            context.user_data.clear()
             return MENU_STATE
 
         account = reserve_auto_account(
