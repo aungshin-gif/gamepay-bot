@@ -3286,14 +3286,14 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
                                 f"{tg_emoji('box')} <b>Product:</b>\n"
                                 f"{escape(data['product_name'])}\n\n"
-
                                 f"{tg_emoji('mail')} <b>Email:</b>\n"
                                 f"<code>{escape(account['email'])}</code>\n\n"
 
                                 f"{tg_emoji('key')} <b>Password:</b>\n"
                                 f"<code>{escape(account['password'])}</code>\n\n"
 
-                                f"{escape(account['extra'])}"
+                                f"{account['extra']}"
+
                             ),
                             parse_mode=ParseMode.HTML,
                             reply_markup=main_menu_keyboard(),
