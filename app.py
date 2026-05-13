@@ -3244,14 +3244,106 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             return MENU_STATE
 
     order_insert(data)
-    log_action(order_id, user.id, "order_created", "Customer submitted screenshot") 
-    
+    log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
+
+    is_auto_plan = (
+        data["payment_key"] == "kpay"
+        and (data["product_key"], data["plan_key"]) in AUTO_VERIFY_PLANS
+    )
+
+    if is_auto_plan:
+        try:
+            detected_amount = await extract_amount_from_screenshot(context, photo_file_id)
+            expected_amount = int(data["price"])
+
+            if detected_amount == expected_amount:
+                name_ok = await verify_kpay_receiver_name(context, photo_file_id)
+
+                if name_ok:
+                    account = reserve_auto_account(
+                        data["product_key"],
+                        data["plan_key"],
+                        order_id,
+                    )
+
+                    if account:
+                        order_update_status(order_id, "delivered", "KPay Auto Delivered")
+                        log_action(order_id, 0, "auto_delivered", "KPay auto verify success")
+
+                        await send_optional_bot_sticker(
+                            context.bot,
+                            user.id,
+                            SUCCESS_STICKER_ID
+                        )
+
+                        await context.bot.send_message(
+                            chat_id=user.id,
+                            text=(
+                                f"{tg_emoji('success')} <b>Order Success</b>\n\n"
+
+                                f"{tg_emoji('id')} <b>Order ID:</b>\n"
+                                f"<code>{escape(order_id)}</code>\n\n"
+
+                                f"{tg_emoji('box')} <b>Product:</b>\n"
+                                f"{escape(data['product_name'])}\n\n"
+
+                                f"{tg_emoji('mail')} <b>Email:</b>\n"
+                                f"<code>{escape(account['email'])}</code>\n\n"
+
+                                f"{tg_emoji('key')} <b>Password:</b>\n"
+                                f"<code>{escape(account['password'])}</code>\n\n"
+
+                                f"{escape(account['extra'])}"
+                            ),
+                            parse_mode=ParseMode.HTML,
+                            reply_markup=main_menu_keyboard(),
+                        )
+
+                        await context.bot.send_message(
+                            chat_id=ADMIN_ID,
+                            text=(
+                                f"{tg_emoji('success')} <b>Auto Order Success</b>\n\n"
+
+                                f"{tg_emoji('id')} <b>Order ID:</b>\n"
+                                f"<code>{escape(order_id)}</code>\n\n"
+
+                                f"{tg_emoji('user')} <b>Customer:</b>\n"
+                                f"{escape(data['full_name'])}\n\n"
+
+                                f"{tg_emoji('box')} <b>Product:</b>\n"
+                                f"{escape(data['product_name'])} ({escape(data['plan_label'])})\n\n"
+
+                                f"{tg_emoji('price')} <b>Amount:</b>\n"
+                                f"{data['price']} Ks\n\n"
+
+                                f"{tg_emoji('success')} <b>Auto Delivered Successfully</b>"
+                            ),
+                            parse_mode=ParseMode.HTML,
+                        )
+
+                        context.user_data.clear()
+                        return MENU_STATE
+
+            order_update_status(
+                order_id,
+                "pending_payment_review",
+                "Auto verify failed - manual review"
+            )
+
+        except Exception as e:
+            logger.exception("Auto verify failed: %s", e)
+            order_update_status(
+                order_id,
+                "pending_payment_review",
+                "Auto verify error - manual review"
+            )
+
     admin_caption = (
-        f"{tg_emoji('success', '🆕')} <b>New Order Received</b>\n\n"
+        f"{tg_emoji('success')} <b>New Order Received</b>\n\n"
         f"{order_summary_text(data)}\n\n"
-        f"{tg_emoji('user', '👤')} <b>Customer:</b> {escape(data['full_name'])}\n"
-        f"{tg_emoji('contact', '🔗')} <b>Username:</b> {escape(data['username'] or '-')}\n"
-        f"{tg_emoji('id', '🪪')} <b>User ID:</b> <code>{data['user_id']}</code>"
+        f"{tg_emoji('user')} <b>Customer:</b> {escape(data['full_name'])}\n"
+        f"{tg_emoji('contact')} <b>Username:</b> {escape(data['username'] or '-')}\n"
+        f"{tg_emoji('id')} <b>User ID:</b> <code>{data['user_id']}</code>"
     )
 
     await context.bot.send_photo(
@@ -3259,89 +3351,33 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         photo=photo_file_id,
         caption=admin_caption,
         parse_mode=ParseMode.HTML,
-        reply_markup=admin_action_keyboard(order_id, data["category"], data["product_key"]),
+        reply_markup=admin_action_keyboard(
+            order_id,
+            data["category"],
+            data["product_key"]
+        ),
     )
 
-    await send_optional_bot_sticker(context.bot, user.id, SUCCESS_STICKER_ID)
+    await send_optional_bot_sticker(
+        context.bot,
+        user.id,
+        SUCCESS_STICKER_ID
+    )
 
     await update.message.reply_text(
-        f"{tg_emoji('success', '✅')} <b>Order Received Successfully</b>\n\n"
-        f"{order_summary_text(data)}\n\n"
-        f"{tg_emoji('pending', '⏳')} Admin review ပြီးတာနဲ့ result ပြန်ပို့ပေးပါမယ်",
+        (
+            f"{tg_emoji('success')} <b>Order Success</b>\n\n"
+            f"{order_summary_text(data)}\n\n"
+            f"{tg_emoji('pending')} Admin review ပြီးတာနဲ့ result ပြန်ပို့ပေးပါမယ်"
+        ),
         parse_mode=ParseMode.HTML,
         reply_markup=main_menu_keyboard(),
     )
 
-    if (
-        data["payment_key"] == "kpay"
-        and (data["product_key"], data["plan_key"]) in AUTO_VERIFY_PLANS
-    ):
-        try:
-            detected_amount = await extract_amount_from_screenshot(context, photo_file_id)
-            expected_amount = int(data["price"])
-
-            if detected_amount != expected_amount:
-                order_update_status(
-                    order_id,
-                    "pending_payment_review",
-                    f"Auto failed: amount mismatch detected={detected_amount}, expected={expected_amount}"
-                )
-                context.user_data.clear()
-                return MENU_STATE
-
-            name_ok = await verify_kpay_receiver_name(context, photo_file_id)
-
-            if not name_ok:
-                order_update_status(
-                    order_id,
-                    "pending_payment_review",
-                    "Auto failed: receiver name mismatch"
-                )
-                context.user_data.clear()
-                return MENU_STATE
-
-            account = reserve_auto_account(
-                data["product_key"],
-                data["plan_key"],
-                order_id,
-            )
-
-            if account:
-                order_update_status(order_id, "delivered", "KPay Auto Delivered")
-
-                # Notify Customer
-                await context.bot.send_message(
-                    chat_id=user.id,
-                    text=(
-                        f"{tg_emoji('success', '✅')} <b>Account Ready (Auto-Delivered)</b>\n\n"
-                        f"{tg_emoji('mail', '📧')} <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-                        f"{tg_emoji('key', '🔑')} <b>Password:</b> <code>{escape(account['password'])}</code>\n\n"
-                        f"{escape(account['extra'])}"
-                    ),
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=main_menu_keyboard(),
-                )
-
-                # Notify Admin about Auto-Delivery
-                await context.bot.send_message(
-                    chat_id=ADMIN_ID,
-                    text=(
-                        f"{tg_emoji('success', '🤖')} <b>Auto-Delivery Success</b>\n\n"
-                        f"🆔 Order: <code>{order_id}</code>\n"
-                        f"👤 Customer: {escape(data['full_name'])}\n"
-                        f"📦 Product: {data['product_name']} ({data['plan_label']})\n"
-                        f"💰 Amount: {data['price']} MMK\n\n"
-                        f"✅ Bot က auto verify လုပ်ပြီး product ပို့ပေးလိုက်ပါပြီ။"
-                    ),
-                    parse_mode=ParseMode.HTML
-                )
-
-        except Exception as e:
-            logger.exception("Auto verify failed: %s", e)
-            order_update_status(order_id, "pending_payment_review", "Auto verify error - manual review")
-
     context.user_data.clear()
     return MENU_STATE
+
+
 
 
 
