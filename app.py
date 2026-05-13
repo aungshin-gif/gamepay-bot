@@ -3428,7 +3428,7 @@ async def admin_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
             text=(
                 f"{tg_emoji('reject', '❌')} <b>Order Rejected</b>\n\n"
 f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-f"{tg_emoji('reason', '📌')} <b>Reason:</b> {escape(reason_text)}"
+f"{tg_emoji('reason', '📌')} <b>Reason:</b> {reason_text}"
             ),
             parse_mode=ParseMode.HTML,
         )
