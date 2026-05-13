@@ -3205,7 +3205,6 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "updated_at": now_str(),
         "admin_note": "",
     }
-    started_at = context.user_data.get("payment_started_at")
    started_at = context.user_data.get("payment_started_at")
 
 if started_at:
