@@ -3206,21 +3206,26 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         "admin_note": "",
     }
     started_at = context.user_data.get("payment_started_at")
+   started_at = context.user_data.get("payment_started_at")
 
-    if started_at:
-        started_time = datetime.strptime(started_at, "%Y-%m-%d %H:%M:%S")
+if started_at:
+    started_time = datetime.strptime(
+        started_at,
+        "%Y-%m-%d %H:%M:%S"
+    ).replace(tzinfo=MM_TZ)
 
-        if now_dt() - started_time > timedelta(minutes=5):
-            await update.message.reply_text(
-                "❌ Payment time expired.\n၅ မိနစ်ကျော်သွားလို့ order ကို cancel လုပ်ထားပါတယ်။",
-                reply_markup=main_menu_keyboard(),
-            )
+    if now_dt() - started_time > timedelta(minutes=5):
+        await update.message.reply_text(
+            "❌ Payment time expired.\n၅ မိနစ်ကျော်သွားလို့ order ကို cancel လုပ်ထားပါတယ်။",
+            reply_markup=main_menu_keyboard(),
+        )
 
-            context.user_data.clear()
-            return MENU_STATE
-            order_insert(data)
-    log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
+        context.user_data.clear()
+        return MENU_STATE
 
+order_insert(data)
+log_action(order_id, user.id, "order_created", "Customer submitted screenshot") 
+    
     admin_caption = (
         f"{tg_emoji('success', '🆕')} <b>New Order Received</b>\n\n"
         f"{order_summary_text(data)}\n\n"
