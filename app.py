@@ -3436,7 +3436,7 @@ f"{tg_emoji('reason', '📌')} <b>Reason:</b> {escape(reason_text)}"
         await query.message.reply_text(
             f"{tg_emoji('reject', '❌')} <b>Order Rejected</b>\n\n"
 f"{tg_emoji('id', '🆔')} <code>{escape(order_id)}</code>\n"
-f"{tg_emoji('reason', '📌')} {escape(reason_text)}",
+f"{tg_emoji('reason', '📌')} {reason_text}",
             parse_mode=ParseMode.HTML,
         )
         return
