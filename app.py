@@ -199,7 +199,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>MLBB ID, Server ID နဲ့ Account Name ကို ပို့ပေးပါ။</b>\n\n'
     "ဥပမာ:\n<code>123456789 / 1234 / Mg</code>\n\n"
-    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'},{find:
+    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
      "plans": {
             "default": {"label": "Weekly Pass", "price": 6550},
@@ -217,7 +217,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Genshin ID နဲ့ Region ကို ပို့ပေးပါ။</b>\n\n'
     "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
-    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'},{find:
+    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
         "default": {"label": "Blessing", "price": 20300},
@@ -236,7 +236,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Honkai Star Rail ID နဲ့ Region ကို ပို့ပေးပါ။</b>\n\n'
     "ဥပမာ:\n<code>800123456 / Asia</code>\n\n"
-    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'},{find:
+    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
         "default": {"label": "Express Supply", "price": 18000},
@@ -254,7 +254,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "requires_detail_label": (
     f'{tg_emoji("id", "🆔")} <b>Arena Breakout ID နဲ့ Account Name ကို ပို့ပေးပါ။</b>\n\n'
     "ဥပမာ:\n<code>123456789 / Mg Mg</code>\n\n"
-    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'},{find:
+    f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
         "beginner_select": {
@@ -604,7 +604,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "enabled": True,
     "requires_detail_label": (
         f'{tg_emoji("detail", "📝")} Note လိုအပ်ရင်ရေးပေးပါ\n'
-        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ" (All replaced with custom emoji if needed, but the user asked for custom emoji IDs only. Checking other parts.)},{find:
+        "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
     ),
     "plans": {
         "private_1m": {
@@ -1134,7 +1134,12 @@ MANUAL_UNLIMITED_PRODUCTS = {
 }
 AUTO_VERIFY_PLANS = {
     ("express_vpn", "mobile_share_1m"),
-
+    ("capcut_pro", "share_1m"),
+    ("capcut_pro", "share_3m"),
+    ("hiddify_vpn", "50gb_1m"),
+    ("hiddify_vpn", "100gb_1m"),
+    ("outline_vpn", "50gb_1m"),
+    ("outline_vpn", "100gb_1m"),
 }
 
 (
