@@ -1641,7 +1641,7 @@ async def extract_amount_from_screenshot(context, file_id):
         Image.open(file_path)
     )
 
-    print(text)
+    logger.info(text)
 
     try:
         os.remove(file_path)
@@ -3256,7 +3256,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             detected_amount = await extract_amount_from_screenshot(context, photo_file_id)
             expected_amount = int(data["price"])
 
-            if detected_amount == expected_amount:
+            if abs(detected_amount - expected_amount) <= 100:
                 name_ok = await verify_kpay_receiver_name(context, photo_file_id)
 
                 if name_ok:
