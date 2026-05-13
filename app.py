@@ -1134,12 +1134,7 @@ MANUAL_UNLIMITED_PRODUCTS = {
 }
 AUTO_VERIFY_PLANS = {
     ("express_vpn", "mobile_share_1m"),
-    ("capcut_pro", "share_1m"),
-    ("capcut_pro", "share_3m"),
-    ("hiddify_vpn", "50gb_1m"),
-    ("hiddify_vpn", "100gb_1m"),
-    ("outline_vpn", "50gb_1m"),
-    ("outline_vpn", "100gb_1m"),
+
 }
 
 (
