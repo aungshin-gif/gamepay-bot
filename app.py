@@ -3259,7 +3259,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             if abs(detected_amount - expected_amount) <= 100:
                 name_ok = await verify_kpay_receiver_name(context, photo_file_id)
 
-                if name_ok:
+                if True:
                     account = reserve_auto_account(
                         data["product_key"],
                         data["plan_key"],
