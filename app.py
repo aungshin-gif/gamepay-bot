@@ -3223,8 +3223,7 @@ if started_at:
         return MENU_STATE
 
 order_insert(data)
-log_action(order_id, user.id, "order_created", "Customer submitted screenshot") 
-    
+log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
     admin_caption = (
         f"{tg_emoji('success', '🆕')} <b>New Order Received</b>\n\n"
         f"{order_summary_text(data)}\n\n"
