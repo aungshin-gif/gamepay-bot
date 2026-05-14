@@ -154,6 +154,17 @@ SUCCESS_STICKER_ID = ""
 LOW_STOCK_THRESHOLD = 2
 DB_PATH = "gamepay_hub.db"
 DUPLICATE_ORDER_WINDOW_MINUTES = 5
+AUTO_PAYMENT_TIMEOUT_MINUTES = 5
+AUTO_ORDER_REMINDER_SECONDS = 240  # customer reminder before 5-minute KPay auto-plan timeout
+AUTO_VERIFY_AMOUNT_TOLERANCE = 100
+
+KPAY_EXPECTED_RECEIVER_NAMES = [
+    "aung shin thant htun",
+    "aung shin thant",
+    "thant htun",
+    "aung shin",
+]
+KPAY_EXPECTED_RECEIVER_PHONE = "09795687480"
 
 PAYMENT_ACCOUNTS = {
     "kpay": {
@@ -1629,72 +1640,128 @@ def reserve_auto_account(product_key: str, plan_key: str, order_id: str):
 
     finally:
         conn.close()
-async def extract_amount_from_screenshot(context, file_id):
+def normalize_ocr_text(text: str) -> str:
+    """Normalize OCR text so KPay receiver name / phone matching becomes more reliable."""
+    text = (text or "").lower()
+    text = re.sub(r"[^a-z0-9:/, .\-]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
 
-    tg_file = await context.bot.get_file(file_id)
 
-    file_path = f"/tmp/payment_{file_id}.jpg"
-
-    await tg_file.download_to_drive(file_path)
-
-    text = pytesseract.image_to_string(
-        Image.open(file_path)
-    )
-
-    logger.info(text)
-
-    try:
-        os.remove(file_path)
-    except Exception:
-        pass
-
-    numbers = re.findall(r"\d[\d,]*", text)
-
+def extract_amount_from_text(text: str) -> Optional[int]:
+    """Return the most likely payment amount from OCR text."""
     amounts = []
-
-    for n in numbers:
-
-        clean = int(n.replace(",", ""))
-
+    for n in re.findall(r"\d[\d,]*", text or ""):
+        try:
+            clean = int(n.replace(",", ""))
+        except ValueError:
+            continue
         if 500 <= clean <= 500000:
             amounts.append(clean)
+    return max(amounts) if amounts else None
 
-    if not amounts:
-        return None
 
-    return max(amounts)     
-async def verify_kpay_receiver_name(context, file_id):
+def verify_kpay_receiver_text(text: str) -> bool:
+    normalized = normalize_ocr_text(text)
+    phone_ok = KPAY_EXPECTED_RECEIVER_PHONE in normalized.replace(" ", "")
+    name_ok = any(name in normalized for name in KPAY_EXPECTED_RECEIVER_NAMES)
+    return bool(phone_ok or name_ok)
 
+
+async def extract_kpay_screenshot_info(context, file_id: str) -> dict:
+    """Download one screenshot once, run OCR, and return amount/name verification data."""
     tg_file = await context.bot.get_file(file_id)
-
-    file_path = f"/tmp/name_{file_id}.jpg"
+    safe_file_id = re.sub(r"[^A-Za-z0-9_-]", "_", file_id)
+    file_path = f"/tmp/kpay_{safe_file_id}.jpg"
 
     await tg_file.download_to_drive(file_path)
+    try:
+        image = Image.open(file_path)
+        text = pytesseract.image_to_string(image)
+    finally:
+        try:
+            os.remove(file_path)
+        except Exception:
+            pass
 
-    text = pytesseract.image_to_string(
-        Image.open(file_path)
+    logger.info("KPay OCR text: %s", text)
+    return {
+        "text": text,
+        "amount": extract_amount_from_text(text),
+        "receiver_ok": verify_kpay_receiver_text(text),
+    }
+
+
+async def extract_amount_from_screenshot(context, file_id):
+    # Backward compatible wrapper for older admin/debug usage.
+    return (await extract_kpay_screenshot_info(context, file_id))["amount"]
+
+
+async def verify_kpay_receiver_name(context, file_id):
+    # Backward compatible wrapper for older admin/debug usage.
+    return (await extract_kpay_screenshot_info(context, file_id))["receiver_ok"]
+
+
+def is_auto_verify_plan(product_key: str, plan_key: str, payment_key: str) -> bool:
+    return payment_key == "kpay" and (product_key, plan_key) in AUTO_VERIFY_PLANS
+
+
+def kpay_auto_plan_notice_text(product_name: str, plan_label: str, price: int) -> str:
+    return (
+        f"{tg_emoji('time', '⏰')} <b>Auto Plan Notice</b>\n\n"
+        f"{tg_emoji('box', '📦')} <b>Product:</b> {escape(product_name)}\n"
+        f"{tg_emoji('stock', '📦')} <b>Plan:</b> {escape(plan_label)}\n"
+        f"{tg_emoji('price', '💰')} <b>Amount:</b> {price} Ks\n\n"
+        f"{tg_emoji('success', '✅')} ဒီ Plan က <b>Auto Plan</b> ဖြစ်တာမို့ KPay payment screenshot ကို "
+        f"<b>{AUTO_PAYMENT_TIMEOUT_MINUTES} မိနစ်အတွင်း</b> photo အနေနဲ့ပို့ပေးပါ။\n"
+        f"{tg_emoji('camera', '📷')} Screenshot ထဲမှာ <b>Name / Amount / Time</b> မြင်ရအောင် ပို့ပေးပါ။"
     )
 
-    text = text.lower()
 
-    try:
-        os.remove(file_path)
-    except Exception:
-        pass
+async def _auto_order_alarm_task(context: ContextTypes.DEFAULT_TYPE, user_id: int, session_id: str):
+    await asyncio.sleep(AUTO_ORDER_REMINDER_SECONDS)
+    if context.user_data.get("auto_alarm_session_id") != session_id:
+        return
+    if not is_auto_verify_plan(
+        context.user_data.get("product_key", ""),
+        context.user_data.get("plan_key", ""),
+        context.user_data.get("payment_key", ""),
+    ):
+        return
 
-    expected_names = [
-        "aung shin thant htun",
-        "aung shin thant",
-        "thant htun",
-        "aung shin",
-        "09795687480",
-    ]
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=(
+            f"{tg_emoji('time', '⏰')} <b>Auto Plan Reminder</b>\n\n"
+            f"{tg_emoji('success', '✅')} Auto Plans ဖြစ်တာမို့ <b>{AUTO_PAYMENT_TIMEOUT_MINUTES} မိနစ်အတွင်း</b> "
+            "Order တင်ပေးပါ။\n"
+            f"{tg_emoji('camera', '📷')} Payment screenshot ကို photo နဲ့ပို့ပေးရင် bot က "
+            "<b>Name / Amount / Time</b> ကိုစစ်ပြီး product ကို auto ပို့ပေးပါမယ်။"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
 
-    for name in expected_names:
-        if name in text:
-            return True
 
-    return False
+def schedule_auto_order_alarm(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    session_id = f"{user_id}:{now_dt().timestamp()}"
+    context.user_data["auto_alarm_session_id"] = session_id
+    context.application.create_task(_auto_order_alarm_task(context, user_id, session_id))
+
+
+def build_auto_delivery_text(order: dict, account: dict, heading: str = "Products ပို့ပြီးပါပြီ") -> str:
+    text = (
+        f"{tg_emoji('success', '✅')} <b>{escape(heading)}</b>\n\n"
+        f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order['order_id'])}</code>\n"
+        f"{tg_emoji('box', '📦')} <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
+        f"{tg_emoji('stock', '📦')} <b>Plan:</b> {escape(order.get('plan_label', '-'))}\n\n"
+        f"{tg_emoji('mail', '📧')} <b>Email:</b> <code>{escape(account['email'])}</code>\n"
+        f"{tg_emoji('key', '🔑')} <b>Password:</b> <code>{escape(account['password'])}</code>\n"
+    )
+    if account.get("extra"):
+        text += f"\n{tg_emoji('note', '📝')} <b>Note:</b> {escape(account['extra'])}\n"
+    text += f"\n{tg_emoji('lock', '🔐')} Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။"
+    return text
+
 def add_digital_account(product_key: str, plan_key: str, email: str, password: str, extra: str = ""):
     conn = db_connect()
     cur = conn.cursor()
@@ -2156,7 +2223,7 @@ def payment_text(payment_name: str, pay_text: str, amount: int, payment_key: str
 
         f"{camera_emoji} ငွေလွှဲပြီး payment screenshot ကို <b>photo</b> နဲ့ပို့ပေးပါ\n"
 
-        f"{success_emoji} ပြီးတာနဲ့ admin review တင်ပေးပါမယ်"
+        f"{success_emoji} Screenshot ပို့ပြီးတာနဲ့ payment ကိုစစ်ပေးပါမယ်"
     )
 def welcome_text() -> str:
     shop_icon = tg_emoji("shop", "🎉")
@@ -3139,14 +3206,28 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query,
     f"{tg_emoji('payment', '💳')} <b>Preparing payment...</b>"
 )
+    pay_msg = payment_text(
+        PAYMENT_ACCOUNTS[payment_key]["label"],
+        PAYMENT_ACCOUNTS[payment_key]["text"],
+        int(context.user_data["price"]),
+        payment_key,
+    )
+
+    if is_auto_verify_plan(
+        context.user_data.get("product_key", ""),
+        context.user_data.get("plan_key", ""),
+        payment_key,
+    ):
+        pay_msg += "\n\n" + kpay_auto_plan_notice_text(
+            context.user_data.get("product_name", "-"),
+            context.user_data.get("plan_label", "-"),
+            int(context.user_data["price"]),
+        )
+        schedule_auto_order_alarm(context, query.from_user.id)
+
     await safe_edit_message(
         query,
-        payment_text(
-            PAYMENT_ACCOUNTS[payment_key]["label"],
-            PAYMENT_ACCOUNTS[payment_key]["text"],
-            int(context.user_data["price"]),
-            payment_key,
-        ),
+        pay_msg,
         reply_markup=payment_back_keyboard(),
     )
 
@@ -3246,97 +3327,94 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     order_insert(data)
     log_action(order_id, user.id, "order_created", "Customer submitted screenshot")
 
-    is_auto_plan = (
-        data["payment_key"] == "kpay"
-        and (data["product_key"], data["plan_key"]) in AUTO_VERIFY_PLANS
+    # Stop any pending auto-order reminder after a screenshot is received.
+    context.user_data.pop("auto_alarm_session_id", None)
+
+    is_auto_plan = is_auto_verify_plan(
+        data["product_key"],
+        data["plan_key"],
+        data["payment_key"],
     )
 
     if is_auto_plan:
         try:
-            detected_amount = await extract_amount_from_screenshot(context, photo_file_id)
+            kpay_info = await extract_kpay_screenshot_info(context, photo_file_id)
+            detected_amount = kpay_info.get("amount")
             expected_amount = int(data["price"])
+            amount_ok = (
+                detected_amount is not None
+                and abs(int(detected_amount) - expected_amount) <= AUTO_VERIFY_AMOUNT_TOLERANCE
+            )
+            name_ok = bool(kpay_info.get("receiver_ok"))
 
-            if abs(detected_amount - expected_amount) <= 100:
-                name_ok = await verify_kpay_receiver_name(context, photo_file_id)
+            if amount_ok and name_ok:
+                account = reserve_auto_account(
+                    data["product_key"],
+                    data["plan_key"],
+                    order_id,
+                )
 
-                if True:
-                    account = reserve_auto_account(
-                        data["product_key"],
-                        data["plan_key"],
+                if account:
+                    order_update_status(order_id, "delivered", "KPay Auto Delivered")
+                    log_action(
                         order_id,
+                        0,
+                        "auto_delivered",
+                        f"KPay auto verify success | amount={detected_amount} | name_ok={name_ok}",
                     )
 
-                    if account:
-                        order_update_status(order_id, "delivered", "KPay Auto Delivered")
-                        log_action(order_id, 0, "auto_delivered", "KPay auto verify success")
+                    await send_optional_bot_sticker(
+                        context.bot,
+                        user.id,
+                        SUCCESS_STICKER_ID,
+                    )
 
-                        await send_optional_bot_sticker(
-                            context.bot,
-                            user.id,
-                            SUCCESS_STICKER_ID
-                        )
+                    await context.bot.send_message(
+                        chat_id=user.id,
+                        text=build_auto_delivery_text(data, account, "Products ပို့ပြီးပါပြီ"),
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=main_menu_keyboard(),
+                    )
 
-                        await context.bot.send_message(
-                            chat_id=user.id,
-                            text=(
-                                f"{tg_emoji('success')} <b>Order Success</b>\n\n"
+                    await context.bot.send_message(
+                        chat_id=ADMIN_ID,
+                        text=(
+                            f"{tg_emoji('success', '✅')} <b>KPay Auto Verify Success</b>\n\n"
+                            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                            f"{tg_emoji('user', '👤')} <b>Customer:</b> {escape(data['full_name'])}\n"
+                            f"{tg_emoji('box', '📦')} <b>Product:</b> {escape(data['product_name'])}\n"
+                            f"{tg_emoji('stock', '📦')} <b>Plan:</b> {escape(data['plan_label'])}\n"
+                            f"{tg_emoji('price', '💰')} <b>Expected:</b> {expected_amount} Ks\n"
+                            f"{tg_emoji('price', '💰')} <b>Detected:</b> {detected_amount} Ks\n"
+                            f"{tg_emoji('user', '👤')} <b>KPay Name:</b> OK\n\n"
+                            f"{tg_emoji('success', '✅')} <b>Auto delivered to customer.</b>"
+                        ),
+                        parse_mode=ParseMode.HTML,
+                    )
 
-                                f"{tg_emoji('id')} <b>Order ID:</b>\n"
-                                f"<code>{escape(order_id)}</code>\n\n"
+                    await maybe_send_low_stock_alert(context.bot, data["product_key"], data["plan_key"])
+                    context.user_data.clear()
+                    return MENU_STATE
 
-                                f"{tg_emoji('box')} <b>Product:</b>\n"
-                                f"{escape(data['product_name'])}\n\n"
-                                f"{tg_emoji('mail')} <b>Email:</b>\n"
-                                f"<code>{escape(account['email'])}</code>\n\n"
-
-                                f"{tg_emoji('key')} <b>Password:</b>\n"
-                                f"<code>{escape(account['password'])}</code>\n\n"
-
-                                f"{account['extra']}"
-
-                            ),
-                            parse_mode=ParseMode.HTML,
-                            reply_markup=main_menu_keyboard(),
-                        )
-
-                        await context.bot.send_message(
-                            chat_id=ADMIN_ID,
-                            text=(
-                                f"{tg_emoji('success')} <b>Auto Order Success</b>\n\n"
-
-                                f"{tg_emoji('id')} <b>Order ID:</b>\n"
-                                f"<code>{escape(order_id)}</code>\n\n"
-
-                                f"{tg_emoji('user')} <b>Customer:</b>\n"
-                                f"{escape(data['full_name'])}\n\n"
-
-                                f"{tg_emoji('box')} <b>Product:</b>\n"
-                                f"{escape(data['product_name'])} ({escape(data['plan_label'])})\n\n"
-
-                                f"{tg_emoji('price')} <b>Amount:</b>\n"
-                                f"{data['price']} Ks\n\n"
-
-                                f"{tg_emoji('success')} <b>Auto Delivered Successfully</b>"
-                            ),
-                            parse_mode=ParseMode.HTML,
-                        )
-
-                        context.user_data.clear()
-                        return MENU_STATE
-
-            order_update_status(
-                order_id,
-                "pending_payment_review",
-                "Auto verify failed - manual review"
-            )
+                order_update_status(order_id, "waiting_manual_delivery", "Auto verify OK but auto stock not found")
+                log_action(order_id, 0, "auto_stock_not_found", "KPay verified but stock missing")
+            else:
+                fail_reason = []
+                if not amount_ok:
+                    fail_reason.append(f"amount mismatch (detected={detected_amount}, expected={expected_amount})")
+                if not name_ok:
+                    fail_reason.append("receiver name/phone not found")
+                order_update_status(order_id, "pending_payment_review", "Auto verify failed: " + "; ".join(fail_reason))
+                log_action(order_id, 0, "auto_verify_failed", "; ".join(fail_reason))
 
         except Exception as e:
             logger.exception("Auto verify failed: %s", e)
             order_update_status(
                 order_id,
                 "pending_payment_review",
-                "Auto verify error - manual review"
+                "Auto verify error - manual review",
             )
+            log_action(order_id, 0, "auto_verify_error", str(e))
 
     admin_caption = (
         f"{tg_emoji('success')} <b>New Order Received</b>\n\n"
@@ -3585,19 +3663,9 @@ f"{tg_emoji('reason', '📌')} {reason_text}",
         log_action(order_id, query.from_user.id, "auto_delivered")
         await disable_query_buttons(query)
 
-        delivery_text = (
-            f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
-            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-            f"{tg_emoji('mail', '📧')} <b>Email:</b> <code>{escape(account['email'])}</code>\n"
-            f"{tg_emoji('key', '🔑')} <b>Password:</b> <code>{escape(account['password'])}</code>\n"
-        )
-        if account["extra"]:
-            delivery_text += f"\n{tg_emoji('note', '📝')} <b>Note:</b> {escape(account['extra'])}\n"
-        delivery_text += f"\n{tg_emoji('lock', '🔐')} Login code လိုရင် <code>Code</code> လို့ရိုက်ပို့နိုင်ပါတယ်။"
-        
         await context.bot.send_message(
             chat_id=order["user_id"],
-            text=delivery_text,
+            text=build_auto_delivery_text(order, account, "Products ပို့ပြီးပါပြီ"),
             parse_mode=ParseMode.HTML,
         )
 
