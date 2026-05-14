@@ -1663,9 +1663,49 @@ def extract_amount_from_text(text: str) -> Optional[int]:
 
 def verify_kpay_receiver_text(text: str) -> bool:
     normalized = normalize_ocr_text(text)
-    phone_ok = KPAY_EXPECTED_RECEIVER_PHONE in normalized.replace(" ", "")
-    name_ok = any(name in normalized for name in KPAY_EXPECTED_RECEIVER_NAMES)
-    return bool(phone_ok or name_ok)
+    compact = normalized.replace(" ", "").replace("-", "")
+    expected_phone_variants = {
+        KPAY_EXPECTED_RECEIVER_PHONE,
+        KPAY_EXPECTED_RECEIVER_PHONE.replace("09", "959", 1),
+        KPAY_EXPECTED_RECEIVER_PHONE.replace("09", "+959", 1).replace("+", ""),
+    }
+    phone_ok = any(phone.replace(" ", "").replace("-", "").replace("+", "") in compact for phone in expected_phone_variants)
+    exact_name_ok = any(name in normalized for name in KPAY_EXPECTED_RECEIVER_NAMES)
+    # OCR can split or slightly distort names; require at least 3 meaningful receiver-name tokens.
+    receiver_tokens = {"aung", "shin", "thant", "htun"}
+    token_hits = sum(1 for token in receiver_tokens if token in normalized)
+    partial_name_ok = token_hits >= 3
+    return bool(phone_ok or exact_name_ok or partial_name_ok)
+
+
+def auto_reject_text(order_id: str, reason_title: str, reason_detail: str) -> str:
+    return (
+        f"{tg_emoji('reject', '❌')} <b>Order Auto Cancelled</b>\n\n"
+        f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+        f"{tg_emoji('reason', '📝')} <b>Reason:</b> {escape(reason_title)}\n\n"
+        f"{escape(reason_detail)}\n\n"
+        "ငွေပမာဏ / KPay name / screenshot ကိုစစ်ပြီး order အသစ် ပြန်တင်ပေးပါ။"
+    )
+
+
+async def auto_reject_order(context, user_id: int, order_id: str, reason_title: str, reason_detail: str, log_note: str):
+    order_update_status(order_id, "rejected", log_note)
+    log_action(order_id, 0, "auto_rejected", log_note)
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=auto_reject_text(order_id, reason_title, reason_detail),
+        parse_mode=ParseMode.HTML,
+        reply_markup=main_menu_keyboard(),
+    )
+    await context.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=(
+            f"{tg_emoji('reject', '❌')} <b>KPay Auto Rejected</b>\n\n"
+            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+            f"{tg_emoji('reason', '📝')} <b>Reason:</b> {escape(log_note)}"
+        ),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 async def extract_kpay_screenshot_info(context, file_id: str) -> dict:
@@ -3347,6 +3387,30 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             )
             name_ok = bool(kpay_info.get("receiver_ok"))
 
+            if not amount_ok:
+                await auto_reject_order(
+                    context,
+                    user.id,
+                    order_id,
+                    "ငွေပမာဏ မကိုက်ပါ",
+                    f"လိုအပ်တဲ့ amount က {expected_amount} Ks ဖြစ်ပြီး screenshot ထဲက amount ကို {detected_amount if detected_amount is not None else 'မဖတ်နိုင်ပါ'} လို့တွေ့ပါတယ်။",
+                    f"amount mismatch detected={detected_amount} expected={expected_amount}",
+                )
+                context.user_data.clear()
+                return MENU_STATE
+
+            if not name_ok:
+                await auto_reject_order(
+                    context,
+                    user.id,
+                    order_id,
+                    "KPay receiver name / phone မကိုက်ပါ",
+                    "Screenshot ထဲမှာ bot ရဲ့ KPay receiver name သို့မဟုတ် phone number ကိုရှင်းရှင်းလင်းလင်း မတွေ့ပါ။",
+                    f"receiver mismatch amount={detected_amount} expected={expected_amount}",
+                )
+                context.user_data.clear()
+                return MENU_STATE
+
             if amount_ok and name_ok:
                 account = reserve_auto_account(
                     data["product_key"],
@@ -3398,23 +3462,42 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
                 order_update_status(order_id, "waiting_manual_delivery", "Auto verify OK but auto stock not found")
                 log_action(order_id, 0, "auto_stock_not_found", "KPay verified but stock missing")
-            else:
-                fail_reason = []
-                if not amount_ok:
-                    fail_reason.append(f"amount mismatch (detected={detected_amount}, expected={expected_amount})")
-                if not name_ok:
-                    fail_reason.append("receiver name/phone not found")
-                order_update_status(order_id, "pending_payment_review", "Auto verify failed: " + "; ".join(fail_reason))
-                log_action(order_id, 0, "auto_verify_failed", "; ".join(fail_reason))
+                await context.bot.send_message(
+                    chat_id=user.id,
+                    text=(
+                        f"{tg_emoji('pending', '⏳')} <b>Payment Verified</b>\n\n"
+                        f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                        "Payment က မှန်ပါတယ်။ ဒါပေမယ့် auto stock မရှိလို့ admin က product ကို manual ပို့ပေးပါမယ်။"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                    reply_markup=main_menu_keyboard(),
+                )
+                await context.bot.send_message(
+                    chat_id=ADMIN_ID,
+                    text=(
+                        f"{tg_emoji('pending', '⚠️')} <b>KPay Verified But Auto Stock Not Found</b>\n\n"
+                        f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                        f"{tg_emoji('box', '📦')} <b>Product:</b> {escape(data['product_name'])}\n"
+                        f"{tg_emoji('stock', '📦')} <b>Plan:</b> {escape(data['plan_label'])}\n\n"
+                        f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                    ),
+                    parse_mode=ParseMode.HTML,
+                )
+                context.user_data.clear()
+                return MENU_STATE
 
         except Exception as e:
             logger.exception("Auto verify failed: %s", e)
-            order_update_status(
+            await auto_reject_order(
+                context,
+                user.id,
                 order_id,
-                "pending_payment_review",
-                "Auto verify error - manual review",
+                "Screenshot ကိုဖတ်မရပါ",
+                "Payment screenshot ထဲက amount / KPay name ကို bot က မဖတ်နိုင်ပါ။ ပိုရှင်းတဲ့ screenshot နဲ့ order အသစ် ပြန်တင်ပေးပါ။",
+                f"auto verify OCR error: {e}",
             )
-            log_action(order_id, 0, "auto_verify_error", str(e))
+            context.user_data.clear()
+            return MENU_STATE
 
     admin_caption = (
         f"{tg_emoji('success')} <b>New Order Received</b>\n\n"
