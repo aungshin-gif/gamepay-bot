@@ -1649,16 +1649,57 @@ def normalize_ocr_text(text: str) -> str:
 
 
 def extract_amount_from_text(text: str) -> Optional[int]:
-    """Return the most likely payment amount from OCR text."""
+    """Return the most likely payment amount from OCR text.
+
+    KBZPay/KPay receipts commonly show paid amounts as values such as
+    "-1,400.00 Ks". The old parser split that into 1, 400, and 00, so a
+    valid 1,400 Ks receipt could be detected as 400 Ks and auto-cancelled.
+    This parser keeps comma/decimal/signed money tokens together, converts
+    them to absolute Kyat amounts, and ignores long transaction IDs.
+    """
+    raw_text = text or ""
+    normalized = normalize_ocr_text(raw_text)
     amounts = []
-    for n in re.findall(r"\d[\d,]*", text or ""):
+
+    money_patterns = [
+        # Strong matches near amount labels, e.g. "Amount -1,400.00 Ks".
+        r"(?:amount|amt|total|paid)\s*[:\-]?\s*([\-−]?\s*\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?)\s*(?:ks|kyat|mmk)?",
+        r"(?:amount|amt|total|paid)\s*[:\-]?\s*([\-−]?\s*\d+(?:\.\d{1,2})?)\s*(?:ks|kyat|mmk)",
+        # General money values, e.g. "-1,400.00 Ks" or "1400 Ks".
+        r"([\-−]?\s*\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?)\s*(?:ks|kyat|mmk)?",
+        r"([\-−]?\s*\d+(?:\.\d{1,2})?)\s*(?:ks|kyat|mmk)",
+    ]
+
+    def add_amount(token: str):
+        token = (token or "").replace("−", "-").replace(" ", "").replace(",", "")
+        if not token or token in {"-", "."}:
+            return
         try:
-            clean = int(n.replace(",", ""))
+            value = abs(float(token))
         except ValueError:
-            continue
+            return
+        # Reject decimal fragments and long IDs; accept realistic plan prices.
+        if value.is_integer():
+            clean = int(value)
+        else:
+            clean = int(round(value))
         if 500 <= clean <= 500000:
             amounts.append(clean)
-    return max(amounts) if amounts else None
+
+    for pattern in money_patterns:
+        for match in re.findall(pattern, normalized):
+            add_amount(match)
+
+    # Fallback for OCR text without Ks/MMK labels, still preserving comma decimals.
+    for match in re.findall(r"[\-−]?\s*\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?", normalized):
+        add_amount(match)
+
+    if not amounts:
+        return None
+
+    # Prefer the largest parsed money value. This avoids decimal/comma fragments
+    # such as 900 from "-2,900.00 Ks" overriding the real 2,900 Ks amount.
+    return max(amounts)
 
 
 def verify_kpay_receiver_text(text: str) -> bool:
