@@ -4,7 +4,10 @@ import json
 import base64
 import requests
 from PIL import Image, ImageOps, ImageFilter
-import pytesseract
+try:
+    import pytesseract
+except ImportError:
+    pytesseract = None
 import sqlite3
 import logging
 import asyncio
@@ -1768,6 +1771,9 @@ def _prepare_ocr_images(file_path: str) -> list:
 
 def _local_tesseract_ocr(file_path: str) -> str:
     """Run Tesseract on multiple preprocessed variants and return combined text."""
+    if pytesseract is None:
+        raise RuntimeError("pytesseract Python package is not installed")
+
     texts = []
     last_error = None
     for image in _prepare_ocr_images(file_path):
