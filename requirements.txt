@@ -1,5 +1,5 @@
-python-telegram-bot==20.7
-pytesseract
-Pillow
-python-dotenv
+python-telegram-bot==21.10
+Pillow==10.4.0
+pytesseract==0.3.13
+requests==2.32.3
 
