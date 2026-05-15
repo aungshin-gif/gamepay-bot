@@ -1210,6 +1210,43 @@ def now_str() -> str:
 def new_order_id() -> str:
     return "ORD-" + now_dt().strftime("%Y%m%d-%H%M%S-%f")[-20:]
 
+
+ORDER_ID_RE = re.compile(r"ORD\s*[-‐‑‒–—−]\s*\d{6}\s*[-‐‑‒–—−]\s*\d{6}\s*[-‐‑‒–—−]\s*\d{6}", re.IGNORECASE)
+
+
+def normalize_order_id(value: str) -> str:
+    """Normalize copied/pasted Telegram order IDs to the database format."""
+    if not value:
+        return ""
+
+    text = str(value).strip()
+    text = re.sub(r"[\u200b\u200c\u200d\ufeff]", "", text)
+    text = re.sub(r"[‐‑‒–—−]", "-", text)
+    text = re.sub(r"\s+", "", text)
+    text = text.upper()
+
+    match = re.search(r"ORD-?([0-9]{6})-?([0-9]{6})-?([0-9]{6})", text)
+    if match:
+        return f"ORD-{match.group(1)}-{match.group(2)}-{match.group(3)}"
+
+    return text
+
+
+def extract_order_id_from_text(text: str) -> str:
+    """Extract and normalize the first order ID from a command or pasted admin message."""
+    if not text:
+        return ""
+
+    match = ORDER_ID_RE.search(text)
+    if match:
+        return normalize_order_id(match.group(0))
+
+    fallback = re.search(r"ORD[-\s‐‑‒–—−]*[0-9\s\-‐‑‒–—−]{18,}", text, re.IGNORECASE)
+    if fallback:
+        return normalize_order_id(fallback.group(0))
+
+    return normalize_order_id(text.split()[0] if text.split() else text)
+
 def init_db():
     conn = db_connect()
     cur = conn.cursor()
@@ -1440,9 +1477,10 @@ def order_insert(data: dict):
 
 
 def order_get(order_id: str) -> Optional[dict]:
+    normalized_order_id = normalize_order_id(order_id)
     conn = db_connect()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM orders WHERE order_id = ?", (order_id,))
+    cur.execute("SELECT * FROM orders WHERE order_id = ?", (normalized_order_id,))
     row = cur.fetchone()
     conn.close()
     return dict(row) if row else None
@@ -4304,34 +4342,46 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
         return
 
-    parts = update.message.text.strip().split(maxsplit=2)
-    if len(parts) < 3:
+    command_text = update.message.text.strip()
+    order_id = extract_order_id_from_text(command_text)
+    order_match = ORDER_ID_RE.search(command_text)
+
+    if not order_id or not order_match:
         await update.message.reply_text("Usage: /deliver ORDER_ID Email: xxx Password: yyy")
         return
 
-    _, order_id, delivery_text = parts
+    delivery_text = command_text[order_match.end():].strip()
+    if not delivery_text:
+        await update.message.reply_text("Usage: /deliver ORDER_ID Email: xxx Password: yyy")
+        return
+
     order = order_get(order_id)
 
     if not order:
-        await update.message.reply_text("❌ Order not found.")
+        await update.message.reply_text(
+            f"❌ Order not found.\n\nစစ်ထားတဲ့ Order ID: <code>{escape(order_id)}</code>\n"
+            "Admin message ထဲက Order ID ကို copy နှိပ်ပြီးပြန်သုံးပါ။",
+            parse_mode=ParseMode.HTML,
+        )
         return
 
     if order["status"] not in ["pending_payment_review", "waiting_manual_delivery", "code_requested"]:
         await update.message.reply_text("❌ Already processed.")
         return
 
+    canonical_order_id = order["order_id"]
     await context.bot.send_message(
         chat_id=order["user_id"],
         text=(
-    f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
-    f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
-    f"<pre>{escape(delivery_text)}</pre>"
-),
+            f"{tg_emoji('success', '✅')} <b>Account Ready</b>\n\n"
+            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(canonical_order_id)}</code>\n"
+            f"<pre>{escape(delivery_text)}</pre>"
+        ),
         parse_mode=ParseMode.HTML,
     )
 
-    order_update_status(order_id, "delivered", "Manually delivered")
-    log_action(order_id, update.effective_user.id, "manually_delivered", delivery_text)
+    order_update_status(canonical_order_id, "delivered", "Manually delivered")
+    log_action(canonical_order_id, update.effective_user.id, "manually_delivered", delivery_text)
     await update.message.reply_text(
     f"{tg_emoji('success', '✅')} <b>Delivered successfully.</b>",
     parse_mode=ParseMode.HTML,
