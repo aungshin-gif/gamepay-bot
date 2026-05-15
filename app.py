@@ -327,7 +327,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "plans": {
         "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
         "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
-        "private_1m": {"label": "Private Plan - 1 Month", "price": 8000},
+        "private_1m": {"label": "Private Plan - 1 Month", "price": 7500},
     },
 },  
     "express_vpn": {
