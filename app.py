@@ -1,8 +1,10 @@
 import re
 import os
-from PIL import Image
+import json
+import base64
+import requests
+from PIL import Image, ImageOps, ImageFilter
 import pytesseract
-import os
 import sqlite3
 import logging
 import asyncio
@@ -1143,6 +1145,15 @@ MANUAL_UNLIMITED_PRODUCTS = {
     "meitu_vip",
     "youtube_premium",
 }
+AUTO_VERIFY_PLANS = {
+    ("express_vpn", "mobile_share_1m"),
+    ("capcut_pro", "share_1m"),
+    ("capcut_pro", "share_3m"),
+    ("hiddify_vpn", "50gb_1m"),
+    ("hiddify_vpn", "100gb_1m"),
+    ("outline_vpn", "50gb_1m"),
+    ("outline_vpn", "100gb_1m"),
+}
 
 (
     MENU_STATE,
@@ -1740,28 +1751,130 @@ async def auto_reject_order(context, user_id: int, order_id: str, reason_title: 
     )
 
 
+def _prepare_ocr_images(file_path: str) -> list:
+    """Create OCR-friendly image variants for clean KBZPay/KPay receipts."""
+    image = Image.open(file_path).convert("RGB")
+    # Telegram screenshots are often scaled down; upscale and boost contrast before OCR.
+    scale = 2 if max(image.size) < 1800 else 1
+    if scale > 1:
+        image = image.resize((image.width * scale, image.height * scale))
+
+    gray = ImageOps.grayscale(image)
+    gray = ImageOps.autocontrast(gray)
+    sharp = gray.filter(ImageFilter.SHARPEN)
+    binary = sharp.point(lambda p: 255 if p > 165 else 0)
+    return [image, gray, sharp, binary]
+
+
+def _local_tesseract_ocr(file_path: str) -> str:
+    """Run Tesseract on multiple preprocessed variants and return combined text."""
+    texts = []
+    last_error = None
+    for image in _prepare_ocr_images(file_path):
+        try:
+            text = pytesseract.image_to_string(
+                image,
+                config="--psm 6 -c preserve_interword_spaces=1",
+            )
+            if text and text.strip():
+                texts.append(text.strip())
+        except Exception as exc:
+            last_error = exc
+    combined = "\n".join(dict.fromkeys(texts))
+    if combined.strip():
+        return combined
+    if last_error:
+        raise last_error
+    return ""
+
+
+def _openai_vision_receipt_ocr(file_path: str) -> str:
+    """Optional fallback OCR using OpenAI-compatible vision when OPENAI_API_KEY is configured."""
+    api_key = os.getenv("OPENAI_API_KEY", "").strip()
+    if not api_key:
+        return ""
+
+    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
+    model = os.getenv("OPENAI_VISION_MODEL", "gpt-4.1-mini")
+    with open(file_path, "rb") as f:
+        image_b64 = base64.b64encode(f.read()).decode("utf-8")
+
+    payload = {
+        "model": model,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Read this KBZPay/KPay payment receipt. Return only plain text lines for "
+                            "Amount, Transfer To/Receiver name, Receiver phone last digits if visible, "
+                            "Transaction Time, and Transaction No. Do not add explanation."
+                        ),
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+                    },
+                ],
+            }
+        ],
+        "temperature": 0,
+        "max_tokens": 300,
+    }
+    try:
+        resp = requests.post(
+            f"{base_url}/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            data=json.dumps(payload),
+            timeout=25,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as exc:
+        logger.exception("OpenAI vision OCR fallback failed: %s", exc)
+        return ""
+
+
 async def extract_kpay_screenshot_info(context, file_id: str) -> dict:
-    """Download one screenshot once, run OCR, and return amount/name verification data."""
+    """Download one screenshot once, run robust OCR, and return amount/name verification data."""
     tg_file = await context.bot.get_file(file_id)
     safe_file_id = re.sub(r"[^A-Za-z0-9_-]", "_", file_id)
     file_path = f"/tmp/kpay_{safe_file_id}.jpg"
 
     await tg_file.download_to_drive(file_path)
     try:
-        image = Image.open(file_path)
-        text = pytesseract.image_to_string(image)
+        local_text = ""
+        local_error = ""
+        try:
+            local_text = _local_tesseract_ocr(file_path)
+        except Exception as exc:
+            local_error = str(exc)
+            logger.exception("Local Tesseract OCR failed: %s", exc)
+
+        vision_text = ""
+        # Use vision if local OCR failed or did not contain enough usable receipt data.
+        if not local_text or extract_amount_from_text(local_text) is None or not verify_kpay_receiver_text(local_text):
+            vision_text = _openai_vision_receipt_ocr(file_path)
+
+        text = "\n".join(part for part in [local_text, vision_text] if part and part.strip())
+        amount = extract_amount_from_text(text)
+        receiver_ok = verify_kpay_receiver_text(text)
+
+        logger.info("KPay OCR text: %s", text)
+        return {
+            "text": text,
+            "amount": amount,
+            "receiver_ok": receiver_ok,
+            "ocr_error": local_error if not text else "",
+        }
     finally:
         try:
             os.remove(file_path)
         except Exception:
             pass
-
-    logger.info("KPay OCR text: %s", text)
-    return {
-        "text": text,
-        "amount": extract_amount_from_text(text),
-        "receiver_ok": verify_kpay_receiver_text(text),
-    }
 
 
 async def extract_amount_from_screenshot(context, file_id):
@@ -1780,13 +1893,15 @@ def is_auto_verify_plan(product_key: str, plan_key: str, payment_key: str) -> bo
 
 def kpay_auto_plan_notice_text(product_name: str, plan_label: str, price: int) -> str:
     return (
-        f"{tg_emoji('time', '⏰')} <b>Auto Plan Notice</b>\n\n"
+        f"{tg_emoji('time', '⏰')} <b>Quick Delivery Plan Notice</b>\n\n"
         f"{tg_emoji('box', '📦')} <b>Product:</b> {escape(product_name)}\n"
         f"{tg_emoji('stock', '📦')} <b>Plan:</b> {escape(plan_label)}\n"
         f"{tg_emoji('price', '💰')} <b>Amount:</b> {price} Ks\n\n"
-        f"{tg_emoji('success', '✅')} ဒီ Plan က <b>Auto Plan</b> ဖြစ်တာမို့ KPay payment screenshot ကို "
+        f"{tg_emoji('success', '✅')} KPay payment screenshot ကို "
         f"<b>{AUTO_PAYMENT_TIMEOUT_MINUTES} မိနစ်အတွင်း</b> photo အနေနဲ့ပို့ပေးပါ။\n"
-        f"{tg_emoji('camera', '📷')} Screenshot ထဲမှာ <b>Name / Amount / Time</b> မြင်ရအောင် ပို့ပေးပါ။"
+        f"{tg_emoji('camera', '📷')} Screenshot ထဲမှာ <b>Name / Amount / Time</b> မြင်ရအောင် ပို့ပေးပါ။\n"
+        f"{tg_emoji('delivery', '🚚')} Payment စစ်ဆေးအောင်မြင်ပြီး stock ရှိပါက product ကိုချက်ချင်းပို့ပါမယ်။ "
+        "Screenshot မဖတ်နိုင်ပါက admin က manual စစ်ဆေးပေးပါမယ်။"
     )
 
 
@@ -1804,11 +1919,11 @@ async def _auto_order_alarm_task(context: ContextTypes.DEFAULT_TYPE, user_id: in
     await context.bot.send_message(
         chat_id=user_id,
         text=(
-            f"{tg_emoji('time', '⏰')} <b>Auto Plan Reminder</b>\n\n"
-            f"{tg_emoji('success', '✅')} Auto Plans ဖြစ်တာမို့ <b>{AUTO_PAYMENT_TIMEOUT_MINUTES} မိနစ်အတွင်း</b> "
-            "Order တင်ပေးပါ။\n"
-            f"{tg_emoji('camera', '📷')} Payment screenshot ကို photo နဲ့ပို့ပေးရင် bot က "
-            "<b>Name / Amount / Time</b> ကိုစစ်ပြီး product ကို auto ပို့ပေးပါမယ်။"
+            f"{tg_emoji('time', '⏰')} <b>Payment Screenshot Reminder</b>\n\n"
+            f"{tg_emoji('success', '✅')} ကျေးဇူးပြု၍ <b>{AUTO_PAYMENT_TIMEOUT_MINUTES} မိနစ်အတွင်း</b> "
+            "KPay screenshot ကို photo အနေနဲ့ပို့ပေးပါ။\n"
+            f"{tg_emoji('camera', '📷')} <b>Name / Amount / Time</b> မြင်ရအောင်ပို့ပါ။ "
+            "Payment စစ်ဆေးအောင်မြင်ပြီး stock ရှိပါက product ကိုချက်ချင်းပို့ပါမယ်။"
         ),
         parse_mode=ParseMode.HTML,
     )
@@ -2364,6 +2479,13 @@ def detail_text(product_key: str) -> str:
 
 
 async def safe_edit_message(query, text: str, reply_markup=None):
+    """Edit callback message, and fall back to sending a new message if Telegram rejects the edit.
+
+    This prevents the UI from being left on temporary screens such as
+    "Preparing payment..." when an edit fails because of Telegram-side
+    limitations, deleted messages, stale callback messages, or formatting
+    issues. Existing callers may ignore the boolean return value.
+    """
     try:
         await query.edit_message_text(
             text=text,
@@ -2371,8 +2493,23 @@ async def safe_edit_message(query, text: str, reply_markup=None):
             parse_mode=ParseMode.HTML,
             disable_web_page_preview=True,
         )
-    except Exception as e:
-        logger.debug("safe_edit_message skipped: %s", e)
+        return True
+    except Exception as edit_error:
+        logger.warning("safe_edit_message edit failed, trying reply fallback: %s", edit_error)
+
+    try:
+        if getattr(query, "message", None):
+            await query.message.reply_text(
+                text=text,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+            return True
+    except Exception as reply_error:
+        logger.error("safe_edit_message reply fallback failed: %s", reply_error)
+
+    return False
 
 
 async def disable_query_buttons(query):
@@ -3273,11 +3410,10 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["payment_key"] = payment_key
     context.user_data["payment_name"] = PAYMENT_ACCOUNTS[payment_key]["label"]
-    
-    await fake_loading(
-    query,
-    f"{tg_emoji('payment', '💳')} <b>Preparing payment...</b>"
-)
+
+    # Build and show the payment screen in a single Telegram edit.
+    # The previous fake-loading edit could leave customers stuck on
+    # "Preparing payment..." if the final edit failed or Telegram was slow.
     pay_msg = payment_text(
         PAYMENT_ACCOUNTS[payment_key]["label"],
         PAYMENT_ACCOUNTS[payment_key]["text"],
@@ -3297,11 +3433,18 @@ async def payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         schedule_auto_order_alarm(context, query.from_user.id)
 
-    await safe_edit_message(
+    payment_message_sent = await safe_edit_message(
         query,
         pay_msg,
         reply_markup=payment_back_keyboard(),
     )
+
+    if not payment_message_sent:
+        await query.answer(
+            "Payment info မပြနိုင်သေးပါ။ နောက်တစ်ကြိမ်နှိပ်ပေးပါ။",
+            show_alert=True,
+        )
+        return PAYMENT_STATE
 
     context.user_data["payment_started_at"] = now_str()
 
@@ -3420,12 +3563,40 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             name_ok = bool(kpay_info.get("receiver_ok"))
 
             if not amount_ok:
+                if detected_amount is None:
+                    # Do not auto-cancel when OCR cannot read the amount at all; this is an OCR failure, not proof of wrong payment.
+                    order_update_status(order_id, "waiting_manual_delivery", "OCR could not read amount; not auto-cancelled")
+                    log_action(order_id, 0, "auto_verify_amount_unreadable", kpay_info.get("ocr_error", "amount not found"))
+                    await context.bot.send_message(
+                        chat_id=user.id,
+                        text=(
+                            f"{tg_emoji('pending', '⏳')} <b>Payment Screenshot Received</b>\n\n"
+                            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                            "Screenshot ထဲက amount ကို OCR မဖတ်နိုင်လို့ auto cancel မလုပ်တော့ပါ။ Admin ကစစ်ပြီး product ပို့ပေးပါမယ်။"
+                        ),
+                        parse_mode=ParseMode.HTML,
+                        reply_markup=main_menu_keyboard(),
+                    )
+                    await context.bot.send_message(
+                        chat_id=ADMIN_ID,
+                        text=(
+                            f"{tg_emoji('warning', '⚠️')} <b>KPay Amount OCR Unreadable</b>\n\n"
+                            f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                            f"{tg_emoji('price', '💰')} <b>Expected:</b> {expected_amount} Ks\n"
+                            "Auto cancel မလုပ်ထားပါ။ စစ်ပြီး deliver လုပ်ပါ။\n\n"
+                            f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                        ),
+                        parse_mode=ParseMode.HTML,
+                    )
+                    context.user_data.clear()
+                    return MENU_STATE
+
                 await auto_reject_order(
                     context,
                     user.id,
                     order_id,
                     "ငွေပမာဏ မကိုက်ပါ",
-                    f"လိုအပ်တဲ့ amount က {expected_amount} Ks ဖြစ်ပြီး screenshot ထဲက amount ကို {detected_amount if detected_amount is not None else 'မဖတ်နိုင်ပါ'} လို့တွေ့ပါတယ်။",
+                    f"လိုအပ်တဲ့ amount က {expected_amount} Ks ဖြစ်ပြီး screenshot ထဲက amount ကို {detected_amount} Ks လို့တွေ့ပါတယ်။",
                     f"amount mismatch detected={detected_amount} expected={expected_amount}",
                 )
                 context.user_data.clear()
@@ -3520,13 +3691,27 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         except Exception as e:
             logger.exception("Auto verify failed: %s", e)
-            await auto_reject_order(
-                context,
-                user.id,
-                order_id,
-                "Screenshot ကိုဖတ်မရပါ",
-                "Payment screenshot ထဲက amount / KPay name ကို bot က မဖတ်နိုင်ပါ။ ပိုရှင်းတဲ့ screenshot နဲ့ order အသစ် ပြန်တင်ပေးပါ။",
-                f"auto verify OCR error: {e}",
+            order_update_status(order_id, "waiting_manual_delivery", f"OCR unavailable; do not auto-cancel: {e}")
+            log_action(order_id, 0, "auto_verify_ocr_unavailable", str(e))
+            await context.bot.send_message(
+                chat_id=user.id,
+                text=(
+                    f"{tg_emoji('pending', '⏳')} <b>Payment Screenshot Received</b>\n\n"
+                    f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                    "Bot OCR က screenshot ကိုမဖတ်နိုင်သေးတာကြောင့် auto cancel မလုပ်တော့ပါ။ Admin က payment စစ်ပြီး product ကိုပို့ပေးပါမယ်။"
+                ),
+                parse_mode=ParseMode.HTML,
+                reply_markup=main_menu_keyboard(),
+            )
+            await context.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"{tg_emoji('warning', '⚠️')} <b>KPay OCR Unavailable</b>\n\n"
+                    f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
+                    "Payment screenshot ကို bot က မဖတ်နိုင်ပါ။ Auto cancel မလုပ်ထားပါ။\n\n"
+                    f"<code>/deliver {escape(order_id)} Email: xxx Password: yyy</code>"
+                ),
+                parse_mode=ParseMode.HTML,
             )
             context.user_data.clear()
             return MENU_STATE
