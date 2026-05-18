@@ -16,7 +16,13 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from typing import Optional, Dict, Any, List
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+)
 from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
@@ -148,6 +154,14 @@ def button_kwargs(key: str) -> dict:
             "icon_custom_emoji_id": emoji_id
         }
     }
+def start_now_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        [
+            [KeyboardButton("🚀 Start Now")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )    
 
 SHOP_NAME = "GAMEPAY HUB"
 CONTACT_USERNAME = "@angsthtun"
@@ -3136,11 +3150,24 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message:
         await send_optional_sticker(update.message, WELCOME_STICKER_ID)
         await update.message.reply_text(
-            welcome_text(),
-            reply_markup=main_menu_keyboard(),
-            parse_mode=ParseMode.HTML,
-            disable_web_page_preview=True,
+    welcome_text(),
+    reply_markup=start_now_keyboard(),
+    parse_mode=ParseMode.HTML,
+    disable_web_page_preview=True,
         )
+    return MENU_STATE
+async def start_now_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    save_user(update.effective_user)
+    context.user_data.clear()
+
+    await update.message.reply_text(
+        welcome_text(),
+        reply_markup=main_menu_keyboard(),
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
+
     return MENU_STATE
 async def menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
