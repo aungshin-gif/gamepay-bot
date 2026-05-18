@@ -4973,6 +4973,7 @@ def main():
         entry_points=[CommandHandler("start", start)],
         states={
             MENU_STATE: [
+                MessageHandler(filters.Regex(r"^Start Now$"), start_now_handler),
                 CallbackQueryHandler(menu_handler, pattern=r"^menu_"),
                 CallbackQueryHandler(track_callback_handler, pattern=r"^track:"),
                 CallbackQueryHandler(category_handler, pattern=r"^back_main$"),
