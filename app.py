@@ -157,7 +157,7 @@ def button_kwargs(key: str) -> dict:
 def start_now_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         [
-            [KeyboardButton("🚀 Start Now")]
+            [KeyboardButton("Start Now")]
         ],
         resize_keyboard=True,
         one_time_keyboard=False
