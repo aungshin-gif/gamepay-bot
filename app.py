@@ -441,9 +441,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
 },
     
- "Happ_vpn": {
+ "happ_vpn": {
     "category": "digital",
-    "emoji_key": "Happ",
+    "emoji_key": "happ",
     "name": "Happ Key",
     "full_name": "Happ VPN Key",
      "description": f'{tg_emoji("happ", "🔑")} Unlimitedလိုချင်Dmကြွပါ။',
