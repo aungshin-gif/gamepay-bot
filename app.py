@@ -232,7 +232,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
      "plans": {
-            "default": {"label": "Weekly Pass", "price": 6550},
+            "default": {"label": "Weekly Pass", "price": 6500},
         },
     },
 "genshin_blessing": {
@@ -250,7 +250,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
-        "default": {"label": "Blessing", "price": 20300},
+        "default": {"label": "Blessing", "price": 19300},
     },
 },
 
@@ -269,7 +269,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
-        "default": {"label": "Express Supply", "price": 18000},
+        "default": {"label": "Express Supply", "price": 19800},
     },
 },
     "arena_breakout": {
@@ -314,7 +314,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         "quarterly_pbp": {
             "label": "Quarterly Premium Battle Pass",
-            "price": 50300
+            "price": 49300
         },
     },
 },  
@@ -502,9 +502,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
         ),
         "plans": {
-            "family_1m": {"label": "Family Plan - 1 Month", "price": 8500},
-            "individual_2m": {"label": "Individual Plan - 2 Months", "price":8000,"out_of_stock": True},
-            "individual_3m": {"label": "Individual Plan - 3 Months", "price":13000},
+            "individual_3m": {"label": "Individual Plan - 3 Months", "price":14000},
         },
     },
        
@@ -675,7 +673,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("success", "👉")} <b>Mail မလိုတဲ့ plan ဆိုရင် Skip button ကိုနှိပ်ပေးပါဗျ။</b>'
 ),
         "plans": {
-            "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 5000},
+            "invite_1m": {"label": "1 Month - Ownmail Invite", "price": 4000},
         },
     },
 
@@ -871,27 +869,13 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     "auto_delivery": False,
     "accounts": [],
 },
-    "outline_vpn": {
+    "happ_vpn": {
     "auto_delivery": False,
     "accounts": [],
 },
     "spotify_premium": {
         "auto_delivery": True,
         "accounts": [
-            {
-                "plan_key": "family_1m",
-                "email": "spotifyfamily1@example.com  ",
-                "password": "12345",
-                "extra": f"{tg_emoji('music', '🎵')} Family 1 Month",
-                "used": False,
-            },
-            {
-                "plan_key": "individual_2m",
-                "email": "spotifyindividua2@example.com",
-                "password": "12345",
-                "extra": f"{tg_emoji('music', '🎵')} Individual 2 Month",
-                "used": False,
-            },
             {
                 "plan_key": "individual_3m",
                 "email": "spotifyindividua2@example.com",
