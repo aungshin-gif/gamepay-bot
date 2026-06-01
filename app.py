@@ -4927,7 +4927,10 @@ def main():
                 CallbackQueryHandler(payment_handler, pattern=r"^(back_plan$|back_payment_methods$)"),
             ],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
+        fallbacks=[
+    CommandHandler("cancel", cancel),
+    MessageHandler(filters.Regex("^Start Now$"), start),
+],
         allow_reentry=True,
     )
 
