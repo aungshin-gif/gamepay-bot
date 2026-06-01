@@ -60,6 +60,7 @@ CUSTOM_EMOJI = {
     "grammarly": os.getenv("EMOJI_GRAMMARLY", "").strip(),
     "gmail": "6242548417126469488",
     "alight": "6244275874447760070",
+    "hma": "5796595022115639741",
     "gemini": "6244416981303303108",
     "hiddify": "5940644462832127906",
     "happ": "6114074490625334807",
@@ -342,6 +343,44 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "private_1m": {"label": "Private Plan - 1 Month", "price": 17500},
     },
 },  
+    "hma_vpn": {
+    "category": "digital",
+    "emoji_key": "hma",
+    "name": "HMA VPN",
+    "full_name": "HMA VPN Subscription",
+    "description": (
+        f'{tg_emoji("hma", "🛡️")} HMA VPN\n'
+        f'{tg_emoji("success", "✅")} Private Plan သည် Device 9 လုံးအထိ ဝင်ဆံ့ပါသည်။'
+    ),
+    "photo": "hma.jpg",
+    "enabled": True,
+
+    "requires_detail_label": (
+        f'{tg_emoji("detail", "📝")} <b>HMA VPN Plan Information</b>\n\n'
+
+        f'{tg_emoji("reject", "⚠️")} <b>Share Plan</b>\n'
+        "• One Device Only\n\n"
+
+        f'{tg_emoji("success", "✅")} <b>Private Plan</b>\n'
+        "• Device 9 လုံးအထိ ဝင်ဆံ့ပါသည်\n"
+        "• All Devices Support\n\n"
+
+        f'{tg_emoji("skip", "⏭")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
+    ),
+
+    "plans": {
+        "share_1m": {
+            "label": "1 Month Share",
+            "price": 1800
+        },
+
+        "private_1m": {
+            "label": "1 Month Private",
+            "price": 5000
+        },
+    },
+},
+
     "express_vpn": {
     "category": "digital",
     "emoji_key": "expressvpn",
@@ -804,6 +843,29 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "hma_vpn": {
+    "auto_delivery": True,
+    "accounts": [
+        {
+            "plan_key": "share_1m",
+            "email": "hma_share_email_here",
+            "password": "hma_share_password_here",
+            "extra": f"{tg_emoji('hma', '🛡️')} HMA VPN 1 Month Share",
+            "used": False,
+        },
+        {
+            "plan_key": "private_1m",
+            "email": "hma_private_email_here",
+            "password": "hma_private_password_here",
+            "extra": (
+                f"{tg_emoji('hma', '🛡️')} HMA VPN 1 Month Private\n"
+                f"{tg_emoji('success', '✅')} Device 9 လုံးအထိ ဝင်ဆံ့ပါသည်"
+            ),
+            "used": False,
+        },
+    ],
+},
+
     "express_vpn": {
         "auto_delivery": True,
         "accounts": [
