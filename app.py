@@ -340,7 +340,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
 ),
     "plans": {
-        "private_1m": {"label": "Private Plan - 1 Month", "price": 17500},
+        "private_1m": {"label": "Private Plan - 1 Month", "price": 20000},
     },
 },  
     "hma_vpn": {
@@ -451,6 +451,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         f'{tg_emoji("world", "🌍")} <b>Available Region</b>\n'
         "• Singapore (SG)\n\n"
+        "• Thailand (TH)\n\n"
 
         f'{tg_emoji("note", "✍️")} <b>လိုအပ်ရင် Note ရေးပို့နိုင်ပါတယ်</b>\n\n'
 
@@ -465,17 +466,17 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         "100gb_1m": {
             "label": "100GB Plan - 1 Month",
-            "price": 4500
+            "price": 4000
         },
 
         "150gb_1m": {
             "label": "150GB Plan - 1 Month",
-            "price": 6500
+            "price": 5500
         },
 
         "200gb_1m": {
             "label": "200GB Plan - 1 Month",
-            "price": 8000
+            "price": 7000
         },
     },
 },
@@ -497,6 +498,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         f'{tg_emoji("world", "🌍")} <b>Available Regions</b>\n'
         "• Singapore (SG)\n"
+        "• Thailand (TH)\n\n"
         
         f'{tg_emoji("note", "✍️")} <b>လိုချင်တဲ့ Region ကို Note မှာရေးပို့ပါ</b>\n'
         "ဥပမာ - SG / US / Thailand\n\n"
@@ -512,17 +514,17 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         "100gb_1m": {
             "label": "100GB Plan - 1 Month",
-            "price": 4500
+            "price": 4000
         },
 
         "150gb_1m": {
             "label": "150GB Plan - 1 Month",
-            "price": 6500
+            "price": 5500
         },
 
         "200gb_1m": {
             "label": "200GB Plan - 1 Month",
-            "price": 8000
+            "price": 7000
         },
     },
 }, 
