@@ -62,7 +62,7 @@ CUSTOM_EMOJI = {
     "alight": "6244275874447760070",
     "gemini": "6244416981303303108",
     "hiddify": "5940644462832127906",
-    "outline": "6244413064293127754",
+    "happ": "6114074490625334807",
     "skip": "5416117059207572332",
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
@@ -339,9 +339,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("success", "👉")} <b>Skip button ကိုပဲနှိပ်ပေးပါဗျ။</b>'
 ),
     "plans": {
-        "share_1m": {"label": "Share Plan - 1 Month", "price": 4000},
-        "share_3m": {"label": "Share Plan - 3 Months", "price": 7800},
-        "private_1m": {"label": "Private Plan - 1 Month", "price": 7500},
+        "private_1m": {"label": "Private Plan - 1 Month", "price": 17500},
     },
 },  
     "express_vpn": {
@@ -443,12 +441,12 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     },
 },
     
- "outline_vpn": {
+ "Happ_vpn": {
     "category": "digital",
-    "emoji_key": "outline",
-    "name": "Outline Key",
-    "full_name": "Outline VPN Key",
-     "description": f'{tg_emoji("outline", "🔑")} Unlimitedလိုချင်Dmကြွပါ။',
+    "emoji_key": "Happ",
+    "name": "Happ Key",
+    "full_name": "Happ VPN Key",
+     "description": f'{tg_emoji("happ", "🔑")} Unlimitedလိုချင်Dmကြွပါ။',
     "photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
     "enabled": True,
 
@@ -460,9 +458,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
 
         f'{tg_emoji("world", "🌍")} <b>Available Regions</b>\n'
         "• Singapore (SG)\n"
-        "• United States (US)\n"
-        "• Thailand (TH)\n\n"
-
+        
         f'{tg_emoji("note", "✍️")} <b>လိုချင်တဲ့ Region ကို Note မှာရေးပို့ပါ</b>\n'
         "ဥပမာ - SG / US / Thailand\n\n"
 
@@ -618,9 +614,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         f'{tg_emoji("success", "👉")} <b>Skip button ကိုနှိပ်ပေးပါ</b>'
     ),
     "plans": {
-        "private_1m": {
+        "private_14days": {
             "label": "1 Month Private",
-            "price": 8000
+            "price": 5000
         },
     },
 },
@@ -659,9 +655,9 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("success", "👉")} <b>Mail မလိုတဲ့ plan ဆိုရင် Skip button ကိုနှိပ်ပေးပါဗျ။</b>'
 ),
         "plans": {
-    "edu_1y": {"label": "Edu Invite 1 Year", "price": 3500},
-    "pro_1m": {"label": "Canva Pro Account 1 Month", "price": 7500},
-    "business_1m": {"label": "Business Invite 1 Month", "price": 9000},
+    "edu_1y": {"label": "Edu Invite 2.5 Year", "price": 3500},
+    "pro_1m": {"label": "Canva Pro Account 1 Month", "price": 6500},
+    "business_1m": {"label": "Business Invite 1 Month", "price": 8000},
 },
     },
     "gemini_ai_pro": {
@@ -728,23 +724,6 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
         "svip_1y": {"label": "SVIP Plan (1 Year)", "price": 160000, "emoji_key": "svip"},
     },
 },
-    "picsart_pro": {
-        "category": "digital",
-          "emoji_key": "picsart",
-        "name": "PicsArt Pro",
-        "full_name": "PicsArt Pro Subscription",
-        "description": "PicsArt Pro premium editing account service.",
-        "photo": "https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=1200&q=80",
-        "enabled": False,
-        "requires_detail_label": (
-            "📝 Note လိုအပ်ရင်ရေးပေးပါ\n"
-            "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
-        ),
-        "plans": {
-            "share_1m": {"label": "1 Month (Share)", "price": 4000},
-            "private_1m": {"label": "1 Month (Private)", "price": 5700},
-        },
-    },
         "alight_motion": {
         "category": "digital",
            "emoji_key": "alight",
@@ -758,8 +737,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "မလိုအပ်ရင် <code>No</code> ရိုက်ပို့ပါ"
         ),
         "plans": {
-            "share_1y_basic": {"label": "1 Year (Share)", "price": 3000},
-            "share_1y_pro": {"label": "1 Year (Private) Premium", "price": 5000},
+            "private_1y_pro": {"label": "1 Year (Private) Premium", "price": 2000},
         },
     },
     
@@ -783,7 +761,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     "plans": {
         "one_mail": {
             "label": "One Mail",
-            "price": 3300,
+            "price": 7300,
             "emoji_key": "gmail",
         },
     },
@@ -812,41 +790,6 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
     "capcut_pro": {
         "auto_delivery": True,
         "accounts": [
-            {
-                "plan_key": "share_1m",
-                "email": "capcutshare1@example.com",
-                "password": "pass1234",
-                "extra": f"{tg_emoji('warning', '⚠️')} Password မပြောင်းပါနဲ့။",
-                "used": False,
-            },
-            {
-                "plan_key": "share_1m",
-                "email": "capcutshare2@example.com",
-                "password": "pass1234",
-                "extra": f"{tg_emoji('warning', '⚠️')} Password မပြောင်းပါနဲ့။",
-                "used": False,
-            },
-            {
-                "plan_key": "share_1m",
-                "email": "capcutshare3@example.com",
-                "password": "pass1234",
-                "extra": f"{tg_emoji('warning', '⚠️')} Password မပြောင်းပါနဲ့။",
-                "used": False,
-            },
-            {
-                "plan_key": "share_3m",
-                "email": "capcutshare2@example.com",
-                "password": "pass2234",
-                "extra": f"{tg_emoji('warning', '⚠️')} Password မပြောင်းပါနဲ့။",
-                "used": False,
-            },
-            {
-                "plan_key": "share_3m",
-                "email": "capcutshare3@example.com",
-                "password": "pass2234",
-                "extra": f"{tg_emoji('warning', '⚠️')} Password မပြောင်းပါနဲ့။",
-                "used": False,
-            },
             {
                 "plan_key": "private_1m",
                 "email": "capcutprivate1@example.com",
@@ -1092,14 +1035,14 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
         "auto_delivery": True,
         "accounts": [
             {
-                "plan_key": "share_1y_basic",
+                "plan_key": "private_1y_pro",
                 "email": "alight1@example.com",
                 "password": "pass1111",
                 "extra": "🟦 Basic Share",
                 "used": False,
             },
             {
-                "plan_key": "share_1y_pro",
+                "plan_key": "private_1y_pro",
                 "email": "alight2@example.com",
                 "password": "pass2222",
                 "extra": "🟦 Premium Share",
@@ -1157,7 +1100,7 @@ MANUAL_DELIVERY_PLANS = {
 }
 MANUAL_UNLIMITED_PRODUCTS = {
     "hiddify_vpn",
-    "outline_vpn",
+    "happ_vpn",
     "wink_app",
     "meitu_vip",
     "youtube_premium",
