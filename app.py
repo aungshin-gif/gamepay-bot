@@ -2408,6 +2408,7 @@ def welcome_text() -> str:
     
 
     return (
+        f'{tg_emoji("success","✅")} <b>June Promotion Is Live!</b>\n\n'
         f"{shop_icon} <b>Welcome to {escape(SHOP_NAME)}</b>\n\n"
         f"{game_icon} Game Top Up\n"
         f"{digital_icon} Digital Products\n"
