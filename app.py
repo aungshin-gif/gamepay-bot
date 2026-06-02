@@ -64,6 +64,8 @@ CUSTOM_EMOJI = {
     "gemini": "6244416981303303108",
     "hiddify": "5940644462832127906",
     "happ": "6114074490625334807",
+    "v2raytun": "6050646916109179497",
+    "v2box": "5866266486942733691",
     "skip": "5416117059207572332",
 "back": "6319056439096644016",
 "cancel": "5210952531676504517",
@@ -434,7 +436,65 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
             "price": 11500
         },
     },
-},"hiddify_vpn": {
+},   
+"v2raytun_v2box_vpn": {
+"category": "digital",
+"emoji_key": "v2raytun",
+"name": "V2RayTun & V2Box VPN",
+"full_name": "V2RayTun & V2Box VPN Key",
+
+"description": (
+    f'{tg_emoji("v2raytun", "🔹")} / '
+    f'{tg_emoji("v2box", "🔹")} '
+    f'{tg_emoji("success", "✅")} Unlimited Devices Support'
+),
+
+"photo": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?auto=format&fit=crop&w=1200&q=80",
+
+"enabled": True,
+
+"requires_detail_label": (
+    f'{tg_emoji("detail", "📝")} <b>V2RayTun & V2Box VPN Information</b>\n\n'
+
+    f'{tg_emoji("key", "🔑")} Key ပေးမှာပါဗျ\n'
+    'ရရှိတဲ့ Key ကို Paste လုပ်ရုံနဲ့ အသုံးပြုနိုင်ပါတယ်\n\n'
+
+    f'{tg_emoji("success", "✅")} Unlimited Devices Support\n\n'
+
+    f'{tg_emoji("world", "🌍")} <b>Available Regions</b>\n'
+    '• Singapore (SG)\n'
+    '• Thailand (TH)\n\n'
+
+    f'{tg_emoji("note", "✍️")} <b>လိုချင်တဲ့ Region ကို Note မှာရေးပို့ပါ</b>\n'
+    'ဥပမာ - SG / TH\n\n'
+
+    f'{tg_emoji("skip", "⏭")} <b>မရေးချင်ရင် Skip button ပဲနှိပ်ပါဗျ။</b>'
+),
+
+"plans": {
+    "50gb_1m": {
+        "label": "50GB Plan - 1 Month",
+        "price": 3000
+    },
+
+    "100gb_1m": {
+        "label": "100GB Plan - 1 Month",
+        "price": 4000
+    },
+
+    "150gb_1m": {
+        "label": "150GB Plan - 1 Month",
+        "price": 5500
+    },
+
+    "200gb_1m": {
+        "label": "200GB Plan - 1 Month",
+        "price": 7000
+    }
+}
+
+},
+    "hiddify_vpn": {
     "category": "digital",
     "emoji_key": "hiddify",
     "name": "Hiddify VPN",
@@ -929,6 +989,10 @@ DIGITAL_INVENTORY: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "v2raytun_v2box_vpn": {
+    "auto_delivery": False,
+    "accounts": [],
+},
     "hiddify_vpn": {
     "auto_delivery": False,
     "accounts": [],
@@ -1147,6 +1211,7 @@ MANUAL_DELIVERY_PLANS = {
     ("canva_pro_edu", "pro_1m"),
 }
 MANUAL_UNLIMITED_PRODUCTS = {
+    "v2raytun_v2box_vpn",
     "hiddify_vpn",
     "happ_vpn",
     "wink_app",
