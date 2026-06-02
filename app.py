@@ -1,4 +1,4 @@
-import re
+ဍimport re
 import os
 import json
 import base64
@@ -272,7 +272,7 @@ PRODUCTS: Dict[str, Dict[str, Any]] = {
     f'{tg_emoji("bulb", "💡")} Note မရှိရင် <b>Skip / No Note</b> ကိုနှိပ်လို့ရပါတယ်။'
 ),
     "plans": {
-        "default": {"label": "Express Supply", "price": 19800},
+        "default": {"label": "Express Supply", "price": 19600},
     },
 },
     "arena_breakout": {
