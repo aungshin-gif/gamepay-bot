@@ -4289,7 +4289,7 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"{tg_emoji('user','👥')} User တွေ bot ကို /start လုပ်ထားမှ ပို့လို့ရပါတယ်။",
             parse_mode=ParseMode.HTML
         )
-        return  
+        return
     
     sent = 0
     failed = 0
@@ -4483,11 +4483,11 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = order_get(order_id)
 
     if not order:
-    await update.message.reply_text(
-        f"{tg_emoji('reject','❌')} Order not found.",
-        parse_mode=ParseMode.HTML
-    )
-    return
+        await update.message.reply_text(
+            f"{tg_emoji('reject','❌')} Order not found.",
+            parse_mode=ParseMode.HTML
+        )
+        return
 
     await context.bot.send_message(
         chat_id=order["user_id"],
@@ -4963,11 +4963,11 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = get_user_orders(update.effective_user.id, limit=10)
 
     if not rows:
-    await update.message.reply_text(
-        f"{tg_emoji('box','📦')} သင့် order history မရှိသေးပါ။",
-        parse_mode=ParseMode.HTML
-    )
-    return
+        await update.message.reply_text(
+            f"{tg_emoji('box','📦')} သင့် order history မရှိသေးပါ။",
+            parse_mode=ParseMode.HTML
+        )
+        return
 
     lines = [f"{tg_emoji('orders', '📦')} <b>Your Recent Orders</b>"]
 
@@ -5029,12 +5029,12 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     row = cur.fetchone()
     conn.close()
 
-    if not row:
-    await update.message.reply_text(
-        f"{tg_emoji('reject','❌')} Active digital order မတွေ့ပါ။",
-        parse_mode=ParseMode.HTML
-    )
-    return
+   if not row:
+        await update.message.reply_text(
+            f"{tg_emoji('reject','❌')} Active digital order မတွေ့ပါ။",
+            parse_mode=ParseMode.HTML
+        )
+        return 
 
     order = dict(row)
     order_update_status(order["order_id"], "code_requested", "Customer requested login code")
