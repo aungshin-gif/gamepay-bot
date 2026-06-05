@@ -3608,7 +3608,7 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user = update.effective_user
     photo_file_id = update.message.photo[-1].file_id
 
-  duplicate = find_recent_duplicate_order(
+    duplicate = find_recent_duplicate_order(
         user_id=user.id,
         product_key=context.user_data["product_key"],
         plan_key=context.user_data["plan_key"],
@@ -3625,7 +3625,8 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_markup=main_menu_keyboard(),
         )
         context.user_data.clear()
-        return MENU_STATE  
+        return MENU_STATE
+
     order_id = new_order_id()
 
     data = {
@@ -4283,7 +4284,8 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     broadcast_id = "BC-" + now_dt().strftime("%Y%m%d-%H%M%S")
     users = get_all_users()
-  if not users:
+
+    if not users:
         await update.message.reply_text(
             f"{tg_emoji('reject','❌')} Broadcast ပို့မယ့် user မရှိသေးပါ။\n\n"
             f"{tg_emoji('user','👥')} User တွေ bot ကို /start လုပ်ထားမှ ပို့လို့ရပါတယ်။",
@@ -4443,8 +4445,9 @@ async def deliver_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not order:
         await update.message.reply_text(
-            f"{tg_emoji('reject','❌')} Order not found.",
-            parse_mode=ParseMode.HTML
+            f"❌ Order not found.\n\nစစ်ထားတဲ့ Order ID: <code>{escape(order_id)}</code>\n"
+            "Admin message ထဲက Order ID ကို copy နှိပ်ပြီးပြန်သုံးပါ။",
+            parse_mode=ParseMode.HTML,
         )
         return
 
@@ -4906,7 +4909,6 @@ async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     product_key = context.args[0].strip()
-
     if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
         await update.message.reply_text(
             f"{tg_emoji('reject','❌')} Invalid game product.",
@@ -4916,7 +4918,6 @@ async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYP
 
     set_game_enabled(product_key, False)
     log_action(None, update.effective_user.id, "disable_game", product_key)
-
     await update.message.reply_text(
         f"{tg_emoji('success','✅')} Game product disabled.",
         parse_mode=ParseMode.HTML
@@ -4931,7 +4932,6 @@ async def enable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     product_key = context.args[0].strip()
-
     if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
         await update.message.reply_text(
             f"{tg_emoji('reject','❌')} Invalid game product.",
@@ -4941,7 +4941,6 @@ async def enable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     set_game_enabled(product_key, True)
     log_action(None, update.effective_user.id, "enable_game", product_key)
-
     await update.message.reply_text(
         f"{tg_emoji('success','✅')} Game product enabled.",
         parse_mode=ParseMode.HTML
@@ -5029,12 +5028,12 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     row = cur.fetchone()
     conn.close()
 
-   if not row:
+    if not row:
         await update.message.reply_text(
             f"{tg_emoji('reject','❌')} Active digital order မတွေ့ပါ။",
             parse_mode=ParseMode.HTML
         )
-        return 
+        return
 
     order = dict(row)
     order_update_status(order["order_id"], "code_requested", "Customer requested login code")
@@ -5162,3 +5161,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
