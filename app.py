@@ -4284,11 +4284,12 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     users = get_all_users()
 
     if not users:
-        await update.message.reply_text(
-            "❌ Broadcast ပို့မယ့် user မရှိသေးပါ။\n\n"
-            "User တွေ bot ကို /start လုပ်ထားမှ ပို့လို့ရပါတယ်။"
-        )
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Broadcast ပို့မယ့် user မရှိသေးပါ။\n\n"
+        f"{tg_emoji('user','👥')} User တွေ bot ကို /start လုပ်ထားမှ ပို့လို့ရပါတယ်။",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     sent = 0
     failed = 0
@@ -4315,14 +4316,14 @@ async def broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.warning("Broadcast failed to %s: %s", user_id, e)
 
     await update.message.reply_text(
-        f"✅ Broadcast sent\n\n"
-        f"🆔 Broadcast ID: <code>{broadcast_id}</code>\n"
-        f"👥 Users: {len(users)}\n"
-        f"📤 Sent: {sent}\n"
-        f"❌ Failed: {failed}\n\n"
-        f"ပြန်ဖျက်ချင်ရင်:\n"
-        f"<code>/delete_broadcast {broadcast_id}</code>",
-        parse_mode=ParseMode.HTML,
+    f"{tg_emoji('success','✅')} <b>Broadcast sent</b>\n\n"
+    f"{tg_emoji('id','🆔')} Broadcast ID: <code>{broadcast_id}</code>\n"
+    f"{tg_emoji('user','👥')} Users: {len(users)}\n"
+    f"{tg_emoji('contact','📤')} Sent: {sent}\n"
+    f"{tg_emoji('reject','❌')} Failed: {failed}\n\n"
+    f"ပြန်ဖျက်ချင်ရင်:\n"
+    f"<code>/delete_broadcast {broadcast_id}</code>",
+    parse_mode=ParseMode.HTML,
     )
     
 async def delete_broadcast_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4483,8 +4484,11 @@ async def code_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = order_get(order_id)
 
     if not order:
-        await update.message.reply_text("❌ Order not found.")
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Order not found.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     await context.bot.send_message(
         chat_id=order["user_id"],
@@ -4559,37 +4563,52 @@ async def remove_game_stock_command(update: Update, context: ContextTypes.DEFAUL
     qty_text = context.args[1].strip()
 
     if product_key not in PRODUCTS:
-        await update.message.reply_text("❌ Invalid product key.")
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Invalid product key.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    if PRODUCTS[product_key]["category"] != "game":
-        await update.message.reply_text("❌ ဒီ command က game product အတွက်ပဲပါ။")
-        return
+if PRODUCTS[product_key]["category"] != "game":
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} ဒီ command က game product အတွက်ပဲပါ။",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    try:
-        qty = int(qty_text)
-    except ValueError:
-        await update.message.reply_text("❌ QTY must be a number.")
-        return
+try:
+    qty = int(qty_text)
+except ValueError:
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} QTY must be a number.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    if qty <= 0:
-        await update.message.reply_text("❌ QTY must be greater than 0.")
-        return
+if qty <= 0:
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} QTY must be greater than 0.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    current_stock = get_cached_game_stock(product_key)
-    if qty > current_stock:
-        await update.message.reply_text(f"❌ Current stock = {current_stock} only.")
-        return
+current_stock = get_cached_game_stock(product_key)
+if qty > current_stock:
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Current stock = {current_stock} only.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     new_stock = adjust_game_stock(product_key, -qty)
     log_action(None, update.effective_user.id, "remove_game_stock", f"{product_key} -{qty}")
 
     await update.message.reply_text(
-        f"📦 <b>Game Stock Reduced</b>\n\n"
-        f"🛍️ <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
-        f"➖ <b>Removed:</b> {qty}\n"
-        f"📦 <b>Remaining:</b> {new_stock}",
-        parse_mode=ParseMode.HTML,
+    f"{tg_emoji('box','📦')} <b>Game Stock Reduced</b>\n\n"
+    f"{tg_emoji('shop','🛍️')} <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
+    f"{tg_emoji('reject','➖')} <b>Removed:</b> {qty}\n"
+    f"{tg_emoji('box','📦')} <b>Remaining:</b> {new_stock}",
+    parse_mode=ParseMode.HTML,
     )
 
 async def orders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4836,15 +4855,17 @@ async def add_game_stock_command(update: Update, context: ContextTypes.DEFAULT_T
         new_stock = adjust_game_stock(product_key, qty)
         log_action(None, update.effective_user.id, "add_game_stock", f"{product_key} +{qty}")
         await update.message.reply_text(
-            f"📦 <b>Game Stock Updated</b>\n\n"
-            f"🛍️ <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
-            f"➕ <b>Added:</b> {qty}\n"
-            f"📦 <b>Current Stock:</b> {new_stock}",
-            parse_mode=ParseMode.HTML,
+    f"{tg_emoji('box','📦')} <b>Game Stock Updated</b>\n\n"
+    f"{tg_emoji('shop','🛍️')} <b>Product:</b> {escape(PRODUCTS[product_key]['full_name'])}\n"
+    f"{tg_emoji('success','➕')} <b>Added:</b> {qty}\n"
+    f"{tg_emoji('box','📦')} <b>Current Stock:</b> {new_stock}",
+    parse_mode=ParseMode.HTML,
         )
     else:
-        await update.message.reply_text("❌ Invalid game product.")
-
+        await update.message.reply_text(
+    f"{tg_emoji('reject','❌')} Invalid game product.",
+    parse_mode=ParseMode.HTML
+        )
 
 async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID or not update.message or not update.message.text:
@@ -4861,7 +4882,10 @@ async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     parts = main_part.split()
     if len(parts) < 4:
-        await update.message.reply_text("❌ Format မမှန်ပါ။")
+        await update.message.reply_text(
+    f"{tg_emoji('reject','❌')} Format မမှန်ပါ။",
+    parse_mode=ParseMode.HTML
+        )
         return
 
     product_key, plan_key, email = parts[0], parts[1], parts[2]
@@ -4869,7 +4893,10 @@ async def add_account_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     add_digital_account(product_key, plan_key, email, password, extra)
     log_action(None, update.effective_user.id, "add_account", f"{product_key}/{plan_key}/{email}")
-    await update.message.reply_text("✅ Digital account added.")
+    await update.message.reply_text(
+    f"{tg_emoji('success','✅')} Digital account added.",
+    parse_mode=ParseMode.HTML
+    )
 
 
 async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -4881,14 +4908,19 @@ async def disable_game_command(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     product_key = context.args[0].strip()
-    if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
-        await update.message.reply_text("❌ Invalid game product.")
-        return
+if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Invalid game product.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    set_game_enabled(product_key, False)
-    log_action(None, update.effective_user.id, "disable_game", product_key)
-    await update.message.reply_text("✅ Game product disabled.")
-
+set_game_enabled(product_key, False)
+log_action(None, update.effective_user.id, "disable_game", product_key)
+await update.message.reply_text(
+    f"{tg_emoji('success','✅')} Game product disabled.",
+    parse_mode=ParseMode.HTML
+)
 
 async def enable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
@@ -4899,14 +4931,19 @@ async def enable_game_command(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     product_key = context.args[0].strip()
-    if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
-        await update.message.reply_text("❌ Invalid game product.")
-        return
+if product_key not in PRODUCTS or PRODUCTS[product_key]["category"] != "game":
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Invalid game product.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    set_game_enabled(product_key, True)
-    log_action(None, update.effective_user.id, "enable_game", product_key)
-    await update.message.reply_text("✅ Game product enabled.")
-
+set_game_enabled(product_key, True)
+log_action(None, update.effective_user.id, "enable_game", product_key)
+await update.message.reply_text(
+    f"{tg_emoji('success','✅')} Game product enabled.",
+    parse_mode=ParseMode.HTML
+)
 
 async def addstock_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id == ADMIN_ID:
@@ -4924,8 +4961,11 @@ async def myorders_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rows = get_user_orders(update.effective_user.id, limit=10)
 
     if not rows:
-        await update.message.reply_text("📦 သင့် order history မရှိသေးပါ။")
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('box','📦')} သင့် order history မရှိသေးပါ။",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     lines = [f"{tg_emoji('orders', '📦')} <b>Your Recent Orders</b>"]
 
@@ -4946,12 +4986,18 @@ async def track_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     order = order_get(context.args[0])
     if not order:
-        await update.message.reply_text("❌ Order not found.")
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Order not found.",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
-    if update.effective_user.id != ADMIN_ID and order["user_id"] != update.effective_user.id:
-        await update.message.reply_text("❌ ဒီ order ကိုကြည့်ခွင့်မရှိပါ။")
-        return
+if update.effective_user.id != ADMIN_ID and order["user_id"] != update.effective_user.id:
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} ဒီ order ကိုကြည့်ခွင့်မရှိပါ။",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     await update.message.reply_text(order_summary_text(order), parse_mode=ParseMode.HTML)
 
@@ -4983,8 +5029,11 @@ async def customer_code_request_handler(update: Update, context: ContextTypes.DE
     conn.close()
 
     if not row:
-        await update.message.reply_text("❌ Active digital order မတွေ့ပါ။")
-        return
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} Active digital order မတွေ့ပါ။",
+        parse_mode=ParseMode.HTML
+    )
+    return
 
     order = dict(row)
     order_update_status(order["order_id"], "code_requested", "Customer requested login code")
