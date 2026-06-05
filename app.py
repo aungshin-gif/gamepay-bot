@@ -126,6 +126,7 @@ CUSTOM_EMOJI = {
     "bulb": "5395444784611480792",
     "warning": "5240241223632954241",
     "globe": "5447410659077661506",
+    "heart": "5337080053119336309",
     "tv": "5318911503938634641",
     "video": "5334932883003949665",
     "brush": "5348125953090403204",
@@ -3615,16 +3616,14 @@ async def screenshot_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
         screenshot_file_id=photo_file_id,
     )
 
-    if duplicate:
-        await update.message.reply_text(
-            f"❌ <b>Duplicate Order Detected</b>\n\n"
-            f"🆔 Existing Order: <code>{escape(duplicate['order_id'])}</code>\n"
-            f"📌 Status: {human_status(duplicate['status'])}",
-            parse_mode=ParseMode.HTML,
-            reply_markup=main_menu_keyboard(),
-        )
-        context.user_data.clear()
-        return MENU_STATE
+if duplicate:
+    await update.message.reply_text(
+        f"{tg_emoji('reject','❌')} <b>Duplicate Order Detected</b>\n\n"
+        f"{tg_emoji('id','🆔')} Existing Order: <code>{escape(duplicate['order_id'])}</code>\n"
+        f"{tg_emoji('status','📌')} Status: {human_status(duplicate['status'])}",
+        parse_mode=ParseMode.HTML,
+        reply_markup=main_menu_keyboard(),
+    )
 
     order_id = new_order_id()
 
@@ -4009,7 +4008,7 @@ f"{tg_emoji('reason', '📌')} {reason_text}",
                 f"{tg_emoji('success', '✅')} <b>Order Approved</b>\n\n"
                 f"{tg_emoji('id', '🆔')} <b>Order ID:</b> <code>{escape(order_id)}</code>\n"
                 f"{tg_emoji('cart', '🛍️')} <b>Product:</b> {escape(order.get('product_name', '-'))}\n"
-                f"💖 Thanks for using Gamepay Hub"
+                f"{tg_emoji('heart', '💖')} Thanks for using Gamepay Hub"
             ),
             parse_mode=ParseMode.HTML,
         )
