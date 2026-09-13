@@ -150,8 +150,9 @@ main{position:relative;z-index:1;padding-bottom:80px;min-height:60vh}
 .summary-card .sprice{font-size:18px;font-weight:800;color:var(--success)}
 
 .pay-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.pay-option{background:var(--glass-bg);border:2px solid var(--glass-border);backdrop-filter:var(--glass-blur);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:border-color .15s ease,background .15s ease}
-.pay-option:hover{border-color:rgba(34,211,238,.4)}
+.pay-option{background:var(--glass-bg);border:2px solid var(--glass-border);backdrop-filter:var(--glass-blur);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:border-color .15s ease,background .15s ease,transform .15s ease;display:flex;flex-direction:column;align-items:center;gap:10px}
+.pay-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:15px;box-shadow:0 8px 18px -6px rgba(0,0,0,.5)}
+.pay-option:hover{border-color:rgba(34,211,238,.4);transform:translateY(-2px)}
 .pay-option.selected{border-color:var(--cta2);background:rgba(34,211,238,.08)}
 .pay-option .pname{font-size:14px;font-weight:700}
 
@@ -336,13 +337,29 @@ footer a{color:var(--cta2);text-decoration:none;font-weight:600}
 var ORDER_LINK = "https://t.me/angsthtun";
 
 /* Real payment accounts, mirrored from app.py's PAYMENT_ACCOUNTS so the
-   web checkout matches what the Telegram bot already tells customers. */
+   web checkout matches what the Telegram bot already tells customers.
+   color/initial give each method its own identity instead of a plain
+   text button. */
 var PAYMENT_ACCOUNTS = [
-  { key: "kpay", label: "KPay",     phone: "09795687480", name: "Aung Shin Thant Htun" },
-  { key: "wave", label: "Wave Pay", phone: "09795687480", name: "Aung Shin Thant Htun" },
-  { key: "uab",  label: "UAB Pay",  phone: "09795687480", name: "Aung Shin Thant Htun" },
-  { key: "aya",  label: "AYA Pay",  phone: "09795687480", name: "Aung Shin Thant Htun" }
+  { key: "kpay", label: "KPay",     phone: "09795687480", name: "Aung Shin Thant Htun", color: "#0091ff", initial: "K" },
+  { key: "wave", label: "Wave Pay", phone: "09795687480", name: "Aung Shin Thant Htun", color: "#ec1e79", initial: "W" },
+  { key: "uab",  label: "UAB Pay",  phone: "09795687480", name: "Aung Shin Thant Htun", color: "#1e3a8a", initial: "U" },
+  { key: "aya",  label: "AYA Pay",  phone: "09795687480", name: "Aung Shin Thant Htun", color: "#f97316", initial: "A" }
 ];
+
+/* Country/region flags for category chips — regional groupings (SEA,
+   LATAM, Global, ...) get a globe rather than a single flag, and
+   non-region variant types get an icon that fits what they represent. */
+var LABEL_ICONS = {
+  "Americas": "🌎", "Asia": "🌏", "Bangladesh": "🇧🇩", "Brazil": "🇧🇷", "CIS": "🌐",
+  "Cambodia": "🇰🇭", "Console": "🖥️", "EU": "🇪🇺", "Europe": "🇪🇺", "Global": "🌐",
+  "Indonesia": "🇮🇩", "LATAM": "🌎", "Login Mode": "🔐", "MENA": "🌍", "MY": "🇲🇾",
+  "Malaysia": "🇲🇾", "Middle East": "🌍", "My": "🇲🇾", "NA": "🌎", "NAEU": "🌐",
+  "North America": "🌎", "PC": "💻", "Philippines": "🇵🇭", "Russia": "🇷🇺", "SEA": "🌏",
+  "SG": "🇸🇬", "SGMY": "🌏", "Singapore": "🇸🇬", "Taiwan": "🇹🇼", "Thailand": "🇹🇭",
+  "Turkey": "🇹🇷", "United States": "🇺🇸", "Vietnam": "🇻🇳"
+};
+function labelIcon(label){ return LABEL_ICONS[label] ? LABEL_ICONS[label] + ' ' : ''; }
 
 /* Game + pricing data. Generated from the g2bulk.com public catalogue API
    (games + catalogue endpoints, no API key required) and converted to MMK.
@@ -496,7 +513,7 @@ function renderDetail(game){
   if (game.variants.length > 1){
     els.categoryWrap.hidden = false;
     els.categoryChips.innerHTML = game.variants.map(function(v, i){
-      return '<div class="chip' + (i === 0 ? ' selected' : '') + '" data-vidx="' + i + '">' + escapeHtml(v.label) + '</div>';
+      return '<div class="chip' + (i === 0 ? ' selected' : '') + '" data-vidx="' + i + '">' + labelIcon(v.label) + escapeHtml(v.label) + '</div>';
     }).join('');
   } else {
     els.categoryWrap.hidden = true;
@@ -590,7 +607,7 @@ function fieldInputType(variant, key){
 function renderCheckout(game, variant, denomIdx){
   var denom = variant.denoms[denomIdx];
   els.coThumb.innerHTML = thumbHtml(game);
-  els.coName.textContent = game.name + (variant.label && variant.label !== 'Standard' ? ' (' + variant.label + ')' : '');
+  els.coName.textContent = game.name + (variant.label && variant.label !== 'Standard' ? ' (' + labelIcon(variant.label) + variant.label + ')' : '');
   els.coPlan.textContent = denom ? (denom.n || 'Selected plan') : '';
   els.coPrice.textContent = denom ? (fmt(denom.m) + ' Ks') : '';
   selectedPayment = null;
@@ -627,7 +644,9 @@ function renderCheckout(game, variant, denomIdx){
   updateConfirmState();
 
   els.payGrid.innerHTML = PAYMENT_ACCOUNTS.map(function(p){
-    return '<div class="pay-option" data-key="' + p.key + '"><div class="pname">' + p.label + '</div></div>';
+    return '<div class="pay-option" data-key="' + p.key + '">' +
+      '<div class="pay-icon" style="background:' + p.color + '">' + p.initial + '</div>' +
+      '<div class="pname">' + p.label + '</div></div>';
   }).join('');
 }
 
@@ -705,7 +724,7 @@ function telegramMessage(order){
 els.confirmBtn.addEventListener('click', function(){
   var order = currentOrder();
   pv.thumb.innerHTML = thumbHtml(order.game);
-  pv.game.textContent = order.game.name + (order.variant.label !== 'Standard' ? ' (' + order.variant.label + ')' : '');
+  pv.game.textContent = order.game.name + (order.variant.label !== 'Standard' ? ' (' + labelIcon(order.variant.label) + order.variant.label + ')' : '');
   pv.plan.textContent = order.denom.n || 'Selected plan';
 
   var rows = order.fieldRows.map(function(row){
