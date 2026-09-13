@@ -16,17 +16,17 @@ What it does:
      id is required, /v1/games/servers (the real server list).
   4. Converts USD prices to MMK at EXCHANGE_RATE.
   5. Pins Mobile Legends to the front of the list and flags it "hot".
-  6. Writes the result back into store.html, between the
+  6. Fetches a curated list of gift cards (GIFTCARD_CATEGORY_IDS) from
+     /v1/category, tagged type "giftcard" so the frontend can filter them
+     separately from games (type "game"). Edit that list to add/remove
+     which gift cards show up.
+  7. Writes the result back into store.html, between the
      GENERATED:GAMES_JSON markers.
 
 Run it whenever you want to refresh prices/stock, or after changing
 EXCHANGE_RATE:
 
     python3 build_store.py
-
-Gift-card / voucher products (Amazon, PSN, Steam, Xbox, Google Play, etc.,
-from /v1/category and /v1/products) are intentionally NOT included here —
-this store is games only.
 """
 import json
 import re
@@ -238,6 +238,62 @@ def slugify(name):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
 
 
+# A curated set of well-known, generic gift cards from g2bulk's /v1/category
+# catalogue (as opposed to /v1/games, which is games only). These are NOT
+# game top-ups — they're store credit for a platform — so they're kept in
+# their own "Gift Cards" section rather than mixed into the games grid.
+GIFTCARD_CATEGORY_IDS = [86, 3, 19, 5, 16, 126, 4, 14, 160, 17]
+
+
+def fetch_giftcards(session):
+    print("Fetching gift card categories...", file=sys.stderr)
+    categories = {c["id"]: c for c in session.get(f"{API}/category", timeout=20).json()["categories"]}
+    result = []
+    for cid in GIFTCARD_CATEGORY_IDS:
+        cat = categories.get(cid)
+        if not cat:
+            continue
+        try:
+            products = session.get(f"{API}/category/{cid}", timeout=15).json().get("products", [])
+        except requests.RequestException:
+            products = []
+        time.sleep(0.05)
+
+        denoms = []
+        for p in products:
+            if p.get("stock") == 0:
+                continue
+            usd = p.get("unit_price")
+            if not isinstance(usd, (int, float)):
+                continue
+            denoms.append({"n": p.get("title", "").strip(), "u": usd, "m": round(usd * EXCHANGE_RATE)})
+        if not denoms:
+            continue
+        denoms.sort(key=lambda d: d["u"])
+
+        name = cat["title"].strip()
+        result.append({
+            "name": name,
+            "slug": slugify(name),
+            "img": cat.get("image_url") or None,
+            "type": "giftcard",
+            "hot": False,
+            "startMmk": denoms[0]["m"],
+            "variants": [{
+                "label": "Standard",
+                "code": f"giftcard_{cid}",
+                "denoms": denoms,
+                "startMmk": denoms[0]["m"],
+                "fields": [],
+                "fieldLabels": {},
+                "notes": "",
+                "servers": None,
+            }],
+        })
+    print(f"  {len(result)}/{len(GIFTCARD_CATEGORY_IDS)} gift cards fetched with stock.", file=sys.stderr)
+    return result
+
+
 def fetch_catalogue(session, code):
     try:
         r = session.get(f"{API}/games/{code}/catalogue", timeout=15)
@@ -356,6 +412,7 @@ def main():
             "name": base_display,
             "slug": slugify(base_display),
             "img": next((m.get("image_url") for m in ordered if m.get("image_url")), None),
+            "type": "game",
             "variants": variants,
             "startMmk": min(v["startMmk"] for v in variants if v["startMmk"] is not None),
             "hot": key in HOT_GAMES,
@@ -375,6 +432,9 @@ def main():
         f"Skipped (no working variant): {skipped}",
         file=sys.stderr,
     )
+
+    giftcards = fetch_giftcards(session)
+    result = result + giftcards
 
     payload = json.dumps(result, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 
