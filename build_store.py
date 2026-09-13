@@ -49,6 +49,137 @@ MANUAL_EXCLUDE_CODES = {
     "magic_chest_gogo",   # typo'd duplicate of magic_chess_gogo
 }
 
+# Some variants' "userid"/"serverid"/"charname" fields don't mean what
+# their generic labels suggest — e.g. HoYoverse "Login Mode" top-ups need
+# an account email + password, not a public player ID. g2bulk documents
+# this inside the free-text `notes` field for that variant. These are the
+# exact notes strings that need field relabeling, mapped to the real
+# field meaning plus a plain-English replacement for the rest of the note.
+FIELD_OVERRIDES_BY_NOTE = {
+    "userid = email, serverid = password, charname = genshin userid | ONLY SUPPORTS HOYOVERSE ACCOUNTS": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["User ID", "text"]},
+        "Only works with official HoYoverse accounts.",
+    ),
+    "userid = email, serverid = password, charname = hsr userid | ONLY SUPPORTS HOYOVERSE ACCOUNTS": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["User ID", "text"]},
+        "Only works with official HoYoverse accounts.",
+    ),
+    "userid = email, serverid = password, charname = zzz userid | ONLY SUPPORTS HOYOVERSE ACCOUNTS": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["User ID", "text"]},
+        "Only works with official HoYoverse accounts.",
+    ),
+    "userid = email, serverid = password, charname = server [Asia, Europe, Americas]": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["Server", "text"]},
+        "",
+    ),
+    "Email in userid and Password in serverid, charname = Roleid[It looks something like this: 38174111708527549]. "
+    "Only allow perfect world login, need to get customer to set password in-game using -> Settings -> User Center -> Reset Password": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["Role ID", "text"]},
+        "Perfect World login only. If you haven't set an in-game password yet: Settings → User Center → Reset Password.",
+    ),
+    "Email in userid and Password in serverid, charname = Server [Asia, America, SEA, Europe]. "
+    "Only allow perfect world login, need to get customer to set password in-game using -> Settings -> User Center -> Reset Password": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"], "charname": ["Server", "text"]},
+        "Perfect World login only. If you haven't set an in-game password yet: Settings → User Center → Reset Password.",
+    ),
+    "Email in userid and Password in serverid, only allow netmarble email password login, only netmarble login": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"]},
+        "Only works with Netmarble email/password login.",
+    ),
+    "Email in userid and Password in serverid, only allow non social media login": (
+        {"userid": ["Email", "email"], "serverid": ["Password", "password"]},
+        "Social login (Facebook, Google, etc.) isn't supported here — use your email and password instead.",
+    ),
+    "Available for US and Asia users, charname = Server Name": (
+        {"charname": ["Server", "text"]},
+        "Only available to US and Asia players.",
+    ),
+    "Available for all users, serverid = Region [ie: Europe], charname = Server Name [iE: PVE01-00109]": (
+        {"serverid": ["Region", "text"], "charname": ["Server ID", "text"]},
+        "Available to all players.",
+    ),
+}
+
+# g2bulk's free-text notes copied verbatim would make this storefront's
+# copy read identically to theirs. These are hand-reworded replacements
+# for the handful of notes that don't fit the generic "Available for X"
+# pattern handled programmatically below.
+PLAIN_NOTE_REWRITES = {
+    "Applicable for Telegram Premium and Telegram Stars purchase only":
+        "Only for Telegram Premium and Telegram Stars purchases.",
+    "Available for all users that are registered above 13 and do not have a currency lock in their account":
+        "Available to all players aged 13+ without a currency lock on their account.",
+    "Character name must match exactly or it would not work":
+        "Double-check your character name — it must match exactly.",
+    "Mainly use for Bag End players":
+        "Primarily for Bag End server players.",
+    "Not available for Indonesia users, Indonesian users can use mlbb_global. Not available for SG/MY/PH/RU/VN":
+        "Not available to Indonesia, SG, MY, PH, RU or VN players — Indonesian players can use the Global option instead.",
+    "Not available for Indonesia users, Indonesian users can use mlbb_global/mlbb_indo":
+        "Not available to Indonesia players — try the Global option instead.",
+    "Not available for Vietnam, Thailand and Indonesia users, not available for Middle East Users":
+        "Not available to Vietnam, Thailand, Indonesia or Middle East players.",
+    "Not available to China users, to receive Genesis Crystals, users must be logged in on PC/Android/iOS":
+        "Not available to China players — you must be logged in via PC, Android or iOS to receive Genesis Crystals.",
+    "Only for Indonesian users":
+        "Only available to Indonesian players.",
+    "Only valid for Asia users":
+        "Only valid for Asia players.",
+    "Packages are maintained by Nexon, if the user is not able to purchase it in-game, we will also not be able to "
+    "purchase it. If multiple quantities of a package can be bought, the user has to claim the package first before "
+    "being able to buy another one. Character name must match exactly or it would not work":
+        "Managed directly by Nexon — if you can't buy a package in-game, we can't either. For repeatable "
+        "packages, claim the current one before buying the next. Your character name must match exactly.",
+    "Please only select the denom corresponding to the platform of the account [Android/iOS]":
+        "Pick the option matching your account's platform (Android or iOS).",
+    "Servers can be found on NetEase payment page for LifeAfter":
+        "Check LifeAfter's NetEase payment page to find your server.",
+    "Some users may be under purchase ban, this would reflect as invalid UserID":
+        "If your account has a purchase ban, it may show as an invalid User ID.",
+    "User has to create an UserID first":
+        "You'll need to create a User ID first.",
+    "Available for all users [Except SEA]":
+        "Available to all players except SEA.",
+    "Available for all users | For those that wants this game, please contact Admin before integrating":
+        "Available to all players — contact us on Telegram first if you'd like this game added.",
+}
+
+_AVAIL_POS_RE = re.compile(r"^(?:Only\s+)?[Aa]vailable\s+(?:only\s+)?(?:for|to)\s+(.+?)(?:\s+only)?$")
+_AVAIL_NEG_RE = re.compile(r"^Not\s+available\s+(?:for|to)\s+(.+?)(?:\s+region)?$")
+_AVAIL_COMPLEX_RE = re.compile(
+    r"\b(can|use|also|will|would|please|receive|charname|serverid|create|match|reflect|maintained|correspond)\b",
+    re.IGNORECASE,
+)
+
+
+def reword_note(raw_note):
+    """Rewrite g2bulk's own note text into original wording, and return any
+    field-label overrides it implies. Never displays their sentence as-is."""
+    if not raw_note:
+        return "", {}
+    if raw_note in FIELD_OVERRIDES_BY_NOTE:
+        overrides, text = FIELD_OVERRIDES_BY_NOTE[raw_note]
+        return text, overrides
+    if raw_note in PLAIN_NOTE_REWRITES:
+        return PLAIN_NOTE_REWRITES[raw_note], {}
+
+    is_neg = raw_note.lower().startswith("not available")
+    if not _AVAIL_COMPLEX_RE.search(raw_note) and "[" not in raw_note:
+        pattern = _AVAIL_NEG_RE if is_neg else _AVAIL_POS_RE
+        m = pattern.match(raw_note)
+        if m:
+            locale = m.group(1).strip().rstrip(".")
+            locale = re.sub(r"\busers?\b", "", locale, flags=re.IGNORECASE)
+            locale = re.sub(r"\s+", " ", locale).strip().rstrip(",").strip()
+            if locale and len(locale) <= 55:
+                verb = "Not available to" if is_neg else "Only available to"
+                return f"{verb} {locale} players.", {}
+
+    # Unknown shape we haven't seen before — still rewrite generically
+    # rather than ever showing their exact sentence.
+    return "See Telegram for this plan's exact requirements.", {}
+
+
 REGION_WORDS = [
     "Middle East", "South Africa", "South Korea", "Saudi Arabia", "New Zealand", "Hong Kong",
     "Czech Republic", "North America", "United States", "Login Mode",
@@ -152,21 +283,24 @@ def build_variant(session, member, label):
         if not isinstance(usd, (int, float)):
             continue
         denoms.append({"n": c.get("name", ""), "u": usd, "m": round(usd * EXCHANGE_RATE)})
-    denoms.sort(key=lambda d: -d["u"])  # biggest first
+    denoms.sort(key=lambda d: d["u"])  # cheapest first
 
-    fields, notes = fetch_fields(session, member["code"])
+    raw_fields, raw_notes = fetch_fields(session, member["code"])
     time.sleep(0.05)
-    servers = fetch_servers(session, member["code"]) if "serverid" in fields else None
-    if "serverid" in fields:
+    servers = fetch_servers(session, member["code"]) if "serverid" in raw_fields else None
+    if "serverid" in raw_fields:
         time.sleep(0.05)
+
+    note_text, field_overrides = reword_note(raw_notes)
 
     return {
         "label": label,
         "code": member["code"],
         "denoms": denoms,
-        "startMmk": denoms[-1]["m"] if denoms else None,
-        "fields": fields,
-        "notes": notes,
+        "startMmk": denoms[0]["m"] if denoms else None,
+        "fields": raw_fields,
+        "fieldLabels": field_overrides,
+        "notes": note_text,
         "servers": servers,
     }
 
