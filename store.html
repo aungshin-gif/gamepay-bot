@@ -394,10 +394,22 @@ GAMES.forEach(function(g, i){ g._idx = i; });
 
 function fmt(n){ return n.toLocaleString('en-US'); }
 function escapeHtml(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+/* g2bulk has no category image at all for these (checked every region) —
+   give them a brand-colored badge instead of a plain gray letter so they
+   don't look broken next to the cards that do have a real photo. */
+var BRAND_FALLBACK_BG = {
+  "Google Play USA": "linear-gradient(135deg, #00c2ff 0%, #00e676 35%, #ffca28 68%, #ff5252 100%)",
+  "Amazon USA": "#ff9900",
+  "Netflix US": "#e50914"
+};
 function thumbHtml(game){
   var initial = game.name.trim().charAt(0).toUpperCase();
   if (game.img) {
     return '<img src="' + game.img + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<div class=&quot;ph&quot;>' + initial + '</div>\'">';
+  }
+  var brandBg = BRAND_FALLBACK_BG[game.name];
+  if (brandBg) {
+    return '<div class="ph" style="background:' + brandBg + ';color:#fff">' + initial + '</div>';
   }
   return '<div class="ph">' + initial + '</div>';
 }
@@ -471,7 +483,7 @@ function renderCatalog(){
 function loadMoreCatalog(){
   var list = state.filtered;
   if (state.rendered >= list.length){
-    els.catalogStatus.innerHTML = '<span>You’ve reached the end — ' + list.length + ' games</span>';
+    els.catalogStatus.innerHTML = '<span>You’ve reached the end — ' + list.length + ' products</span>';
     return;
   }
   var next = list.slice(state.rendered, state.rendered + CATALOG_BATCH);
@@ -479,7 +491,7 @@ function loadMoreCatalog(){
   state.rendered += next.length;
   els.catalogStatus.innerHTML = state.rendered < list.length
     ? '<span class="spinner"></span> Loading more…'
-    : '<span>You’ve reached the end — ' + list.length + ' games</span>';
+    : '<span>You’ve reached the end — ' + list.length + ' products</span>';
   keepFillingIfNoScrollbar(loadMoreCatalog);
 }
 
