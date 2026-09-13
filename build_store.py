@@ -10,8 +10,12 @@ What it does:
      plain/Global/SEA/Singapore listing over a single-country one.
   3. Fetches /v1/games/{code}/catalogue for each surviving game and picks
      the next-ranked variant if the top pick has gone dead/empty.
-  4. Converts each USD price to MMK at EXCHANGE_RATE and writes the result
-     back into store.html, between the GENERATED:GAMES_JSON markers.
+  4. Converts each USD price to MMK at EXCHANGE_RATE.
+  5. Fetches /v1/games/fields (which inputs the checkout form needs —
+     player id, server, character name) and /v1/games/servers (the actual
+     server list, when one is needed) for each game.
+  6. Writes the result back into store.html, between the
+     GENERATED:GAMES_JSON markers.
 
 Run it whenever you want to refresh prices/stock, or after changing
 EXCHANGE_RATE:
@@ -94,6 +98,34 @@ def fetch_catalogue(session, code):
         return None
 
 
+def fetch_fields(session, code):
+    """What input fields this game needs (userid, serverid, charname) plus
+    any eligibility notes. Falls back to a plain userid if the call fails."""
+    try:
+        r = session.post(f"{API}/games/fields", json={"game": code}, timeout=15)
+        data = r.json()
+        info = data.get("info") or {}
+        fields = info.get("fields") or ["userid"]
+        notes = info.get("notes") or ""
+        return fields, notes
+    except requests.RequestException:
+        return ["userid"], ""
+
+
+def fetch_servers(session, code):
+    """Server list for games that need one, or None when the game has no
+    servers (g2bulk returns 403 for that case — not a real error)."""
+    try:
+        r = session.post(f"{API}/games/servers", json={"game": code}, timeout=15)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        servers = data.get("servers")
+        return servers if servers else None
+    except requests.RequestException:
+        return None
+
+
 def main():
     session = requests.Session()
 
@@ -130,12 +162,21 @@ def main():
                 continue
             denoms.append({"n": c.get("name", ""), "u": usd, "m": round(usd * EXCHANGE_RATE)})
         denoms.sort(key=lambda d: d["u"])
+
+        fields, notes = fetch_fields(session, member["code"])
+        time.sleep(0.07)
+        servers = fetch_servers(session, member["code"]) if "serverid" in fields else None
+        time.sleep(0.07)
+
         result.append({
             "name": member["name"],
             "code": member["code"],
             "img": member.get("image_url"),
             "denoms": denoms,
             "startMmk": denoms[0]["m"] if denoms else None,
+            "fields": fields,
+            "notes": notes,
+            "servers": servers,
         })
         if (i + 1) % 25 == 0:
             print(f"  ...{i + 1}/{len(groups)}", file=sys.stderr)
