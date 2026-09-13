@@ -5,15 +5,17 @@ games/categories/products/catalogue are all public read endpoints.
 
 What it does:
   1. Fetches /v1/games (every direct top-up game g2bulk offers).
-  2. Collapses regional duplicates (e.g. 12 "Free Fire" variants, one per
-     country) down to a single representative per game, preferring a
-     plain/Global/SEA/Singapore listing over a single-country one.
-  3. Fetches /v1/games/{code}/catalogue for each surviving game and picks
-     the next-ranked variant if the top pick has gone dead/empty.
-  4. Converts each USD price to MMK at EXCHANGE_RATE.
-  5. Fetches /v1/games/fields (which inputs the checkout form needs —
-     player id, server, character name) and /v1/games/servers (the actual
-     server list, when one is needed) for each game.
+  2. Groups regional/variant duplicates under one game (e.g. all 12
+     "Free Fire" country listings become one "Free Fire" entry), but
+     — unlike the first version of this script — keeps every working
+     variant as a selectable category under that game, instead of
+     throwing the others away. A game with only one source listing just
+     gets a single "Standard" variant.
+  3. For every variant, fetches /v1/games/{code}/catalogue (prices),
+     /v1/games/fields (which inputs checkout needs) and, when a server
+     id is required, /v1/games/servers (the real server list).
+  4. Converts USD prices to MMK at EXCHANGE_RATE.
+  5. Pins Mobile Legends to the front of the list and flags it "hot".
   6. Writes the result back into store.html, between the
      GENERATED:GAMES_JSON markers.
 
@@ -37,10 +39,15 @@ import requests
 API = "https://api.g2bulk.com/v1"
 STORE_HTML = "store.html"
 EXCHANGE_RATE = 4325  # 1 USD in MMK — update as the rate moves
+PINNED_FIRST = "mobile legends"  # base name (lowercase) to always show first
+HOT_GAMES = {"mobile legends"}   # base names (lowercase) that get a Hot badge
 
-# Games whose display name is a raw internal code, not a real title, and
-# duplicate a properly-named entry elsewhere in the catalogue.
-MANUAL_EXCLUDE_CODES = {"lds_login"}  # same game as "lds" / Love and Deepspace
+# Games whose display name is a raw internal code, not a real title, or
+# that are a confirmed dead-duplicate of a properly-named entry.
+MANUAL_EXCLUDE_CODES = {
+    "lds_login",          # same game as "lds" / Love and Deepspace, code shown as its name
+    "magic_chest_gogo",   # typo'd duplicate of magic_chess_gogo
+}
 
 REGION_WORDS = [
     "Middle East", "South Africa", "South Korea", "Saudi Arabia", "New Zealand", "Hong Kong",
@@ -62,7 +69,7 @@ _word_pattern = re.compile(r"(?:^|[\s:\-(])(" + _alt + r")(?:$|(?=[\s():]))", re
 
 def base_name(name):
     """Strip region/variant qualifiers to find the underlying game name,
-    e.g. 'Freefire Indonesia' and 'Freefire Global' both -> 'freefire'."""
+    e.g. 'Freefire Indonesia' and 'Freefire Global' both -> 'Freefire'."""
     n = name
     prev = None
     while prev != n:
@@ -73,16 +80,31 @@ def base_name(name):
     return re.sub(r"\s+", " ", n).strip()
 
 
-def rank(member, base):
-    """Lower tuple sorts first. Prefer, in order: the plain/unsuffixed
-    name, a 'Global' listing, a SEA/Asia/Instant listing, a Singapore
-    listing, else the oldest (lowest id) entry."""
+def rank(member, base_l):
+    """Lower tuple sorts first — decides which variant is shown/selected
+    by default. Prefer, in order: the plain/unsuffixed name, a 'Global'
+    listing, a SEA/Asia/Instant listing, a Singapore listing, else the
+    oldest (lowest id) entry."""
     name_l = member["name"].lower()
-    exact = member["name"].strip().lower() == base
+    exact = name_l == base_l
     is_global = "global" in name_l
     is_neutral = any(w in name_l for w in ("sea", "asia", "instant"))
     is_sg = "singapore" in name_l or member["code"].lower().endswith("_sg")
     return (not exact, not is_global, not is_neutral, not is_sg, member["id"])
+
+
+def variant_label(name, base_display):
+    """Human label for a variant within its game, e.g. 'Mobile Legends
+    Brazil' with base 'Mobile Legends' -> 'Brazil'."""
+    idx = name.lower().find(base_display.lower())
+    if idx == -1:
+        return name
+    remainder = (name[:idx] + name[idx + len(base_display):]).strip(" :-()").strip()
+    return remainder if remainder else "Standard"
+
+
+def slugify(name):
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
 
 
 def fetch_catalogue(session, code):
@@ -99,31 +121,54 @@ def fetch_catalogue(session, code):
 
 
 def fetch_fields(session, code):
-    """What input fields this game needs (userid, serverid, charname) plus
-    any eligibility notes. Falls back to a plain userid if the call fails."""
     try:
         r = session.post(f"{API}/games/fields", json={"game": code}, timeout=15)
         data = r.json()
         info = data.get("info") or {}
-        fields = info.get("fields") or ["userid"]
-        notes = info.get("notes") or ""
-        return fields, notes
+        return info.get("fields") or ["userid"], info.get("notes") or ""
     except requests.RequestException:
         return ["userid"], ""
 
 
 def fetch_servers(session, code):
-    """Server list for games that need one, or None when the game has no
-    servers (g2bulk returns 403 for that case — not a real error)."""
     try:
         r = session.post(f"{API}/games/servers", json={"game": code}, timeout=15)
         if r.status_code != 200:
             return None
-        data = r.json()
-        servers = data.get("servers")
+        servers = r.json().get("servers")
         return servers if servers else None
     except requests.RequestException:
         return None
+
+
+def build_variant(session, member, label):
+    data = fetch_catalogue(session, member["code"])
+    time.sleep(0.05)
+    if not data:
+        return None
+    denoms = []
+    for c in data["catalogues"]:
+        usd = c.get("amount")
+        if not isinstance(usd, (int, float)):
+            continue
+        denoms.append({"n": c.get("name", ""), "u": usd, "m": round(usd * EXCHANGE_RATE)})
+    denoms.sort(key=lambda d: -d["u"])  # biggest first
+
+    fields, notes = fetch_fields(session, member["code"])
+    time.sleep(0.05)
+    servers = fetch_servers(session, member["code"]) if "serverid" in fields else None
+    if "serverid" in fields:
+        time.sleep(0.05)
+
+    return {
+        "label": label,
+        "code": member["code"],
+        "denoms": denoms,
+        "startMmk": denoms[-1]["m"] if denoms else None,
+        "fields": fields,
+        "notes": notes,
+        "servers": servers,
+    }
 
 
 def main():
@@ -133,56 +178,69 @@ def main():
     games = session.get(f"{API}/games", timeout=20).json()["games"]
 
     groups = collections.defaultdict(list)
+    base_display_by_key = {}
     for g in games:
         if g["code"].lower() == "test" or g["code"] in MANUAL_EXCLUDE_CODES:
             continue
-        groups[base_name(g["name"]).lower()].append(g)
+        base_display = base_name(g["name"])
+        key = base_display.lower()
+        base_display_by_key[key] = base_display
+        groups[key].append(g)
 
-    print(f"{len(games)} raw games -> {len(groups)} unique after dedup. Fetching prices...", file=sys.stderr)
+    print(f"{len(games)} raw games -> {len(groups)} unique games. Fetching prices/fields...", file=sys.stderr)
 
     result = []
     skipped = []
-    for i, (base, members) in enumerate(sorted(groups.items())):
-        ordered = sorted(members, key=lambda m: rank(m, base))
-        chosen = None
-        for cand in ordered:
-            data = fetch_catalogue(session, cand["code"])
-            time.sleep(0.07)
-            if data:
-                chosen = (cand, data)
-                break
-        if not chosen:
-            skipped.append(base)
-            continue
-        member, data = chosen
-        denoms = []
-        for c in data["catalogues"]:
-            usd = c.get("amount")
-            if not isinstance(usd, (int, float)):
-                continue
-            denoms.append({"n": c.get("name", ""), "u": usd, "m": round(usd * EXCHANGE_RATE)})
-        denoms.sort(key=lambda d: d["u"])
+    label_collisions_fixed = 0
 
-        fields, notes = fetch_fields(session, member["code"])
-        time.sleep(0.07)
-        servers = fetch_servers(session, member["code"]) if "serverid" in fields else None
-        time.sleep(0.07)
+    for i, (key, members) in enumerate(sorted(groups.items())):
+        base_display = base_display_by_key[key]
+        ordered = sorted(members, key=lambda m: rank(m, key))
+
+        labels = [variant_label(m["name"], base_display) for m in ordered]
+        # Disambiguate any label collision within this game (e.g. two
+        # "Standard"-labelled console/pc listings of the same title) using
+        # the tail of their code instead.
+        seen = collections.Counter(labels)
+        for idx, lbl in enumerate(labels):
+            if seen[lbl] > 1:
+                tail = ordered[idx]["code"].rsplit("_", 1)[-1]
+                labels[idx] = tail.upper() if len(tail) <= 3 else tail.capitalize()
+                label_collisions_fixed += 1
+
+        variants = []
+        for member, label in zip(ordered, labels):
+            v = build_variant(session, member, label)
+            if v:
+                variants.append(v)
+
+        if not variants:
+            skipped.append(base_display)
+            continue
 
         result.append({
-            "name": member["name"],
-            "code": member["code"],
-            "img": member.get("image_url"),
-            "denoms": denoms,
-            "startMmk": denoms[0]["m"] if denoms else None,
-            "fields": fields,
-            "notes": notes,
-            "servers": servers,
+            "name": base_display,
+            "slug": slugify(base_display),
+            "img": next((m.get("image_url") for m in ordered if m.get("image_url")), None),
+            "variants": variants,
+            "startMmk": min(v["startMmk"] for v in variants if v["startMmk"] is not None),
+            "hot": key in HOT_GAMES,
         })
-        if (i + 1) % 25 == 0:
+        if (i + 1) % 20 == 0:
             print(f"  ...{i + 1}/{len(groups)}", file=sys.stderr)
 
     result.sort(key=lambda g: g["name"].lower())
-    print(f"Done. {len(result)} games with live pricing. Skipped (no working variant): {skipped}", file=sys.stderr)
+    pinned = [g for g in result if g["name"].lower() == PINNED_FIRST]
+    rest = [g for g in result if g["name"].lower() != PINNED_FIRST]
+    result = pinned + rest
+
+    total_variants = sum(len(g["variants"]) for g in result)
+    print(
+        f"Done. {len(result)} games ({total_variants} variants total, "
+        f"{label_collisions_fixed} label collisions resolved). "
+        f"Skipped (no working variant): {skipped}",
+        file=sys.stderr,
+    )
 
     payload = json.dumps(result, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
 
